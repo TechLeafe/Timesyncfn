@@ -1,9 +1,7 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Box, Button, Chip, Dialog, IconButton, Tooltip, Typography } from "@mui/material";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import BeachAccessOutlinedIcon from "@mui/icons-material/BeachAccessOutlined";
@@ -12,19 +10,21 @@ import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlin
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
+import MonthCalendar from "../../Components/Calendar/MonthCalendar";
+import type { CalendarDayInfo, CalendarLegendItem } from "../../Components/Calendar/calendarTheme";
+import { useCalendarEvents } from "../../context/CalendarEventsContext";
 import { useCurrentUser } from "../../context/UserContext";
+/* Shared event store + helpers – the reusable calendar and the attendance
+   page read exactly the same data, so an event created here shows up there too */
+import {
+  HALF_DAY_SLOTS,
+  isSameDay,
+  toDateKey as toKey,
+  type CalendarEvent,
+  type CalendarEventType as EventType,
+  type HalfDaySlot,
+} from "../../data/calendarEvents";
 import { canManageCalendar } from "../../data/users";
-
-type EventType = "holiday" | "halfDay";
-type HalfDaySlot = "first" | "second";
-
-interface CalendarEvent {
-  title: string;
-  type: EventType;
-  halfDaySlot?: HalfDaySlot;
-  time?: string;
-  description?: string;
-}
 
 const FONT      = "var(--font-family)";
 const GREEN     = "#1B6B33";
@@ -33,15 +33,8 @@ const RED       = "#D42B2B";
 const BLUE      = "#1565C0";
 const BLUE_PALE = "#E3F2FD";
 const BLUE_SOFT = "#BBDEFB";
-const WEEKDAYS  = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-/* Half day working windows */
-const HALF_DAY_SLOTS: Record<HalfDaySlot, { label: string; window: string; range: string }> = {
-  first:  { label: "First Half",  window: "Before 2:00 PM", range: "9:30 AM – 2:00 PM" },
-  second: { label: "Second Half", window: "After 2:00 PM",  range: "2:00 PM – 6:30 PM" },
-};
-
-/* Neutral grey "overlay" tooltip – used for holiday cells and row actions */
+/* Neutral grey "overlay" tooltip – used for the row actions */
 const TOOLTIP_SX = {
   backgroundColor: "rgba(17, 24, 39, 0.9)",
   backdropFilter: "blur(6px)",
@@ -75,34 +68,11 @@ const TYPE_META: Record<EventType, { label: string; dot: string; bg: string; tex
   },
 };
 
-/* Initial Mock Events */
-const INITIAL_EVENTS: Record<string, CalendarEvent[]> = {
-  "2026-01-01": [{ title: "New Year's Day",        type: "holiday", description: "Office closed." }],
-  "2026-01-26": [{ title: "Republic Day",          type: "holiday", description: "National holiday." }],
-  "2026-03-04": [{ title: "Holi",                  type: "holiday", description: "Festival of colors." }],
-  "2026-04-03": [{ title: "Good Friday",           type: "holiday", description: "Public holiday." }],
-  "2026-05-01": [{ title: "Labour Day",            type: "holiday", description: "Workers' Day." }],
-  "2026-08-15": [{ title: "Independence Day",      type: "holiday", description: "National holiday." }],
-  "2026-09-15": [{ title: "Ganesh Chaturthi",      type: "holiday", description: "Office will remain closed." }],
-  "2026-09-18": [{ title: "Company Foundation Day",type: "holiday", time: "All Day", description: "Annual company holiday." }],
-  "2026-09-22": [{ title: "Team Review (Half Day)",  type: "halfDay", halfDaySlot: "second", description: "Company event." }],
-  "2026-10-02": [{ title: "Gandhi Jayanti",        type: "holiday", description: "National holiday." }],
-  "2026-10-20": [{ title: "Dussehra",              type: "holiday", description: "Office closed." }],
-  "2026-11-08": [{ title: "Diwali",                type: "holiday", description: "Festival of lights." }],
-  "2026-12-25": [{ title: "Christmas Day",         type: "holiday", description: "Christmas holiday." }],
-};
-
-const toKey = (d: Date) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-
-const isSameDay = (a: Date, b: Date) =>
-  a.getFullYear() === b.getFullYear() &&
-  a.getMonth()    === b.getMonth()    &&
-  a.getDate()     === b.getDate();
-
 function CompanyCalendar() {
   const today = new Date();
-  const [events, setEvents] = useState<Record<string, CalendarEvent[]>>(INITIAL_EVENTS);
+  /* Company calendar events live in the shared provider (CalendarEventsProvider)
+     so the attendance page always shows the holidays created here */
+  const { events, saveEvent, deleteEvent } = useCalendarEvents();
   const [visibleMonth, setVisibleMonth] = useState(
     new Date(today.getFullYear(), today.getMonth(), 1)
   );
@@ -123,33 +93,6 @@ function CompanyCalendar() {
   /* Edit / delete modal state */
   const [editingTarget, setEditingTarget] = useState<{ key: string; index: number } | null>(null);
   const [deleteTarget, setDeleteTarget]   = useState<{ key: string; index: number; title: string } | null>(null);
-
-  const weeks = useMemo(() => {
-    const year  = visibleMonth.getFullYear();
-    const month = visibleMonth.getMonth();
-    const firstDayOffset  = new Date(year, month, 1).getDay();
-    const daysInMonth     = new Date(year, month + 1, 0).getDate();
-    const daysInPrevMonth = new Date(year, month, 0).getDate();
-
-    const cells: { date: Date; inMonth: boolean }[] = [];
-
-    for (let i = firstDayOffset - 1; i >= 0; i--)
-      cells.push({ date: new Date(year, month - 1, daysInPrevMonth - i), inMonth: false });
-
-    for (let d = 1; d <= daysInMonth; d++)
-      cells.push({ date: new Date(year, month, d), inMonth: true });
-
-    while (cells.length % 7 !== 0 || cells.length < 35) {
-      const last = cells[cells.length - 1].date;
-      cells.push({ date: new Date(last.getFullYear(), last.getMonth(), last.getDate() + 1), inMonth: false });
-    }
-
-    const rows: { date: Date; inMonth: boolean }[][] = [];
-    for (let i = 0; i < cells.length; i += 7) rows.push(cells.slice(i, i + 7));
-    return rows;
-  }, [visibleMonth]);
-
-  const monthLabel = visibleMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
   const selectedDateLabel = selectedDate.toLocaleDateString("en-US", {
     month: "short", day: "numeric", year: "numeric",
@@ -193,14 +136,7 @@ function CompanyCalendar() {
   const handleConfirmDelete = () => {
     if (!deleteTarget) return;
 
-    setEvents((prev) => {
-      const next = { ...prev };
-      const list = [...(next[deleteTarget.key] ?? [])];
-      list.splice(deleteTarget.index, 1);
-      next[deleteTarget.key] = list;
-      return next;
-    });
-
+    deleteEvent(deleteTarget.key, deleteTarget.index);
     setDeleteTarget(null);
   };
 
@@ -216,28 +152,8 @@ function CompanyCalendar() {
       description: formDescription.trim() || undefined,
     };
 
-    if (editingTarget) {
-      /* Update the existing event (and move it if the date was changed) */
-      setEvents((prev) => {
-        const next = { ...prev };
-        const oldList = [...(next[editingTarget.key] ?? [])];
-        oldList.splice(editingTarget.index, 1);
-
-        if (editingTarget.key === formDate) {
-          oldList.splice(editingTarget.index, 0, savedEvent);
-          next[formDate] = oldList;
-        } else {
-          next[editingTarget.key] = oldList;
-          next[formDate] = [...(next[formDate] ?? []), savedEvent];
-        }
-        return next;
-      });
-    } else {
-      setEvents((prev) => ({
-        ...prev,
-        [formDate]: [...(prev[formDate] || []), savedEvent],
-      }));
-    }
+    /* The shared provider creates the event or moves the edited one */
+    saveEvent(editingTarget, formDate, savedEvent);
 
     // Update selected date to show the saved event
     const [y, m, d] = formDate.split("-").map(Number);
@@ -248,6 +164,28 @@ function CompanyCalendar() {
 
     closeEventModal();
   };
+
+  /* Day cell colours: holiday (red) / half day (blue) straight from the shared store */
+  const getDayInfo = (date: Date): CalendarDayInfo | undefined => {
+    const dayEvents = events[toKey(date)] ?? [];
+
+    const holiday = dayEvents.find((event) => event.type === "holiday");
+    if (holiday) return { tone: "red", tooltip: `🎉 ${holiday.title}` };
+
+    const halfDay = dayEvents.find((event) => event.type === "halfDay");
+    if (halfDay) {
+      const slotLabel = halfDay.halfDaySlot ? HALF_DAY_SLOTS[halfDay.halfDaySlot].label : "";
+      return { tone: "blue", tooltip: `🕐 ${halfDay.title}${slotLabel ? ` · ${slotLabel}` : ""}` };
+    }
+
+    return undefined;
+  };
+
+  /* Legend colours handed to the reusable calendar */
+  const legendItems: CalendarLegendItem[] = [
+    { color: RED, label: "Company Holiday" },
+    { color: BLUE, label: "Half Day" },
+  ];
 
   return (
     <Box sx={{ p: 0, fontFamily: FONT, WebkitFontSmoothing: "antialiased" }}>
@@ -322,251 +260,16 @@ function CompanyCalendar() {
           alignItems: "start",
         }}
       >
-        {/* ════ CALENDAR CARD ════ */}
-        <Box
-          sx={{
-            border: "1px solid #E5E7EB",
-            borderRadius: "14px",
-            backgroundColor: "#fff",
-            boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
-            overflow: "hidden",
-          }}
-        >
-          {/* Month navigation – Centered */}
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 2,
-              px: 3,
-              py: 2,
-              borderBottom: "1px solid #F3F4F6",
-            }}
-          >
-            <IconButton
-              size="small"
-              onClick={() => setVisibleMonth(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1))}
-              sx={{
-                border: "1px solid #E5E7EB",
-                borderRadius: "8px",
-                p: 0.6,
-                color: "#374151",
-                "&:hover": { backgroundColor: "#F9FAFB", borderColor: "#D1D5DB" },
-              }}
-            >
-              <ChevronLeftIcon sx={{ fontSize: 20 }} />
-            </IconButton>
-            <Typography
-              sx={{
-                fontFamily: FONT,
-                fontSize: 16,
-                fontWeight: 700,
-                color: "#111827",
-                minWidth: 160,
-                textAlign: "center",
-                letterSpacing: "-0.01em",
-              }}
-            >
-              {monthLabel}
-            </Typography>
-            <IconButton
-              size="small"
-              onClick={() => setVisibleMonth(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1))}
-              sx={{
-                border: "1px solid #E5E7EB",
-                borderRadius: "8px",
-                p: 0.6,
-                color: "#374151",
-                "&:hover": { backgroundColor: "#F9FAFB", borderColor: "#D1D5DB" },
-              }}
-            >
-              <ChevronRightIcon sx={{ fontSize: 20 }} />
-            </IconButton>
-          </Box>
-
-          {/* Grid body */}
-          <Box sx={{ px: 2, pt: 1.5, pb: 2 }}>
-            {/* Weekday headers */}
-            <Box sx={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", mb: 1 }}>
-              {WEEKDAYS.map((w) => (
-                <Typography
-                  key={w}
-                  align="center"
-                  sx={{
-                    fontFamily: FONT,
-                    fontSize: 12.5,
-                    fontWeight: 600,
-                    color: "#9CA3AF",
-                    py: 0.5,
-                    letterSpacing: "0.03em",
-                  }}
-                >
-                  {w}
-                </Typography>
-              ))}
-            </Box>
-
-            {/* Day rows */}
-            <Box sx={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              {weeks.map((row, ri) => (
-                <Box key={ri} sx={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "6px" }}>
-                  {row.map(({ date, inMonth }, ci) => {
-                    const key        = toKey(date);
-                    const dayEvts    = events[key] ?? [];
-                    const isHoliday  = dayEvts.some((e) => e.type === "holiday");
-                    const halfDayEvt = dayEvts.find((e) => e.type === "halfDay");
-                    const isHalfDay  = halfDayEvt !== undefined;
-                    const isSelected = isSameDay(date, selectedDate);
-                    const isToday    = isSameDay(date, today);
-                    const holidayName = isHoliday ? dayEvts.find(e => e.type === "holiday")?.title : "";
-                    const halfDayName = halfDayEvt?.title ?? "";
-                    const halfDaySlotLabel = halfDayEvt?.halfDaySlot ? HALF_DAY_SLOTS[halfDayEvt.halfDaySlot].label : "";
-
-                    /* Cell style logic – a holiday cell always stays red (never green) */
-                    let cellBg     = "transparent";
-                    let cellBorder = "1px solid #F3F4F6";
-                    let dateColor  = "#111827";
-                    let dateFw: number = 500;
-
-                    if (isHoliday) {
-                      /* RED cell for holidays – selected / hovered states are deeper red */
-                      cellBg     = isSelected ? "#FFCDD2" : "#FFEBEE";
-                      cellBorder = isSelected ? `1.5px solid ${RED}` : `1.5px solid #FFCDD2`;
-                      dateColor  = RED;
-                      dateFw     = 700;
-                    } else if (isHalfDay) {
-                      /* BLUE cell for half days */
-                      cellBg     = isSelected ? BLUE_SOFT : BLUE_PALE;
-                      cellBorder = isSelected ? `1.5px solid ${BLUE}` : `1.5px solid ${BLUE_SOFT}`;
-                      dateColor  = BLUE;
-                      dateFw     = 700;
-                    } else if (isSelected) {
-                      /* Empty date selected – neutral grey (never green) */
-                      cellBg     = "#F3F4F6";
-                      cellBorder = "1.5px solid #D1D5DB";
-                      dateColor  = "#111827";
-                      dateFw     = 700;
-                    }
-                    if (isToday && !isSelected && !isHoliday && !isHalfDay) {
-                      cellBorder = `1.5px solid #A5D6A7`;
-                    }
-
-                    const cellContent = (
-                      <Box
-                        onClick={() => setSelectedDate(date)}
-                        sx={{
-                          cursor: "pointer",
-                          borderRadius: "10px",
-                          height: 68,
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          backgroundColor: cellBg,
-                          border: cellBorder,
-                          opacity: inMonth ? 1 : 0.28,
-                          transition: "all 0.12s ease",
-                          "&:hover": {
-                            backgroundColor: isHoliday
-                              ? (isSelected ? "#FFC1C1" : "#FFCDD2")
-                              : isHalfDay
-                              ? (isSelected ? BLUE_SOFT : "#D6E9FB")
-                              : (isSelected ? "#E5E7EB" : "#F9FAFB"),
-                            borderColor: isHoliday
-                              ? `${RED}55`
-                              : isHalfDay
-                              ? `${BLUE}55`
-                              : isSelected
-                              ? "#D1D5DB"
-                              : "#E5E7EB",
-                            transform: "translateY(-1px)",
-                            boxShadow: "0 2px 6px rgba(0,0,0,0.07)",
-                          },
-                        }}
-                      >
-                        <Typography
-                          sx={{
-                            fontFamily: FONT,
-                            fontSize: 15,
-                            fontWeight: dateFw,
-                            color: isToday && !isSelected && !isHoliday && !isHalfDay ? GREEN : dateColor,
-                            lineHeight: 1,
-                          }}
-                        >
-                          {date.getDate()}
-                        </Typography>
-
-                        {/* Dot indicator */}
-                        {(isHoliday || isHalfDay) && (
-                          <Box
-                            sx={{
-                              width: 6,
-                              height: 6,
-                              borderRadius: "50%",
-                              backgroundColor: isHoliday ? RED : BLUE,
-                              mt: 0.75,
-                            }}
-                          />
-                        )}
-                      </Box>
-                    );
-
-                    /* Wrap with Tooltip for holiday / half day cells to show the name on hover */
-                    return (isHoliday || isHalfDay) && inMonth ? (
-                      <Tooltip
-                        key={ci}
-                        title={
-                          <Typography sx={{ fontFamily: FONT, fontSize: 12, fontWeight: 600, color: "inherit", letterSpacing: "-0.01em" }}>
-                            {isHoliday
-                              ? `🎉 ${holidayName}`
-                              : `🕐 ${halfDayName}${halfDaySlotLabel ? ` · ${halfDaySlotLabel}` : ""}`}
-                          </Typography>
-                        }
-                        arrow
-                        placement="top"
-                        slotProps={{
-                          tooltip: { sx: TOOLTIP_SX },
-                          arrow: { sx: TOOLTIP_ARROW_SX },
-                        }}
-                      >
-                        {cellContent}
-                      </Tooltip>
-                    ) : (
-                      <Box key={ci}>{cellContent}</Box>
-                    );
-                  })}
-                </Box>
-              ))}
-            </Box>
-
-            {/* ─ Legend ── */}
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                flexWrap: "wrap",
-                gap: 2.5,
-                mt: 2,
-                pt: 1.5,
-                borderTop: "1px solid #F3F4F6",
-              }}
-            >
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Box sx={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: RED }} />
-                <Typography sx={{ fontFamily: FONT, fontSize: 12.5, color: "#374151", fontWeight: 600 }}>
-                  Company Holiday
-                </Typography>
-              </Box>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Box sx={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: BLUE }} />
-                <Typography sx={{ fontFamily: FONT, fontSize: 12.5, color: "#374151", fontWeight: 600 }}>
-                  Half Day
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-        </Box>
+        {/* ════ CALENDAR CARD (shared reusable component) ════ */}
+        <MonthCalendar
+          visibleMonth={visibleMonth}
+          onMonthChange={setVisibleMonth}
+          selectedDate={selectedDate}
+          onSelectDate={setSelectedDate}
+          today={today}
+          getDayInfo={getDayInfo}
+          legendItems={legendItems}
+        />
 
         {/* ════ SIDE PANEL ════ */}
         <Box

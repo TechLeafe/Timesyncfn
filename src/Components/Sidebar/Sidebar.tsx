@@ -25,7 +25,11 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: "Timesheet",        icon: <AccessTimeOutlinedIcon      sx={{ fontSize: 20 }} /> },
-  { label: "Attendance",       icon: <FactCheckOutlinedIcon       sx={{ fontSize: 20 }} /> },
+  {
+    label: "Attendance",
+    icon:  <FactCheckOutlinedIcon sx={{ fontSize: 20 }} />,
+    path:  "/attendance",
+  },
   { label: "Monthly Report",   icon: <BarChartOutlinedIcon        sx={{ fontSize: 20 }} /> },
   {
     label: "Company Calendar",
