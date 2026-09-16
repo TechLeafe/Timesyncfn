@@ -1,0 +1,58 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+:root {
+  --font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+
+  /* Tech Leafe Brand Colors */
+  --brand-green-dark:  #1B6B33;   /* sidebar background */
+  --brand-green-mid:   #2E7D32;   /* hover state */
+  --brand-green-light: #4CAF50;   /* accent dots / active indicator */
+  --brand-green-pale:  #E8F5E9;   /* light bg tints */
+  --brand-red:         #D42B2B;   /* logo red / danger */
+  --brand-red-light:   #FFEBEE;
+
+  /* Layout */
+  --bg-main:           #F4F6F8;
+  --card-bg:           #FFFFFF;
+  --card-border:       #E5E7EB;
+
+  /* Sidebar */
+  --sidebar-bg:          var(--brand-green-dark);
+  --sidebar-hover-bg:    var(--brand-green-mid);
+  --sidebar-active-bg:   rgba(255, 255, 255, 0.15);
+  --sidebar-text:        rgba(255, 255, 255, 0.72);
+  --sidebar-active-text: #FFFFFF;
+
+  /* Primary action (green) */
+  --primary-color:  var(--brand-green-dark);
+  --primary-hover:  var(--brand-green-mid);
+
+  /* Text */
+  --text-primary:   #111827;
+  --text-secondary: #6B7280;
+
+  /* Holiday */
+  --holiday-bg:     var(--brand-red-light);
+  --holiday-text:   var(--brand-red);
+  --holiday-border: #FFCDD2;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: 14px;
+  color: var(--text-primary);
+  background-color: var(--bg-main);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
