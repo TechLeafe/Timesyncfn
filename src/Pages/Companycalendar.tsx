@@ -12,8 +12,8 @@ import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlin
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
-import { useCurrentUser } from "../../context/UserContext";
-import { canManageCalendar } from "../../data/users";
+import { useCurrentUser } from "../context/UserContext";
+import { canManageCalendar } from "../data/users";
 
 type EventType = "holiday" | "halfDay";
 type HalfDaySlot = "first" | "second";

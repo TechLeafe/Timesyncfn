@@ -1,0 +1,36 @@
+.admin-dashboard {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-main);
+}
+
+.admin-dashboard__main {
+  flex: 1;
+  min-width: 0;
+  padding: 20px 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.admin-dashboard__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.admin-dashboard__charts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+@media (max-width: 900px) {
+  .admin-dashboard {
+    flex-direction: column;
+  }
+
+  .admin-dashboard__main {
+    padding: 16px;
+  }
+}
