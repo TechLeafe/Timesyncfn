@@ -13,6 +13,7 @@ import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
+import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import techLeafeLogo from "../../../public/techleafelogo.png";
 
@@ -26,6 +27,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: "Dashboard",       icon: <SpaceDashboardRoundedIcon        sx={{ fontSize: 20 }}/>, path: "/admindashboard" },
+  { label: "Employee Creation", icon: <AccessTimeOutlinedIcon        sx={{ fontSize: 20 }} />, path: "/employee-creation" },
   { label: "Timesheet",        icon: <AccessTimeOutlinedIcon      sx={{ fontSize: 20 }} /> },
   { label: "Attendance",       icon: <FactCheckOutlinedIcon       sx={{ fontSize: 20 }} /> },
   { label: "Monthly Report",   icon: <BarChartOutlinedIcon        sx={{ fontSize: 20 }} /> },
@@ -33,6 +35,11 @@ const navItems: NavItem[] = [
     label: "Company Calendar",
     icon:  <CalendarMonthOutlinedIcon sx={{ fontSize: 20 }} />,
     path:  "/calendar",
+  },
+  {
+    label: "Leaves and Permissions",
+    icon:  <EventAvailableOutlinedIcon sx={{ fontSize: 20 }} />,
+    path:  "/leaves-permissions",
   },
 ];
 

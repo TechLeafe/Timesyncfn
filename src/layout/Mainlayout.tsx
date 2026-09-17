@@ -8,8 +8,9 @@ import "./Mainlayout.css";
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/employees": "Employees",
-  "/employee/create": "Employee Creation",
+  "/employee-creation": "Employee Creation",
   "/calendar": "Company Calendar",
+  "/leaves-permissions": "Leaves and Permissions",
   "/checkin-checkout": "Check In / Check Out",
   "/roles": "Roles",
   "/settings": "Settings",
