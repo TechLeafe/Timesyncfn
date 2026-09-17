@@ -5,18 +5,20 @@
 }
 
 .admin-dashboard__main {
-  flex: 1;
   min-width: 0;
-  padding: 20px 28px 32px;
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
 .admin-dashboard__stats {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
   gap: 16px;
+}
+
+.admin-dashboard__stats > * {
+  grid-column: span 4;
 }
 
 .admin-dashboard__charts {
@@ -32,5 +34,16 @@
 
   .admin-dashboard__main {
     padding: 16px;
+  }
+
+  .admin-dashboard__stats > * {
+    grid-column: span 6;
+  }
+}
+
+/* Mobile: 12 columns = 1 card per row */
+@media (max-width: 600px) {
+  .admin-dashboard__stats > * {
+    grid-column: span 12;
   }
 }

@@ -8,7 +8,7 @@ import {
   ListItemText,
   Divider,
 } from "@mui/material";
-import SpaceDashboardRoundedIcon from "@mui/icons-material/AccessTimeOutlined";
+import SpaceDashboardRoundedIcon from "@mui/icons-material/SpaceDashboardRounded";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
@@ -25,15 +25,11 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { label: "Dashboard",       icon: <SpaceDashboardRoundedIcon        sx={{ fontSize: 20 }}/>, path: "/admindashboard" },
-  { label: "Timesheet",        icon: <AccessTimeOutlinedIcon      sx={{ fontSize: 20 }} /> },
-  { label: "Attendance",       icon: <FactCheckOutlinedIcon       sx={{ fontSize: 20 }} /> },
-  { label: "Monthly Report",   icon: <BarChartOutlinedIcon        sx={{ fontSize: 20 }} /> },
-  {
-    label: "Company Calendar",
-    icon:  <CalendarMonthOutlinedIcon sx={{ fontSize: 20 }} />,
-    path:  "/calendar",
-  },
+  { label: "Dashboard", icon: <SpaceDashboardRoundedIcon sx={{ fontSize: 20 }}/>, path: "/admindashboard" },
+  { label: "Timesheet", icon: <AccessTimeOutlinedIcon sx={{ fontSize: 20 }} /> },
+  { label: "Attendance", icon: <FactCheckOutlinedIcon sx={{ fontSize: 20 }} /> },
+  { label: "Monthly Report", icon: <BarChartOutlinedIcon sx={{ fontSize: 20 }} /> },
+  { label: "Company Calendar", icon:  <CalendarMonthOutlinedIcon sx={{ fontSize: 20 }} />,path:  "/calendar",},
 ];
 
 const FONT       = "var(--font-family)";

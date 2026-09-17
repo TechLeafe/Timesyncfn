@@ -13,12 +13,10 @@ interface ProjectsPieChartProps {
   data: ProjectSlice[];
 }
 
-const BLUE_SHADES = [
-  "#2160c4",
-  "#5b8def",
-  "#123b77",
-  "#93b8f2",
-  "#0b2545",
+const GREEN_SHADES = [
+  "#1B6B33",
+  "#2E7D32",
+  "#4CAF50",
 ];
 
 const ProjectsPieChart = ({
@@ -38,7 +36,7 @@ const ProjectsPieChart = ({
                 id: index,
                 label: slice.label,
                 value: slice.value,
-                color: BLUE_SHADES[index % BLUE_SHADES.length],
+                color: GREEN_SHADES[index % GREEN_SHADES.length],
               })),
               innerRadius: 55,
               outerRadius: 100,

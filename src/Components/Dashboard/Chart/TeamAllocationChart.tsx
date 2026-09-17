@@ -26,7 +26,7 @@ const TeamAllocationChart = ({
         <BarChart
           dataset={data as unknown as Record<string, unknown>[]}
           xAxis={[{ scaleType: "band", dataKey: "project", tickLabelStyle: { fontSize: 12 } }]}
-          series={[{ dataKey: "members", label: "Team members", color: "#2160c4" }]}
+          series={[{ dataKey: "members", label: "Team members", color: "#4CAF50" }]}
           height={260}
           borderRadius={6}
           hideLegend

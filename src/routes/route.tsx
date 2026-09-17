@@ -1,7 +1,8 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import MainLayout from "../layout/Mainlayout";
 import CompanyCalendar from "../Pages/Companycalendar";
-import Admin from "../Pages/Admin/AdminDashboard";
+import Admin from "../Pages/Dashboard/AdminDashboard";
+import EmployeeDashboard from "../Pages/Dashboard/EmployeeDashboard";
 
 export const route = createBrowserRouter([
     {
@@ -15,6 +16,10 @@ export const route = createBrowserRouter([
             {
                 path: "admindashboard",
                 element: <Admin />
+            },
+            {
+                path: "employeedashboard",
+                element: <EmployeeDashboard />
             },
             {
                 path: "calendar",

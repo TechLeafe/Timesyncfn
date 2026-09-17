@@ -15,12 +15,16 @@ import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import { useCurrentUser } from "../../context/UserContext";
 import { USERS, type UserProfile } from "../../data/users";
 
+import { useNavigate } from "react-router-dom";
+
 const FONT = "var(--font-family, 'Inter', sans-serif)";
 
 export default function ProfileDropdown() {
   const { currentUser, setCurrentUser } = useCurrentUser(); // Default: Dhamini (HR Manager)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+
+  const navigate = useNavigate();
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -30,10 +34,28 @@ export default function ProfileDropdown() {
     setAnchorEl(null);
   };
 
-  const handleSelectUser = (user: UserProfile) => {
-    setCurrentUser(user);
-    handleClose();
-  };
+const handleSelectUser = (user: UserProfile) => {
+  setCurrentUser(user);
+  handleClose();
+
+  switch (user.role) {
+    case "Admin":
+      navigate("/admindashboard");
+      break;
+
+    case "HR Manager":
+      navigate("/admindashboard");
+      break;
+
+    case "Employee":
+      navigate("/employeedashboard");
+      break;
+
+    default:
+      navigate("/admindashboard");
+      break;
+  }
+};
 
   return (
     <Box>
