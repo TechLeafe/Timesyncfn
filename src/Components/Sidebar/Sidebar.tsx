@@ -25,11 +25,19 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { label: "Dashboard", icon: <SpaceDashboardRoundedIcon sx={{ fontSize: 20 }}/>, path: "/admindashboard" },
-  { label: "Timesheet", icon: <AccessTimeOutlinedIcon sx={{ fontSize: 20 }} /> },
-  { label: "Attendance", icon: <FactCheckOutlinedIcon sx={{ fontSize: 20 }} /> },
-  { label: "Monthly Report", icon: <BarChartOutlinedIcon sx={{ fontSize: 20 }} /> },
-  { label: "Company Calendar", icon:  <CalendarMonthOutlinedIcon sx={{ fontSize: 20 }} />,path:  "/calendar",},
+  { label: "Dashboard",       icon: <SpaceDashboardRoundedIcon        sx={{ fontSize: 20 }}/>, path: "/admindashboard" },
+  { label: "Timesheet",        icon: <AccessTimeOutlinedIcon      sx={{ fontSize: 20 }} /> },
+  {
+    label: "Attendance",
+    icon:  <FactCheckOutlinedIcon sx={{ fontSize: 20 }} />,
+    path:  "/attendance",
+  },
+  { label: "Monthly Report",   icon: <BarChartOutlinedIcon        sx={{ fontSize: 20 }} /> },
+  {
+    label: "Company Calendar",
+    icon:  <CalendarMonthOutlinedIcon sx={{ fontSize: 20 }} />,
+    path:  "/calendar",
+  },
 ];
 
 const FONT       = "var(--font-family)";

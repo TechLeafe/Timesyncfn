@@ -44,7 +44,7 @@ const handleSelectUser = (user: UserProfile) => {
       break;
 
     case "HR Manager":
-      navigate("/admindashboard");
+      navigate("/hrdashboard");
       break;
 
     case "Employee":
