@@ -6,10 +6,11 @@ import ProfileDropdown from "../Components/ProfileDropdown/ProfileDropdown";
 import "./Mainlayout.css";
 
 const pageTitles: Record<string, string> = {
-  "/dashboard": "Dashboard",
+  "/admindashboard": "Dashboard",
   "/employees": "Employees",
   "/employee-creation": "Employee Creation",
   "/calendar": "Company Calendar",
+  "/attendance": "Attendance",
   "/leaves-permissions": "Leaves and Permissions",
   "/checkin-checkout": "Check In / Check Out",
   "/roles": "Roles",
@@ -19,7 +20,7 @@ const pageTitles: Record<string, string> = {
 const MainLayout = () => {
   const { pathname } = useLocation();
 
-  const pageTitle = pageTitles[pathname] || "Company Calendar";
+  const pageTitle = pageTitles[pathname] ;
 
   return (
     <Box className="main-layout">

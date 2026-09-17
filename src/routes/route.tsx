@@ -1,8 +1,10 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import MainLayout from "../layout/Mainlayout";
 import CompanyCalendar from "../Pages/Companycalendar";
-import Admin from "../Pages/Admin/AdminDashboard";
-import EmployeeCreation from "../Pages/Admin/Employee_Creation";
+import Attendance from "../Pages/Attendance";
+import Admin from "../Pages/Dashboard/AdminDashboard";
+import EmployeeDashboard from "../Pages/Dashboard/EmployeeDashboard";
+import Employee_Creation from "../Pages/Employee_Creation";
 import LeavesPermissions from "../Pages/LeavesPermissions";
 
 export const route = createBrowserRouter([
@@ -19,16 +21,22 @@ export const route = createBrowserRouter([
                 element: <Admin />
             },
             {
-                path: "employee-creation",
-                element: <EmployeeCreation />,
-            },
-            {
                 path: "calendar",
                 element: <CompanyCalendar />,
             },
             {
+                path: "attendance",
+                element: <Attendance />,
+            },            {
+                path: "employeedashboard",
+                element: <EmployeeDashboard />
+            },
+             {
+                path: "employee-creation",
+                element: <Employee_Creation />,
+            },            {
                 path: "leaves-permissions",
-                element: <LeavesPermissions />,
+                element: <LeavesPermissions />
             },
         ],
     },

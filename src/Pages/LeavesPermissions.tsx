@@ -25,6 +25,11 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutlined";
 import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutlined";
+import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
+import ThumbUpOutlinedIcon from "@mui/icons-material/ThumbUpOutlined";
+import PendingActionsOutlinedIcon from "@mui/icons-material/PendingActionsOutlined";
+import HighlightOffOutlinedIcon from "@mui/icons-material/HighlightOffOutlined";
 import { useCurrentUser } from "../context/UserContext";
 
 type RequestType = "permission" | "leave";
@@ -44,6 +49,7 @@ interface LeaveRequest {
   endTime?: string;
   reason: string;
   status: RequestStatus;
+  createdAt: string;
 }
 
 interface RequestForm {
@@ -56,23 +62,24 @@ interface RequestForm {
   reason: string;
 }
 
-interface EmployeeSummary {
-  employeeId: string;
-  employeeName: string;
-  clApproved: number;
-  slApproved: number;
-  permissionsApproved: number;
-  pendingCount: number;
-}
-
 const STORAGE_KEY = "timesync-leave-requests";
 const GREEN = "#1B6B33";
 const GREEN_MID = "#2E7D32";
 const GREEN_PALE = "#E8F5E9";
 const BORDER = "#DDE9DF";
 const RED = "#B42318";
+const RED_PALE = "#FDECEC";
+const AMBER = "#9A6700";
+const AMBER_PALE = "#FFF7E6";
 const FONT = "var(--font-family)";
 const LABEL_WIDTH = 125;
+
+// Fixed entitlement values. There is no HR-configured entitlement source yet,
+// so these are static totals rather than derived data.
+const CL_GRANTED = 12;
+const SL_GRANTED = 12;
+const PERMISSION_GRANTED_HOURS = 24;
+
 const EMPTY_FORM: RequestForm = {
   leaveType: "CL",
   date: "",
@@ -96,40 +103,22 @@ const formatDate = (value?: string) => value
   ? new Date(`${value}T00:00:00`).toLocaleDateString("en-IN")
   : "-";
 
-// Builds a per-employee summary of leaves/permissions already approved, plus
-// how many requests from them are still pending review. Derived entirely
-// from the requests already on file — not a separate data source.
-const buildEmployeeSummaries = (requests: LeaveRequest[]): EmployeeSummary[] => {
-  const byEmployee = new Map<string, EmployeeSummary>();
+const diffDaysInclusive = (start: string, end: string) =>
+  Math.round((new Date(`${end}T00:00:00`).getTime() - new Date(`${start}T00:00:00`).getTime()) / 86400000) + 1;
 
-  requests.forEach((request) => {
-    const existing = byEmployee.get(request.employeeId) ?? {
-      employeeId: request.employeeId,
-      employeeName: request.employeeName,
-      clApproved: 0,
-      slApproved: 0,
-      permissionsApproved: 0,
-      pendingCount: 0,
-    };
-
-    if (request.status === "Approved") {
-      if (request.type === "leave" && request.leaveType === "CL") existing.clApproved += 1;
-      if (request.type === "leave" && request.leaveType === "SL") existing.slApproved += 1;
-      if (request.type === "permission") existing.permissionsApproved += 1;
-    }
-    if (request.status === "Pending") existing.pendingCount += 1;
-
-    byEmployee.set(request.employeeId, existing);
-  });
-
-  return Array.from(byEmployee.values()).sort((a, b) => a.employeeName.localeCompare(b.employeeName));
+const timeToMinutes = (time: string) => {
+  const [hours, minutes] = time.split(":").map(Number);
+  return hours * 60 + minutes;
 };
+
+const diffHours = (start: string, end: string) => (timeToMinutes(end) - timeToMinutes(start)) / 60;
 
 function LeavesPermissions() {
   const { currentUser } = useCurrentUser();
   const isHr = currentUser.role === "HR Manager" || currentUser.role === "Admin";
   const [requests, setRequests] = useState<LeaveRequest[]>(readRequests);
   const [requestType, setRequestType] = useState<RequestType | null>(null);
+  const [showApplyOptions, setShowApplyOptions] = useState(false);
   const [form, setForm] = useState<RequestForm>(EMPTY_FORM);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
@@ -141,7 +130,6 @@ function LeavesPermissions() {
 
   const employeeRequests = requests.filter((request) => request.employeeId === currentUser.id);
   const pendingRequests = requests.filter((request) => request.status === "Pending");
-  const employeeSummaries = buildEmployeeSummaries(requests);
 
   const updateField = (field: keyof RequestForm, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -153,12 +141,14 @@ function LeavesPermissions() {
     setForm(EMPTY_FORM);
     setEditingId(null);
     setRequestType(null);
+    setShowApplyOptions(false);
     setError("");
   };
 
-  const selectCard = (type: RequestType) => {
-    if (editingId) return; // don't switch cards mid-edit
+  const openForm = (type: RequestType, leaveType?: LeaveType) => {
     setRequestType(type);
+    setShowApplyOptions(false);
+    setForm((current) => ({ ...current, leaveType: leaveType ?? current.leaveType }));
     setError("");
   };
 
@@ -187,6 +177,8 @@ function LeavesPermissions() {
       }
     }
 
+    const original = editingId ? requests.find((request) => request.id === editingId) : undefined;
+
     const nextRequest: LeaveRequest = {
       id: editingId ?? crypto.randomUUID(),
       type: requestType,
@@ -200,6 +192,7 @@ function LeavesPermissions() {
       endTime: requestType === "permission" ? form.endTime : undefined,
       reason: form.reason.trim(),
       status: "Pending",
+      createdAt: original?.createdAt ?? new Date().toISOString(),
     };
 
     setRequests((current) => editingId
@@ -212,6 +205,7 @@ function LeavesPermissions() {
   const editRequest = (request: LeaveRequest) => {
     setRequestType(request.type);
     setEditingId(request.id);
+    setShowApplyOptions(false);
     setForm({
       leaveType: request.leaveType ?? "CL",
       date: request.date ?? "",
@@ -230,12 +224,25 @@ function LeavesPermissions() {
     setMessage("Request deleted.");
   };
 
-  // Balances (12 CL, 12 SL, 24 permission hours) are fixed display values only —
-  // approving or rejecting a request does not deduct from them.
   const updateStatus = (id: string, status: RequestStatus) => {
     setRequests((current) => current.map((request) => request.id === id ? { ...request, status } : request));
     setMessage(`Request ${status.toLowerCase()}.`);
   };
+
+  // Balances are computed live from approved requests, so approving or
+  // rejecting a request immediately changes what these totals show —
+  // there is no separate counter to keep in sync.
+  const approvedDays = (leaveType: LeaveType) => employeeRequests
+    .filter((request) => request.type === "leave" && request.leaveType === leaveType && request.status === "Approved")
+    .reduce((sum, request) => sum + diffDaysInclusive(request.startDate!, request.endDate!), 0);
+
+  const approvedPermissionHours = employeeRequests
+    .filter((request) => request.type === "permission" && request.status === "Approved")
+    .reduce((sum, request) => sum + diffHours(request.startTime!, request.endTime!), 0);
+
+  const clRemaining = Math.max(CL_GRANTED - approvedDays("CL"), 0);
+  const slRemaining = Math.max(SL_GRANTED - approvedDays("SL"), 0);
+  const permissionRemaining = Math.max(Math.round((PERMISSION_GRANTED_HOURS - approvedPermissionHours) * 10) / 10, 0);
 
   return (
     <Box sx={{ maxWidth: 1240, mx: "auto", width: "100%", px: { xs: 2, md: 4 }, py: 4 }}>
@@ -244,35 +251,23 @@ function LeavesPermissions() {
           <Typography sx={{ color: GREEN, fontFamily: FONT, fontSize: { xs: 28, md: 36 }, fontWeight: 800 }}>Leaves and Permissions</Typography>
           <Typography sx={{ color: "#66756A", fontFamily: FONT, mt: 0.5 }}>{isHr ? "Review employee leave and permission requests." : "Request time away and track your approvals."}</Typography>
         </Box>
-        <Chip label={isHr ? `${pendingRequests.length} pending request${pendingRequests.length === 1 ? "" : "s"}` : "Employee self-service"} sx={{ alignSelf: { xs: "flex-start", sm: "center" }, backgroundColor: GREEN_PALE, color: GREEN, fontFamily: FONT, fontWeight: 600 }} />
+        {!isHr && (
+          <Chip label="Employee self-service" sx={{ alignSelf: { xs: "flex-start", sm: "center" }, backgroundColor: GREEN_PALE, color: GREEN, fontFamily: FONT, fontWeight: 600 }} />
+        )}
       </Stack>
-
-      {!isHr && (
-        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" }, gap: 2, mb: 3 }}>
-          <BalanceCard label="Casual Leave (CL)" value="12" unit="Days available" icon={<EventAvailableOutlinedIcon />} />
-          <BalanceCard label="Sick Leave (SL)" value="12" unit="Days available" icon={<AccessTimeOutlinedIcon />} />
-          <BalanceCard label="Permissions" value="24" unit="Hours available today" icon={<FactCheckOutlinedIcon />} />
-        </Box>
-      )}
 
       {message && <Alert severity="success" onClose={() => setMessage("")} sx={{ mb: 2 }}>{message}</Alert>}
       {error && <Alert severity="error" onClose={() => setError("")} sx={{ mb: 2 }}>{error}</Alert>}
 
       {!isHr && <>
-        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" }, gap: 2, mb: 3 }}>
-          <RequestTypeCard
-            title="Get Permission"
-            description="Step out during the day for a few hours."
-            icon={<AccessTimeOutlinedIcon />}
-            selected={requestType === "permission"}
-            onClick={() => selectCard("permission")}
-          />
-          <RequestTypeCard
-            title="Get Leave"
-            description="Request one or more full days off."
-            icon={<EventAvailableOutlinedIcon />}
-            selected={requestType === "leave"}
-            onClick={() => selectCard("leave")}
+        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)" }, gap: 2, mb: 3 }}>
+          <SimpleBalanceCard label="Casual Leave (CL)" value={clRemaining} unit="days left" icon={<EventAvailableOutlinedIcon />} />
+          <SimpleBalanceCard label="Sick Leave (SL)" value={slRemaining} unit="days left" icon={<AccessTimeOutlinedIcon />} />
+          <SimpleBalanceCard label="Permissions" value={permissionRemaining} unit="hrs left" icon={<FactCheckOutlinedIcon />} />
+          <ApplyCard
+            expanded={showApplyOptions}
+            onToggle={() => setShowApplyOptions((current) => !current)}
+            onPick={(type, leaveType) => openForm(type, leaveType)}
           />
         </Box>
 
@@ -283,34 +278,13 @@ function LeavesPermissions() {
             {requestType === "permission" ? (
               <Stack spacing={2.5}>
                 <FieldRow label="Date">
-                  <TextField
-                    fullWidth
-                    size="small"
-                    type="date"
-                    value={form.date}
-                    onChange={(event) => updateField("date", event.target.value)}
-                    slotProps={{ inputLabel: { shrink: true } }}
-                  />
+                  <TextField fullWidth size="small" type="date" value={form.date} onChange={(event) => updateField("date", event.target.value)} slotProps={{ inputLabel: { shrink: true } }} />
                 </FieldRow>
                 <FieldRow label="Start time">
-                  <TextField
-                    fullWidth
-                    size="small"
-                    type="time"
-                    value={form.startTime}
-                    onChange={(event) => updateField("startTime", event.target.value)}
-                    slotProps={{ inputLabel: { shrink: true } }}
-                  />
+                  <TextField fullWidth size="small" type="time" value={form.startTime} onChange={(event) => updateField("startTime", event.target.value)} slotProps={{ inputLabel: { shrink: true } }} />
                 </FieldRow>
                 <FieldRow label="End time">
-                  <TextField
-                    fullWidth
-                    size="small"
-                    type="time"
-                    value={form.endTime}
-                    onChange={(event) => updateField("endTime", event.target.value)}
-                    slotProps={{ inputLabel: { shrink: true } }}
-                  />
+                  <TextField fullWidth size="small" type="time" value={form.endTime} onChange={(event) => updateField("endTime", event.target.value)} slotProps={{ inputLabel: { shrink: true } }} />
                 </FieldRow>
                 <FieldRow label="Reason">
                   <TextField fullWidth size="small" value={form.reason} onChange={(event) => updateField("reason", event.target.value)} />
@@ -327,24 +301,10 @@ function LeavesPermissions() {
                   </FormControl>
                 </FieldRow>
                 <FieldRow label="Start date">
-                  <TextField
-                    fullWidth
-                    size="small"
-                    type="date"
-                    value={form.startDate}
-                    onChange={(event) => updateField("startDate", event.target.value)}
-                    slotProps={{ inputLabel: { shrink: true } }}
-                  />
+                  <TextField fullWidth size="small" type="date" value={form.startDate} onChange={(event) => updateField("startDate", event.target.value)} slotProps={{ inputLabel: { shrink: true } }} />
                 </FieldRow>
                 <FieldRow label="End date">
-                  <TextField
-                    fullWidth
-                    size="small"
-                    type="date"
-                    value={form.endDate}
-                    onChange={(event) => updateField("endDate", event.target.value)}
-                    slotProps={{ inputLabel: { shrink: true } }}
-                  />
+                  <TextField fullWidth size="small" type="date" value={form.endDate} onChange={(event) => updateField("endDate", event.target.value)} slotProps={{ inputLabel: { shrink: true } }} />
                 </FieldRow>
                 <FieldRow label="Reason">
                   <TextField fullWidth size="small" value={form.reason} onChange={(event) => updateField("reason", event.target.value)} />
@@ -362,42 +322,8 @@ function LeavesPermissions() {
         <RequestTable requests={employeeRequests} onEdit={editRequest} onDelete={deleteRequest} />
       </>}
 
-      {isHr && <>
-        <EmployeeSummaryTable summaries={employeeSummaries} />
-        <Box sx={{ mt: 3 }}>
-          <HrRequestTable requests={pendingRequests} onStatusChange={updateStatus} />
-        </Box>
-      </>}
+      {isHr && <AdminLeaveDashboard requests={requests} pendingCount={pendingRequests.length} onStatusChange={updateStatus} />}
     </Box>
-  );
-}
-
-function RequestTypeCard({ title, description, icon, selected, onClick }: { title: string; description: string; icon: ReactNode; selected: boolean; onClick: () => void }) {
-  return (
-    <Paper
-      component="button"
-      onClick={onClick}
-      elevation={0}
-      sx={{
-        alignItems: "flex-start",
-        backgroundColor: selected ? GREEN_PALE : "#FFFFFF",
-        border: `2px solid ${selected ? GREEN : BORDER}`,
-        borderRadius: 2,
-        cursor: "pointer",
-        display: "flex",
-        flexDirection: "column",
-        fontFamily: FONT,
-        gap: 1,
-        p: 2.5,
-        textAlign: "left",
-        transition: "border-color 0.15s ease, background-color 0.15s ease",
-        "&:hover": { borderColor: GREEN },
-      }}
-    >
-      <Box sx={{ alignItems: "center", backgroundColor: selected ? "#FFFFFF" : GREEN_PALE, borderRadius: "50%", color: GREEN_MID, display: "flex", height: 40, justifyContent: "center", width: 40 }}>{icon}</Box>
-      <Typography sx={{ color: GREEN, fontFamily: FONT, fontSize: 18, fontWeight: 700 }}>{title}</Typography>
-      <Typography sx={{ color: "#66756A", fontFamily: FONT, fontSize: 14 }}>{description}</Typography>
-    </Paper>
   );
 }
 
@@ -410,70 +336,231 @@ function FieldRow({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-function BalanceCard({ label, value, unit, icon }: { label: string; value: string; unit: string; icon: ReactNode }) {
-  return <Paper elevation={0} sx={{ border: `1px solid ${BORDER}`, borderRadius: 2, p: 2.5 }}><Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between" }}><Box><Typography sx={{ color: "#66756A", fontFamily: FONT, fontSize: 14 }}>{label}</Typography><Typography sx={{ color: GREEN, fontFamily: FONT, fontSize: 32, fontWeight: 800, lineHeight: 1.2 }}>{value}</Typography><Typography sx={{ color: "#8A978D", fontFamily: FONT, fontSize: 12 }}>{unit}</Typography></Box><Box sx={{ alignItems: "center", backgroundColor: GREEN_PALE, borderRadius: "50%", color: GREEN_MID, display: "flex", height: 44, justifyContent: "center", width: 44 }}>{icon}</Box></Stack></Paper>;
+function SimpleBalanceCard({ label, value, unit, icon }: { label: string; value: number; unit: string; icon: ReactNode }) {
+  return (
+    <Paper elevation={0} sx={{ border: `1px solid ${BORDER}`, borderRadius: 2, p: 2.5 }}>
+      <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between" }}>
+        <Box>
+          <Typography sx={{ color: "#66756A", fontFamily: FONT, fontSize: 14 }}>{label}</Typography>
+          <Typography sx={{ color: GREEN, fontFamily: FONT, fontSize: 32, fontWeight: 800, lineHeight: 1.2 }}>{value}</Typography>
+          <Typography sx={{ color: "#8A978D", fontFamily: FONT, fontSize: 12 }}>{unit}</Typography>
+        </Box>
+        <Box sx={{ alignItems: "center", backgroundColor: GREEN_PALE, borderRadius: "50%", color: GREEN_MID, display: "flex", height: 44, justifyContent: "center", width: 44, flexShrink: 0 }}>{icon}</Box>
+      </Stack>
+    </Paper>
+  );
 }
 
-function EmployeeSummaryTable({ summaries }: { summaries: EmployeeSummary[] }) {
+function ApplyCard({ expanded, onToggle, onPick }: { expanded: boolean; onToggle: () => void; onPick: (type: RequestType, leaveType?: LeaveType) => void }) {
   return (
-    <Paper elevation={0} sx={{ border: `1px solid ${BORDER}`, borderRadius: 2, overflow: "hidden" }}>
-      <Box sx={{ backgroundColor: GREEN_PALE, px: 2.5, py: 1.75 }}>
-        <Typography sx={{ color: GREEN, fontFamily: FONT, fontSize: 18, fontWeight: 700 }}>Employee leave summary</Typography>
-      </Box>
-      {summaries.length ? (
-        <Box sx={{ overflowX: "auto" }}>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Employee</TableCell>
-                <TableCell align="right">CL taken</TableCell>
-                <TableCell align="right">SL taken</TableCell>
-                <TableCell align="right">Permissions taken</TableCell>
-                <TableCell align="right">Pending requests</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {summaries.map((summary) => (
-                <TableRow key={summary.employeeId}>
-                  <TableCell sx={{ fontFamily: FONT, fontWeight: 600 }}>{summary.employeeName}</TableCell>
-                  <TableCell align="right" sx={{ fontFamily: FONT }}>{summary.clApproved}</TableCell>
-                  <TableCell align="right" sx={{ fontFamily: FONT }}>{summary.slApproved}</TableCell>
-                  <TableCell align="right" sx={{ fontFamily: FONT }}>{summary.permissionsApproved}</TableCell>
-                  <TableCell align="right" sx={{ fontFamily: FONT }}>
-                    {summary.pendingCount > 0
-                      ? <Chip label={summary.pendingCount} size="small" sx={{ backgroundColor: "#FFF7E6", color: "#9A6700", fontWeight: 700 }} />
-                      : "-"}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Box>
+    <Paper elevation={0} sx={{ border: `1px dashed ${GREEN}`, borderRadius: 2, p: 2.5, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", gap: 1.5 }}>
+      {!expanded ? (
+        <Button
+          onClick={onToggle}
+          startIcon={<AddCircleOutlineIcon />}
+          sx={{ color: GREEN, fontFamily: FONT, fontWeight: 700, textTransform: "none", fontSize: 16 }}
+        >
+          Apply
+        </Button>
       ) : (
-        <Box sx={{ alignItems: "center", display: "flex", minHeight: 120, justifyContent: "center", px: 2, textAlign: "center" }}>
-          <Typography sx={{ color: "#66756A", fontFamily: FONT }}>No employee requests on file yet.</Typography>
-        </Box>
+        <Stack spacing={1} sx={{ width: "100%" }}>
+          <Typography sx={{ color: GREEN, fontFamily: FONT, fontSize: 13, fontWeight: 700, mb: 0.5 }}>What do you need?</Typography>
+          <Button fullWidth size="small" variant="outlined" onClick={() => onPick("leave", "CL")} sx={{ color: GREEN, borderColor: "#bbe6c8", fontWeight: 700, justifyContent: "flex-start" }}>Casual Leave (CL)</Button>
+          <Button fullWidth size="small" variant="outlined" onClick={() => onPick("leave", "SL")} sx={{ color: GREEN, borderColor: "#bbe6c8", fontWeight: 700, justifyContent: "flex-start" }}>Sick Leave (SL)</Button>
+          <Button fullWidth size="small" variant="outlined" onClick={() => onPick("permission")} sx={{ color: GREEN, borderColor: "#bbe6c8", fontWeight: 700, justifyContent: "flex-start" }}>Permission</Button>
+        </Stack>
       )}
     </Paper>
   );
 }
 
 function RequestTable({ requests, onEdit, onDelete }: { requests: LeaveRequest[]; onEdit: (request: LeaveRequest) => void; onDelete: (id: string) => void }) {
-  return <RequestTableFrame title="My requests" empty="You have not submitted any requests yet.">{requests.map((request) => <RequestRow key={request.id} request={request} actions={request.status === "Pending" ? <><IconButton aria-label="Edit request" onClick={() => onEdit(request)}><EditOutlinedIcon /></IconButton><IconButton aria-label="Delete request" onClick={() => onDelete(request.id)}><DeleteOutlineIcon /></IconButton></> : undefined} />)}</RequestTableFrame>;
-}
-
-function HrRequestTable({ requests, onStatusChange }: { requests: LeaveRequest[]; onStatusChange: (id: string, status: RequestStatus) => void }) {
-  return <RequestTableFrame title="Requests for HR review" empty="No pending leave or permission requests.">{requests.map((request) => <RequestRow key={request.id} request={request} actions={<><IconButton aria-label="Approve request" sx={{ color: GREEN }} onClick={() => onStatusChange(request.id, "Approved")}><CheckCircleOutlineIcon /></IconButton><IconButton aria-label="Reject request" sx={{ color: RED }} onClick={() => onStatusChange(request.id, "Rejected")}><CancelOutlinedIcon /></IconButton></>} />)}</RequestTableFrame>;
-}
-
-function RequestTableFrame({ title, empty, children }: { title: string; empty: string; children: ReactNode }) {
-  const rows = Array.isArray(children) ? children : children ? [children] : [];
-  return <Paper elevation={0} sx={{ border: `1px solid ${BORDER}`, borderRadius: 2, overflow: "hidden" }}><Box sx={{ backgroundColor: GREEN_PALE, px: 2.5, py: 1.75 }}><Typography sx={{ color: GREEN, fontFamily: FONT, fontSize: 18, fontWeight: 700 }}>{title}</Typography></Box>{rows.length ? <Box sx={{ overflowX: "auto" }}><Table size="small"><TableHead><TableRow><TableCell>Employee</TableCell><TableCell>Type</TableCell><TableCell>Date / time</TableCell><TableCell>Reason</TableCell><TableCell>Status</TableCell><TableCell align="right">Action</TableCell></TableRow></TableHead><TableBody>{children}</TableBody></Table></Box> : <Box sx={{ alignItems: "center", display: "flex", minHeight: 150, justifyContent: "center", px: 2, textAlign: "center" }}><Typography sx={{ color: "#66756A", fontFamily: FONT }}>{empty}</Typography></Box>}</Paper>;
+  const rows = requests.map((request) => <RequestRow key={request.id} request={request} actions={request.status === "Pending" ? <><IconButton aria-label="Edit request" onClick={() => onEdit(request)}><EditOutlinedIcon /></IconButton><IconButton aria-label="Delete request" onClick={() => onDelete(request.id)}><DeleteOutlineIcon /></IconButton></> : undefined} />);
+  return (
+    <Paper elevation={0} sx={{ border: `1px solid ${BORDER}`, borderRadius: 2, overflow: "hidden" }}>
+      <Box sx={{ backgroundColor: GREEN_PALE, px: 2.5, py: 1.75 }}>
+        <Typography sx={{ color: GREEN, fontFamily: FONT, fontSize: 18, fontWeight: 700 }}>My requests</Typography>
+      </Box>
+      {rows.length ? (
+        <Box sx={{ overflowX: "auto" }}>
+          <Table size="small">
+            <TableHead><TableRow><TableCell>Employee</TableCell><TableCell>Type</TableCell><TableCell>Date / time</TableCell><TableCell>Reason</TableCell><TableCell>Status</TableCell><TableCell align="right">Action</TableCell></TableRow></TableHead>
+            <TableBody>{rows}</TableBody>
+          </Table>
+        </Box>
+      ) : (
+        <Box sx={{ alignItems: "center", display: "flex", minHeight: 150, justifyContent: "center", px: 2, textAlign: "center" }}>
+          <Typography sx={{ color: "#66756A", fontFamily: FONT }}>You have not submitted any requests yet.</Typography>
+        </Box>
+      )}
+    </Paper>
+  );
 }
 
 function RequestRow({ request, actions }: { request: LeaveRequest; actions?: ReactNode }) {
   const details = request.type === "permission" ? `${formatDate(request.date)} ${request.startTime}-${request.endTime}` : `${formatDate(request.startDate)} - ${formatDate(request.endDate)}`;
-  return <TableRow><TableCell sx={{ fontFamily: FONT, fontWeight: 600 }}>{request.employeeName}</TableCell><TableCell sx={{ fontFamily: FONT }}>{request.type === "permission" ? "Permission" : request.leaveType}</TableCell><TableCell sx={{ fontFamily: FONT, whiteSpace: "nowrap" }}>{details}</TableCell><TableCell sx={{ fontFamily: FONT, minWidth: 180 }}>{request.reason}</TableCell><TableCell><Chip label={request.status} size="small" sx={{ backgroundColor: request.status === "Pending" ? "#FFF7E6" : request.status === "Approved" ? GREEN_PALE : "#FDECEC", color: request.status === "Pending" ? "#9A6700" : request.status === "Approved" ? GREEN : RED, fontWeight: 600 }} /></TableCell><TableCell align="right" sx={{ whiteSpace: "nowrap" }}>{actions}</TableCell></TableRow>;
+  return <TableRow><TableCell sx={{ fontFamily: FONT, fontWeight: 600 }}>{request.employeeName}</TableCell><TableCell sx={{ fontFamily: FONT }}>{request.type === "permission" ? "Permission" : request.leaveType}</TableCell><TableCell sx={{ fontFamily: FONT, whiteSpace: "nowrap" }}>{details}</TableCell><TableCell sx={{ fontFamily: FONT, minWidth: 180 }}>{request.reason}</TableCell><TableCell><StatusChip status={request.status} /></TableCell><TableCell align="right" sx={{ whiteSpace: "nowrap" }}>{actions}</TableCell></TableRow>;
+}
+
+function StatusChip({ status }: { status: RequestStatus }) {
+  const palette = status === "Pending"
+    ? { bg: AMBER_PALE, color: AMBER }
+    : status === "Approved"
+      ? { bg: GREEN_PALE, color: GREEN }
+      : { bg: RED_PALE, color: RED };
+  return <Chip label={status} size="small" sx={{ backgroundColor: palette.bg, color: palette.color, fontWeight: 600 }} />;
+}
+
+// --- Admin / HR dashboard -------------------------------------------------
+
+function AdminLeaveDashboard({ requests, pendingCount, onStatusChange }: { requests: LeaveRequest[]; pendingCount: number; onStatusChange: (id: string, status: RequestStatus) => void }) {
+  const [filterEmployee, setFilterEmployee] = useState("all");
+  const [filterFrom, setFilterFrom] = useState("");
+  const [filterTo, setFilterTo] = useState("");
+
+  const totalCount = requests.length;
+  const approvedCount = requests.filter((request) => request.status === "Approved").length;
+  const rejectedCount = requests.filter((request) => request.status === "Rejected").length;
+
+  const employeeOptions = Array.from(
+    new Map(requests.map((request) => [request.employeeId, request.employeeName])).entries()
+  ).sort((a, b) => a[1].localeCompare(b[1]));
+
+  const filteredRequests = requests
+    .filter((request) => {
+      if (filterEmployee !== "all" && request.employeeId !== filterEmployee) return false;
+      const primaryDate = request.type === "leave" ? request.startDate : request.date;
+      if (filterFrom && primaryDate && primaryDate < filterFrom) return false;
+      if (filterTo && primaryDate && primaryDate > filterTo) return false;
+      return true;
+    })
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+  const resetFilters = () => {
+    setFilterEmployee("all");
+    setFilterFrom("");
+    setFilterTo("");
+  };
+
+  return (
+    <>
+      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "repeat(2, 1fr)", md: "repeat(4, 1fr)" }, gap: 2, mb: 3 }}>
+        <StatCard label="Total Requests" value={totalCount} icon={<AssignmentOutlinedIcon />} color={GREEN} bg={GREEN_PALE} />
+        <StatCard label="Approved" value={approvedCount} icon={<ThumbUpOutlinedIcon />} color={GREEN} bg={GREEN_PALE} />
+        <StatCard label="Pending" value={pendingCount} icon={<PendingActionsOutlinedIcon />} color={AMBER} bg={AMBER_PALE} />
+        <StatCard label="Rejected" value={rejectedCount} icon={<HighlightOffOutlinedIcon />} color={RED} bg={RED_PALE} />
+      </Box>
+
+      <Paper elevation={0} sx={{ border: `1px solid ${BORDER}`, borderRadius: 2, mb: 3, p: { xs: 2, md: 3 } }}>
+        <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ alignItems: { md: "flex-end" } }}>
+          <FilterField label="From">
+            <TextField fullWidth size="small" type="date" value={filterFrom} onChange={(event) => setFilterFrom(event.target.value)} slotProps={{ inputLabel: { shrink: true } }} />
+          </FilterField>
+          <FilterField label="To">
+            <TextField fullWidth size="small" type="date" value={filterTo} onChange={(event) => setFilterTo(event.target.value)} slotProps={{ inputLabel: { shrink: true } }} />
+          </FilterField>
+          <FilterField label="Employee">
+            <FormControl fullWidth size="small">
+              <Select value={filterEmployee} onChange={(event) => setFilterEmployee(event.target.value)}>
+                <MenuItem value="all">All employees</MenuItem>
+                {employeeOptions.map(([id, name]) => <MenuItem key={id} value={id}>{name}</MenuItem>)}
+              </Select>
+            </FormControl>
+          </FilterField>
+          <Button variant="outlined" onClick={resetFilters} sx={{ color: GREEN, borderColor: "#bbe6c8", fontWeight: 700, whiteSpace: "nowrap" }}>Reset filters</Button>
+        </Stack>
+      </Paper>
+
+      <Paper elevation={0} sx={{ border: `1px solid ${BORDER}`, borderRadius: 2, overflow: "hidden" }}>
+        <Box sx={{ backgroundColor: GREEN_PALE, px: 2.5, py: 1.75 }}>
+          <Typography sx={{ color: GREEN, fontFamily: FONT, fontSize: 18, fontWeight: 700 }}>Leave Requests List</Typography>
+        </Box>
+        {filteredRequests.length ? (
+          <Box sx={{ overflowX: "auto" }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Emp Code</TableCell>
+                  <TableCell>Employee Name</TableCell>
+                  <TableCell>Leave Type</TableCell>
+                  <TableCell>Request Date</TableCell>
+                  <TableCell>From</TableCell>
+                  <TableCell>To</TableCell>
+                  <TableCell>Duration</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell align="right">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredRequests.map((request) => <AdminRequestRow key={request.id} request={request} onStatusChange={onStatusChange} />)}
+              </TableBody>
+            </Table>
+          </Box>
+        ) : (
+          <Box sx={{ alignItems: "center", display: "flex", minHeight: 150, justifyContent: "center", px: 2, textAlign: "center" }}>
+            <Typography sx={{ color: "#66756A", fontFamily: FONT }}>No leave or permission requests match these filters.</Typography>
+          </Box>
+        )}
+      </Paper>
+    </>
+  );
+}
+
+function FilterField({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <Box sx={{ flex: 1, minWidth: 0 }}>
+      <Typography sx={{ color: "#66756A", fontFamily: FONT, fontSize: 13, fontWeight: 600, mb: 0.5 }}>{label}</Typography>
+      {children}
+    </Box>
+  );
+}
+
+function StatCard({ label, value, icon, color, bg }: { label: string; value: number; icon: ReactNode; color: string; bg: string }) {
+  return (
+    <Paper elevation={0} sx={{ border: `1px solid ${BORDER}`, borderRadius: 2, p: 2.5 }}>
+      <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+        <Box sx={{ alignItems: "center", backgroundColor: bg, borderRadius: "50%", color, display: "flex", height: 40, justifyContent: "center", width: 40, flexShrink: 0 }}>{icon}</Box>
+        <Box>
+          <Typography sx={{ color, fontFamily: FONT, fontSize: 26, fontWeight: 800, lineHeight: 1.1 }}>{value}</Typography>
+          <Typography sx={{ color: "#66756A", fontFamily: FONT, fontSize: 13 }}>{label}</Typography>
+        </Box>
+      </Stack>
+    </Paper>
+  );
+}
+
+function AdminRequestRow({ request, onStatusChange }: { request: LeaveRequest; onStatusChange: (id: string, status: RequestStatus) => void }) {
+  const leaveTypeLabel = request.type === "permission"
+    ? "Permission"
+    : request.leaveType === "CL" ? "Casual Leave" : "Sick Leave";
+
+  const fromDate = request.type === "leave" ? request.startDate : request.date;
+  const toDate = request.type === "leave" ? request.endDate : request.date;
+
+  const duration = request.type === "leave"
+    ? `${diffDaysInclusive(request.startDate!, request.endDate!)} day(s)`
+    : `${request.startTime}\u2013${request.endTime} (${Math.round(diffHours(request.startTime!, request.endTime!) * 10) / 10}h)`;
+
+  return (
+    <TableRow hover>
+      <TableCell sx={{ fontFamily: FONT, fontWeight: 700, color: GREEN }}>{request.employeeId}</TableCell>
+      <TableCell sx={{ fontFamily: FONT }}>{request.employeeName}</TableCell>
+      <TableCell sx={{ fontFamily: FONT }}>{leaveTypeLabel}</TableCell>
+      <TableCell sx={{ fontFamily: FONT, whiteSpace: "nowrap" }}>{formatDate(request.createdAt.slice(0, 10))}</TableCell>
+      <TableCell sx={{ fontFamily: FONT, whiteSpace: "nowrap" }}>{formatDate(fromDate)}</TableCell>
+      <TableCell sx={{ fontFamily: FONT, whiteSpace: "nowrap" }}>{formatDate(toDate)}</TableCell>
+      <TableCell sx={{ fontFamily: FONT, whiteSpace: "nowrap" }}>{duration}</TableCell>
+      <TableCell><StatusChip status={request.status} /></TableCell>
+      <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
+        {request.status === "Pending" ? (
+          <>
+            <IconButton aria-label="Approve request" sx={{ color: GREEN }} onClick={() => onStatusChange(request.id, "Approved")}><CheckCircleOutlineIcon /></IconButton>
+            <IconButton aria-label="Reject request" sx={{ color: RED }} onClick={() => onStatusChange(request.id, "Rejected")}><CancelOutlinedIcon /></IconButton>
+          </>
+        ) : "\u2014"}
+      </TableCell>
+    </TableRow>
+  );
 }
 
 const buttonSx = (contained: boolean) => ({ backgroundColor: contained ? GREEN : "transparent", borderColor: GREEN, color: contained ? "#FFFFFF" : GREEN, fontFamily: FONT, fontWeight: 700, "&:hover": { backgroundColor: contained ? GREEN_MID : GREEN_PALE } });

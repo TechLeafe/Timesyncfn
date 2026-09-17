@@ -1,0 +1,302 @@
+/* =========================================
+   STAT CARD
+   ========================================= */
+
+.stat-card {
+  position: relative;
+  flex: 1;
+  min-width: 300px;
+  height: 150px;
+  box-sizing: border-box;
+  overflow: hidden;
+
+  padding: 26px 28px;
+
+  background: linear-gradient(
+    135deg,
+    var(--white) 0%,
+    color-mix(in srgb, var(--green) 7%, var(--white)) 100%
+  );
+
+  border: 1px solid color-mix(in srgb, var(--green) 18%, var(--white));
+  border-radius: 18px;
+
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+
+/* =========================================
+   TOP AREA
+   ========================================= */
+
+.stat-card__top {
+  position: relative;
+  z-index: 5;
+
+  width: 100%;
+  min-height: 38px;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+
+/* =========================================
+   LABEL
+   ========================================= */
+
+.stat-card__label {
+  margin: 0 !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  color: #536174 !important;
+  line-height: 1.35 !important;
+}
+
+
+/* =========================================
+   ICON
+   ========================================= */
+
+/* .stat-card__icon {
+  position: absolute;
+  z-index: 7;
+  top: -15px;
+  right: -5px;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: var(--brand-green-dark);
+  color: var(--card-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(24, 122, 12, 0.16);
+}
+
+.stat-card__icon svg {
+  width: 32px;
+  height: 32px;
+  font-size: 32px;
+} */
+
+
+/* =========================================
+   VALUE
+   ========================================= */
+
+.stat-card__value {
+  position: relative;
+  z-index: 5;
+  font-size: 2.15rem !important;
+  font-weight: 600 !important;
+  color: #101820 !important;
+  line-height: 1 !important;
+}
+
+
+/* =========================================
+   TREND
+   ========================================= */
+
+/* .stat-card__trend {
+  position: relative;
+  z-index: 5;
+  margin: 14px 0 0 !important;
+  font-size: 1.05rem !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+}
+
+.stat-card__trend--up {
+  color: var(--brand-green-dark) !important;
+}
+
+.stat-card__trend--down {
+  color: #d64545 !important;
+}
+
+.stat-card__trend--neutral {
+  color: #536174 !important;
+} */
+
+
+/* =========================================
+   LEAF IMAGE
+   ========================================= */
+
+.stat-card__illustration {
+  position: absolute;
+  z-index: 2;
+  width: 285px;
+  height: 235px;
+  right: -10px;
+  bottom: -18px;
+  pointer-events: none;
+}
+
+.stat-card__leaves {
+  width: 50%;
+  height: 50%;
+  display: block;
+  object-fit: contain;
+  object-position: center;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
+
+
+/* =========================================
+   HOVER
+   ========================================= */
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 18px rgba(0, 0, 0, 0.1);
+}
+
+
+/* =========================================
+   TABLET
+   ========================================= */
+
+@media (max-width: 900px) {
+  .stat-card {
+    min-width: 200px;
+    height: 185px;
+    padding: 24px 25px;
+  }
+
+  .stat-card__label {
+    font-size: 1rem !important;
+  }
+
+  .stat-card__value {
+    margin-top: 11px !important;
+    font-size: 2.65rem !important;
+  }
+
+  .stat-card__trend {
+    margin-top: 12px !important;
+    font-size: 0.95rem !important;
+  }
+
+  .stat-card__icon {
+    width: 58px;
+    height: 58px;
+  }
+
+  .stat-card__icon svg {
+    width: 28px;
+    height: 28px;
+    font-size: 28px;
+  }
+
+  .stat-card__illustration {
+    width: 245px;
+    height: 205px;
+    right: -8px;
+    bottom: -15px;
+  }
+}
+
+
+/* =========================================
+   MOBILE
+   ========================================= */
+
+@media (max-width: 600px) {
+  .stat-card {
+    width: 100%;
+    min-width: 0;
+    height: 165px;
+    padding: 21px 22px;
+    border-radius: 16px;
+  }
+
+  .stat-card__label {
+    font-size: 0.95rem !important;
+  }
+
+  .stat-card__value {
+    margin-top: 9px !important;
+    font-size: 2.4rem !important;
+  }
+
+  .stat-card__trend {
+    margin-top: 10px !important;
+    font-size: 0.9rem !important;
+  }
+
+  .stat-card__icon {
+    width: 52px;
+    height: 52px;
+  }
+
+  .stat-card__icon svg {
+    width: 25px;
+    height: 25px;
+    font-size: 25px;
+  }
+
+  .stat-card__illustration {
+    width: 210px;
+    height: 175px;
+    right: -6px;
+    bottom: -12px;
+  }
+}
+
+
+/* =========================================
+   SMALL MOBILE
+   ========================================= */
+
+@media (max-width: 400px) {
+  .stat-card {
+    height: 155px;
+    padding: 19px 20px;
+  }
+
+  .stat-card__label {
+    font-size: 0.88rem !important;
+  }
+
+  .stat-card__value {
+    margin-top: 8px !important;
+    font-size: 2.15rem !important;
+  }
+
+  .stat-card__trend {
+    margin-top: 9px !important;
+    font-size: 0.82rem !important;
+  }
+
+  .stat-card__icon {
+    width: 47px;
+    height: 47px;
+  }
+
+  .stat-card__icon svg {
+    width: 23px;
+    height: 23px;
+    font-size: 23px;
+  }
+
+  .stat-card__illustration {
+    width: 185px;
+    height: 155px;
+    right: -5px;
+    bottom: -10px;
+  }
+}

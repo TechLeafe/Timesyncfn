@@ -2,14 +2,12 @@ import { Box } from "@mui/material";
 import FolderCopyRoundedIcon from "@mui/icons-material/FolderCopyRounded";
 import PendingActionsRoundedIcon from "@mui/icons-material/PendingActionsRounded";
 import TaskAltRoundedIcon from "@mui/icons-material/TaskAltRounded";
-import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
-import Diversity3RoundedIcon from "@mui/icons-material/Diversity3Rounded";
 
-import StatCard from "../../Components/Admin/StatCard/StatCard"
-import ProjectsPieChart from "../../Components/Admin/Chart/ProjectsPieChart"
-import TeamAllocationChart from "../../Components/Admin/Chart/TeamAllocationChart"
-import type { StatCardProps } from "../../Components/Admin/StatCard/StatCard";
-import "./AdminDashboard.css";
+import StatCard from "../../Components/Dashboard/StatCard/StatCard"
+import ProjectsPieChart from "../../Components/Dashboard/Chart/ProjectsPieChart"
+import TeamAllocationChart from "../../Components/Dashboard/Chart/TeamAllocationChart"
+import type { StatCardProps } from "../../Components/Dashboard/StatCard/StatCard";
+import "./Dashboard.css";
 
 const STATS: StatCardProps[] = [
   {
@@ -27,28 +25,14 @@ const STATS: StatCardProps[] = [
     trendDirection: "neutral",
   },
   {
-    label: "Finished projects",
+    label: "Completed projects",
     value: 12,
     icon: <TaskAltRoundedIcon fontSize="small" />,
     trend: "On schedule",
     trendDirection: "up",
   },
-  {
-    label: "Total employees",
-    value: 47,
-    icon: <GroupsRoundedIcon fontSize="small" />,
-    trend: "Company-wide",
-    trendDirection: "neutral",
-  },
-  {
-    label: "Active employees",
-    value: 34,
-    icon: <Diversity3RoundedIcon fontSize="small" />,
-    trend: "Staffed on projects",
-    trendDirection: "neutral",
-  },
 ];
-//////////////////////////
+
 const PROJECT_DISTRIBUTION = [
   { label: "Total projects", value: 18 },
   { label: "Current projects", value: 6 },

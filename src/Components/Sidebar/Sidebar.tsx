@@ -8,7 +8,7 @@ import {
   ListItemText,
   Divider,
 } from "@mui/material";
-import SpaceDashboardRoundedIcon from "@mui/icons-material/AccessTimeOutlined";
+import SpaceDashboardRoundedIcon from "@mui/icons-material/SpaceDashboardRounded";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
@@ -29,7 +29,11 @@ const navItems: NavItem[] = [
   { label: "Dashboard",       icon: <SpaceDashboardRoundedIcon        sx={{ fontSize: 20 }}/>, path: "/admindashboard" },
   { label: "Employee Creation", icon: <AccessTimeOutlinedIcon        sx={{ fontSize: 20 }} />, path: "/employee-creation" },
   { label: "Timesheet",        icon: <AccessTimeOutlinedIcon      sx={{ fontSize: 20 }} /> },
-  { label: "Attendance",       icon: <FactCheckOutlinedIcon       sx={{ fontSize: 20 }} /> },
+  {
+    label: "Attendance",
+    icon:  <FactCheckOutlinedIcon sx={{ fontSize: 20 }} />,
+    path:  "/attendance",
+  },
   { label: "Monthly Report",   icon: <BarChartOutlinedIcon        sx={{ fontSize: 20 }} /> },
   {
     label: "Company Calendar",
