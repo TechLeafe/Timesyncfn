@@ -10,21 +10,13 @@ import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlin
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
-import MonthCalendar from "../../Components/Calendar/MonthCalendar";
-import type { CalendarDayInfo, CalendarLegendItem } from "../../Components/Calendar/calendarTheme";
-import { useCalendarEvents } from "../../context/CalendarEventsContext";
-import { useCurrentUser } from "../../context/UserContext";
-/* Shared event store + helpers – the reusable calendar and the attendance
-   page read exactly the same data, so an event created here shows up there too */
-import {
-  HALF_DAY_SLOTS,
-  isSameDay,
-  toDateKey as toKey,
-  type CalendarEvent,
-  type CalendarEventType as EventType,
-  type HalfDaySlot,
-} from "../../data/calendarEvents";
-import { canManageCalendar } from "../../data/users";
+import MonthCalendar from "../Components/Calendar/MonthCalendar";
+import type { CalendarDayInfo, CalendarLegendItem } from "../Components/Calendar/calendarTheme";
+import { useCalendarEvents } from "../context/CalendarEventsContext";
+import { useCurrentUser } from "../context/UserContext";
+import { HALF_DAY_SLOTS, isSameDay, toDateKey } from "../data/calendarEvents";
+import type { CalendarEvent, CalendarEventType, HalfDaySlot } from "../data/calendarEvents";
+import { canManageCalendar } from "../data/users";
 
 const FONT      = "var(--font-family)";
 const GREEN     = "#1B6B33";
@@ -49,7 +41,7 @@ const TOOLTIP_SX = {
 
 const TOOLTIP_ARROW_SX = { color: "rgba(17, 24, 39, 0.9)" };
 
-const TYPE_META: Record<EventType, { label: string; dot: string; bg: string; text: string; border: string; icon: React.ReactNode }> = {
+const TYPE_META: Record<CalendarEventType, { label: string; dot: string; bg: string; text: string; border: string; icon: React.ReactNode }> = {
   holiday: {
     label: "Holiday",
     dot:   RED,
@@ -81,9 +73,9 @@ function CompanyCalendar() {
   /* Modal state */
   const [openAddModal, setOpenAddModal] = useState(false);
   const [formTitle, setFormTitle]       = useState("");
-  const [formType, setFormType]         = useState<EventType>("holiday");
+  const [formType, setFormType]         = useState<CalendarEventType>("holiday");
   const [formHalfDaySlot, setFormHalfDaySlot] = useState<HalfDaySlot>("first");
-  const [formDate, setFormDate]         = useState(toKey(today));
+  const [formDate, setFormDate]         = useState(toDateKey(today));
   const [formDescription, setFormDescription] = useState("");
 
   /* Role based permission: only HR Manager & Admin can edit / delete events */
@@ -98,7 +90,7 @@ function CompanyCalendar() {
     month: "short", day: "numeric", year: "numeric",
   });
 
-  const selectedEvents = events[toKey(selectedDate)] ?? [];
+  const selectedEvents = events[toDateKey(selectedDate)] ?? [];
   const hasHoliday     = selectedEvents.some((e) => e.type === "holiday");
   const hasHalfDay     = selectedEvents.some((e) => e.type === "halfDay");
 
@@ -107,18 +99,18 @@ function CompanyCalendar() {
     setFormTitle("");
     setFormType("holiday");
     setFormHalfDaySlot("first");
-    setFormDate(toKey(selectedDate));
+    setFormDate(toDateKey(selectedDate));
     setFormDescription("");
     setOpenAddModal(true);
   };
 
   /* Open the same popup in edit mode, prefilled with the selected event */
   const handleOpenEditModal = (event: CalendarEvent, index: number) => {
-    setEditingTarget({ key: toKey(selectedDate), index });
+    setEditingTarget({ key: toDateKey(selectedDate), index });
     setFormTitle(event.title);
     setFormType(event.type);
     setFormHalfDaySlot(event.halfDaySlot ?? "first");
-    setFormDate(toKey(selectedDate));
+    setFormDate(toDateKey(selectedDate));
     setFormDescription(event.description ?? "");
     setOpenAddModal(true);
   };
@@ -130,7 +122,7 @@ function CompanyCalendar() {
 
   /* Small confirmation popup for delete */
   const handleOpenDeleteModal = (event: CalendarEvent, index: number) => {
-    setDeleteTarget({ key: toKey(selectedDate), index, title: event.title });
+    setDeleteTarget({ key: toDateKey(selectedDate), index, title: event.title });
   };
 
   const handleConfirmDelete = () => {
@@ -167,7 +159,7 @@ function CompanyCalendar() {
 
   /* Day cell colours: holiday (red) / half day (blue) straight from the shared store */
   const getDayInfo = (date: Date): CalendarDayInfo | undefined => {
-    const dayEvents = events[toKey(date)] ?? [];
+    const dayEvents = events[toDateKey(date)] ?? [];
 
     const holiday = dayEvents.find((event) => event.type === "holiday");
     if (holiday) return { tone: "red", tooltip: `🎉 ${holiday.title}` };
@@ -587,7 +579,7 @@ function CompanyCalendar() {
             <div style={{ position: "relative", width: "100%" }}>
               <select
                 value={formType}
-                onChange={(e) => setFormType(e.target.value as EventType)}
+                onChange={(e) => setFormType(e.target.value as CalendarEventType)}
                 style={{
                   width: "100%",
                   height: "40px",

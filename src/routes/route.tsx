@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import MainLayout from "../layout/Mainlayout";
-import CompanyCalendar from "../Pages/Admin/Companycalendar";
+import CompanyCalendar from "../Pages/Companycalendar";
+import Admin from "../Pages/Admin/AdminDashboard";
 import Attendance from "../Pages/Admin/Attendance";
 
 export const route = createBrowserRouter([
@@ -10,7 +11,11 @@ export const route = createBrowserRouter([
         children: [
             {
                 index: true,
-                element: <Navigate to="/calendar" replace />,
+                element: <Navigate to="/admindashboard" replace />,
+            },
+            {
+                path: "admindashboard",
+                element: <Admin />
             },
             {
                 path: "calendar",

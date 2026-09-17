@@ -8,12 +8,13 @@ import {
   ListItemText,
   Divider,
 } from "@mui/material";
+import SpaceDashboardRoundedIcon from "@mui/icons-material/AccessTimeOutlined";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
-import techLeafeLogo from "../../techleafelogo.png";
+import techLeafeLogo from "../../../public/techleafelogo.png";
 
 const DRAWER_WIDTH = 240;
 
@@ -24,6 +25,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
+  { label: "Dashboard",       icon: <SpaceDashboardRoundedIcon        sx={{ fontSize: 20 }}/>, path: "/admindashboard" },
   { label: "Timesheet",        icon: <AccessTimeOutlinedIcon      sx={{ fontSize: 20 }} /> },
   {
     label: "Attendance",
