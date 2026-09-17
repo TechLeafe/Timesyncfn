@@ -38,6 +38,11 @@ const navItems: NavItem[] = [
     icon:  <CalendarMonthOutlinedIcon sx={{ fontSize: 20 }} />,
     path:  "/calendar",
   },
+  {
+    label: "Check In/Out",
+    icon:  <AccessTimeOutlinedIcon sx={{ fontSize: 20 }} />,
+    path:  "/checkinout",
+  },
 ];
 
 const FONT       = "var(--font-family)";

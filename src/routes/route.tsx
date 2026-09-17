@@ -4,6 +4,7 @@ import CompanyCalendar from "../Pages/Companycalendar";
 import Attendance from "../Pages/Attendance";
 import Admin from "../Pages/Dashboard/AdminDashboard";
 import EmployeeDashboard from "../Pages/Dashboard/EmployeeDashboard";
+import EmployeeCheckInOut from "../Pages/EmployeeCheckInOut/EmployeeCheckInOut";
 
 export const route = createBrowserRouter([
     {
@@ -33,6 +34,10 @@ export const route = createBrowserRouter([
             {
                 path: "attendance",
                 element: <Attendance />,
+            },
+            {
+                path: "checkinout",
+                element: <EmployeeCheckInOut />,
             },
         ],
     },
