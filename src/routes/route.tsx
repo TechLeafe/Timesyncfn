@@ -4,10 +4,15 @@ import CompanyCalendar from "../Pages/Companycalendar";
 import Attendance from "../Pages/Attendance";
 import Admin from "../Pages/Dashboard/AdminDashboard";
 import EmployeeDashboard from "../Pages/Dashboard/EmployeeDashboard";
+import { Login } from "../Pages/Login/Login";
 import Employee_Creation from "../Pages/Employee_Creation";
 import LeavesPermissions from "../Pages/LeavesPermissions";
 
 export const route = createBrowserRouter([
+    {
+        path: "/login",
+        element: <Login />,
+    },
     {
         path: "/",
         element: <MainLayout />,
