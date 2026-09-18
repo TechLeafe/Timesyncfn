@@ -30,7 +30,7 @@ import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
 import ThumbUpOutlinedIcon from "@mui/icons-material/ThumbUpOutlined";
 import PendingActionsOutlinedIcon from "@mui/icons-material/PendingActionsOutlined";
 import HighlightOffOutlinedIcon from "@mui/icons-material/HighlightOffOutlined";
-import { useCurrentUser } from "../context/UserContext";
+import { HR, ADMIN, EMPLOYEE } from "../data/permissions";
 
 type RequestType = "permission" | "leave";
 type LeaveType = "CL" | "SL";
@@ -120,8 +120,34 @@ const timeToMinutes = (time: string) => {
 const diffHours = (start: string, end: string) => (timeToMinutes(end) - timeToMinutes(start)) / 60;
 
 function LeavesPermissions() {
-  const { currentUser } = useCurrentUser();
-  const isHr = currentUser.role === "HR Manager" || currentUser.role === "Admin";
+  const storedUser = localStorage.getItem("loggedInUser");
+
+  let loggedInUser: any = null;
+
+  if (storedUser) {
+    try {
+      loggedInUser = JSON.parse(storedUser);
+    } catch {
+      loggedInUser = null;
+    }
+  }
+
+  const userType = Number(loggedInUser?.userType);
+
+  const isEmployee = userType === EMPLOYEE;
+  const canManageRequests = userType === HR || userType === ADMIN;
+
+  const currentEmployeeId =
+    loggedInUser?.employeeId ??
+    loggedInUser?.userId ??
+    loggedInUser?._id ??
+    "";
+
+  const currentEmployeeName =
+    loggedInUser?.name ??
+    loggedInUser?.email ??
+    "Employee";
+
   const [requests, setRequests] = useState<LeaveRequest[]>(readRequests);
   const [requestType, setRequestType] = useState<RequestType | null>(null);
   const [showApplyOptions, setShowApplyOptions] = useState(false);
@@ -134,7 +160,7 @@ function LeavesPermissions() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(requests));
   }, [requests]);
 
-  const employeeRequests = requests.filter((request) => request.employeeId === currentUser.id);
+  const employeeRequests = requests.filter((request) => request.employeeId === currentEmployeeId);
   const pendingRequests = requests.filter((request) => request.status === "Pending");
 
   const updateField = (field: keyof RequestForm, value: string) => {
@@ -159,6 +185,7 @@ function LeavesPermissions() {
   };
 
   const submitRequest = () => {
+    if (!isEmployee) return;
     if (!requestType) return;
     setMessage("");
     setError("");
@@ -189,8 +216,8 @@ function LeavesPermissions() {
       id: editingId ?? crypto.randomUUID(),
       type: requestType,
       leaveType: requestType === "leave" ? form.leaveType : undefined,
-      employeeId: currentUser.id,
-      employeeName: currentUser.name,
+      employeeId: currentEmployeeId,
+      employeeName: currentEmployeeName,
       date: requestType === "permission" ? form.date : undefined,
       startDate: requestType === "leave" ? form.startDate : undefined,
       endDate: requestType === "leave" ? form.endDate : undefined,
@@ -209,6 +236,10 @@ function LeavesPermissions() {
   };
 
   const editRequest = (request: LeaveRequest) => {
+    if (!isEmployee) return;
+    if (request.employeeId !== currentEmployeeId) return;
+    if (request.status !== "Pending") return;
+
     setRequestType(request.type);
     setEditingId(request.id);
     setShowApplyOptions(false);
@@ -226,12 +257,25 @@ function LeavesPermissions() {
   };
 
   const deleteRequest = (id: string) => {
+    if (!isEmployee) return;
+
+    const target = requests.find((request) => request.id === id);
+    if (!target) return;
+    if (target.employeeId !== currentEmployeeId) return;
+    if (target.status !== "Pending") return;
+
     setRequests((current) => current.filter((request) => request.id !== id));
     setMessage("Request deleted.");
   };
 
   const updateStatus = (id: string, status: RequestStatus) => {
-    setRequests((current) => current.map((request) => request.id === id ? { ...request, status } : request));
+    if (!canManageRequests) return;
+
+    setRequests((current) =>
+      current.map((request) =>
+        request.id === id ? { ...request, status } : request
+      )
+    );
     setMessage(`Request ${status.toLowerCase()}.`);
   };
 
@@ -250,14 +294,22 @@ function LeavesPermissions() {
   const slRemaining = Math.max(SL_GRANTED - approvedDays("SL"), 0);
   const permissionRemaining = Math.max(Math.round((PERMISSION_GRANTED_HOURS - approvedPermissionHours) * 10) / 10, 0);
 
+  if (!isEmployee && !canManageRequests) {
+    return (
+      <Box sx={{ maxWidth: 1240, mx: "auto", width: "100%", px: { xs: 2, md: 4 }, py: 4 }}>
+        <Alert severity="error">Invalid user role.</Alert>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ maxWidth: 1240, mx: "auto", width: "100%", px: { xs: 2, md: 4 }, py: 4 }}>
       <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ alignItems: { sm: "center" }, justifyContent: "space-between", mb: 3 }}>
         <Box>
-          <Typography sx={{ color: GREEN, fontFamily: FONT, fontSize: { xs: 28, md: 36 }, fontWeight: 800 }}>Leaves and Permissions</Typography>
-          <Typography sx={{ color: "#66756A", fontFamily: FONT, mt: 0.5 }}>{isHr ? "Review employee leave and permission requests." : "Request time away and track your approvals."}</Typography>
+          <Typography sx={{ color: GREEN, fontFamily: FONT, fontSize: { xs: 28, md: 36 }, fontWeight: 800 }}>{canManageRequests ? "Leave Requests" : "Leaves and Permissions"}</Typography>
+          <Typography sx={{ color: "#66756A", fontFamily: FONT, mt: 0.5 }}>{canManageRequests ? "Review employee leave and permission requests." : "Request time away and track your approvals."}</Typography>
         </Box>
-        {!isHr && (
+        {isEmployee && (
           <Chip label="Employee self-service" sx={{ alignSelf: { xs: "flex-start", sm: "center" }, backgroundColor: GREEN_PALE, color: GREEN, fontFamily: FONT, fontWeight: 600 }} />
         )}
       </Stack>
@@ -265,7 +317,7 @@ function LeavesPermissions() {
       {message && <Alert severity="success" onClose={() => setMessage("")} sx={{ mb: 2 }}>{message}</Alert>}
       {error && <Alert severity="error" onClose={() => setError("")} sx={{ mb: 2 }}>{error}</Alert>}
 
-      {!isHr && <>
+      {isEmployee && <>
         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)" }, gap: 2, mb: 3 }}>
           <SimpleBalanceCard label="Casual Leave (CL)" value={clRemaining} unit="days left" icon={<EventAvailableOutlinedIcon />} />
           <SimpleBalanceCard label="Sick Leave (SL)" value={slRemaining} unit="days left" icon={<AccessTimeOutlinedIcon />} />
@@ -328,7 +380,7 @@ function LeavesPermissions() {
         <RequestTable requests={employeeRequests} onEdit={editRequest} onDelete={deleteRequest} />
       </>}
 
-      {isHr && <AdminLeaveDashboard requests={requests} pendingCount={pendingRequests.length} onStatusChange={updateStatus} />}
+      {canManageRequests && <AdminLeaveDashboard requests={requests} pendingCount={pendingRequests.length} onStatusChange={updateStatus} />}
     </Box>
   );
 }

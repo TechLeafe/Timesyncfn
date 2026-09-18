@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+
 import {
   ArrowRight,
   Eye,
@@ -8,6 +9,7 @@ import {
   LockKeyhole,
   Mail,
 } from "lucide-react";
+
 import api from "../../api/axiosInstance";
 import "./Login.css";
 
@@ -31,6 +33,10 @@ type LoginSession = {
 export function Login() {
   const navigate = useNavigate();
 
+  /* =========================
+     FORM STATES
+  ========================= */
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -41,9 +47,9 @@ export function Login() {
 
   const [loading, setLoading] = useState(false);
 
-  /* =========================================
+  /* =========================
      TODAY DATE
-  ========================================= */
+  ========================= */
 
   const getTodayDate = () => {
     const now = new Date();
@@ -61,137 +67,23 @@ export function Login() {
     return `${year}-${month}-${day}`;
   };
 
-  /* =========================================
-     CHECK IF CURRENT WORK SESSION IS OVER
-
-     Working hours:
-     09:30 AM - 06:30 PM
-  ========================================= */
-
-  const isWorkingSessionCompleted = () => {
-    const now = new Date();
-
-    const sessionEnd = new Date();
-
-    sessionEnd.setHours(
-      18,
-      30,
-      0,
-      0
-    );
-
-    return now >= sessionEnd;
-  };
-
-  /* =========================================
-     CHECK EXISTING LOGIN
-  ========================================= */
-
-  const alreadyLoggedIn = (
-    userId: string
-  ) => {
-    const storedSession =
-      localStorage.getItem(
-        "employeeLoginSession"
-      );
-
-    if (!storedSession) {
-      return false;
-    }
-
-    try {
-      const session: LoginSession =
-        JSON.parse(storedSession);
-
-      const today = getTodayDate();
-
-      /*
-        Previous day's login should
-        never block today's login.
-      */
-
-      if (
-        session.sessionDate !== today
-      ) {
-        localStorage.removeItem(
-          "employeeLoginSession"
-        );
-
-        return false;
-      }
-
-      /*
-        After 6:30 PM,
-        current work session is completed.
-
-        Remove the old session so another
-        login can happen.
-      */
-
-      if (
-        isWorkingSessionCompleted()
-      ) {
-        localStorage.removeItem(
-          "employeeLoginSession"
-        );
-
-        return false;
-      }
-
-      /*
-        Same user already logged in today
-        and working session is still active.
-      */
-
-      if (
-        session.userId === userId
-      ) {
-        return true;
-      }
-
-      return false;
-    } catch {
-      localStorage.removeItem(
-        "employeeLoginSession"
-      );
-
-      return false;
-    }
-  };
-
-  /* =========================================
+  /* =========================
      STORE LOGIN
-  ========================================= */
+  ========================= */
 
-  const storeLogin = (
-    user: LoginUser
-  ) => {
+  const storeLogin = (user: LoginUser) => {
     const session: LoginSession = {
       userId: user.userId,
-
       email: user.email,
-
       userType: user.userType,
-
-      loginTime:
-        new Date().toISOString(),
-
-      sessionDate:
-        getTodayDate(),
+      loginTime: new Date().toISOString(),
+      sessionDate: getTodayDate(),
     };
-
-    /*
-      Login record
-    */
 
     localStorage.setItem(
       "employeeLoginSession",
       JSON.stringify(session)
     );
-
-    /*
-      Current logged-in user
-    */
 
     localStorage.setItem(
       "loggedInUser",
@@ -199,38 +91,28 @@ export function Login() {
     );
   };
 
-  /* =========================================
+  /* =========================
      ROLE BASED NAVIGATION
-  ========================================= */
+
+     1 = HR
+     2 = Admin
+     3 = Employee
+  ========================= */
 
   const redirectUser = (
     userType: UserType
   ) => {
     switch (userType) {
-      /*
-        1 = HR
-      */
-
       case 1:
         navigate("/hrdashboard");
         break;
-
-      /*
-        2 = Admin
-      */
 
       case 2:
         navigate("/admindashboard");
         break;
 
-      /*
-        3 = Employee
-      */
-
       case 3:
-        navigate(
-          "/employeedashboard"
-        );
+        navigate("/employeedashboard");
         break;
 
       default:
@@ -240,25 +122,25 @@ export function Login() {
     }
   };
 
-  /* =========================================
-     FORM SUBMIT
-  ========================================= */
+  /* =========================
+     LOGIN
+  ========================= */
 
   const handleSubmit = async (
     event: FormEvent<HTMLFormElement>
   ) => {
     event.preventDefault();
 
-    let valid = true;
-
     setEmailError("");
     setPasswordError("");
     setLoginError("");
 
-    const cleanEmail =
-      email.trim();
+    let valid = true;
 
-    /* EMAIL */
+    const cleanEmail =
+      email.trim().toLowerCase();
+
+    /* Email validation */
 
     if (!cleanEmail) {
       setEmailError(
@@ -266,9 +148,19 @@ export function Login() {
       );
 
       valid = false;
+    } else if (
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+        cleanEmail
+      )
+    ) {
+      setEmailError(
+        "Enter a valid email address"
+      );
+
+      valid = false;
     }
 
-    /* PASSWORD */
+    /* Password validation */
 
     if (!password.trim()) {
       setPasswordError(
@@ -285,151 +177,169 @@ export function Login() {
     try {
       setLoading(true);
 
-      // /*
-      //   =====================================
-      //   TEMPORARY FRONTEND USER RESPONSE
-      //   =====================================
+      /* =========================
+         LOGIN API
 
-      //   Later your backend response will
-      //   replace this section.
+         Final URL:
+         http://localhost:5000/api/login
+      ========================= */
 
-      //   1 = HR
-      //   2 = Admin
-      //   3 = Employee
-      // */
+      const response =
+        await api.post("/login", {
+          email: cleanEmail,
+          password: password,
+        });
 
-      // let user: LoginUser;
+      console.log(
+        "Login API response:",
+        response.data
+      );
 
-      // if (
-      //   cleanEmail ===
-      //   "hr@techleafe.com"
-      // ) {
-      //   user = {
-      //     userId: "HR001",
-      //     name: "HR User",
-      //     email: cleanEmail,
-      //     userType: 1,
-      //   };
-      // } else if (
-      //   cleanEmail ===
-      //   "admin@techleafe.com"
-      // ) {
-      //   user = {
-      //     userId: "ADMIN001",
-      //     name: "Admin User",
-      //     email: cleanEmail,
-      //     userType: 2,
-      //   };
-      // } else {
-      //   user = {
-      //     userId: "EMP001",
-      //     name: "Employee User",
-      //     email: cleanEmail,
-      //     userType: 3,
-      //   };
-      // }
-      /*
-  LOGIN API
-*/
-
-const response = await api.post("/login", {
-  employeeId: cleanEmail,
-  password: password,
-});
-
-console.log("Login API response:", response.data);
-
-const backendUser =
-  response.data.user ??
-  response.data.data?.user ??
-  response.data.data ??
-  response.data;
-
-let userType: UserType;
-
-if (backendUser.userType) {
-  userType = Number(backendUser.userType) as UserType;
-} else {
-  const role = String(backendUser.role ?? "").toLowerCase();
-
-  if (role === "hr") {
-    userType = 1;
-  } else if (role === "admin") {
-    userType = 2;
-  } else if (role === "employee") {
-    userType = 3;
-  } else {
-    throw new Error("Invalid user role");
-  }
-}
-
-const user: LoginUser = {
-  userId:
-    backendUser.userId ??
-    backendUser._id ??
-    backendUser.id,
-  name:
-    backendUser.name ??
-    backendUser.fullName ??
-    backendUser.email,
-  email:
-    backendUser.email ??
-    cleanEmail,
-  userType,
-};
-
-/*
-  SAVE TOKEN IF BACKEND RETURNS TOKEN
-*/
-
-const token =
-  response.data.token ??
-  response.data.accessToken ??
-  response.data.data?.token;
-
-if (token) {
-  localStorage.setItem("token", token);
-}
-
-      /*
-        CHECK WHETHER USER
-        ALREADY LOGGED IN
-      */
+      /* =========================
+         CHECK RESPONSE
+      ========================= */
 
       if (
-        alreadyLoggedIn(
-          user.userId
-        )
+        response.data?.success === false
       ) {
-        setLoginError(
-          "You have already logged in for today's working session."
+        throw new Error(
+          response.data?.message ||
+            "Login failed"
         );
-
-        return;
       }
 
-      /*
-        SAVE FIRST LOGIN
-      */
+      /* =========================
+         GET USER
+      ========================= */
+
+      const backendUser =
+        response.data?.data?.employee;
+
+      if (!backendUser) {
+        throw new Error(
+          "User data not found"
+        );
+      }
+
+      /* =========================
+         USER TYPE
+      ========================= */
+
+      const userType =
+        Number(
+          backendUser.userType
+        ) as UserType;
+
+      if (
+        userType !== 1 &&
+        userType !== 2 &&
+        userType !== 3
+      ) {
+        throw new Error(
+          "Invalid user role"
+        );
+      }
+
+      /* =========================
+         CREATE USER OBJECT
+      ========================= */
+
+      const userId =
+        backendUser.employeeId ??
+        backendUser.employeeMongoId ??
+        backendUser.id ??
+        backendUser._id;
+
+      if (!userId) {
+        throw new Error(
+          "User ID not found"
+        );
+      }
+
+      const user: LoginUser = {
+        userId,
+
+        name:
+          backendUser.name ??
+          cleanEmail,
+
+        email:
+          backendUser.email ??
+          cleanEmail,
+
+        userType,
+      };
+
+      /* =========================
+         SAVE TOKEN
+      ========================= */
+
+      const token =
+        response.data?.data?.token;
+
+      if (token) {
+        localStorage.setItem(
+          "token",
+          token
+        );
+      }
+
+      /* =========================
+         SAVE USER
+      ========================= */
 
       storeLogin(user);
 
-      /*
-        REDIRECT BASED ON ROLE
-      */
-
-      redirectUser(
-        user.userType
+      console.log(
+        "Logged in user:",
+        user
       );
-    } catch (error) {
+
+      console.log(
+        "User type:",
+        userType
+      );
+
+      /* =========================
+         NAVIGATE
+      ========================= */
+
+      redirectUser(userType);
+
+    } catch (error: unknown) {
       console.error(
         "Login error:",
         error
       );
 
-      setLoginError(
-        "Unable to login. Please try again."
-      );
+      if (
+        axios.isAxiosError(error)
+      ) {
+        console.log(
+          "Status:",
+          error.response?.status
+        );
+
+        console.log(
+          "Backend response:",
+          error.response?.data
+        );
+
+        setLoginError(
+          error.response?.data?.message ||
+            "Invalid email or password."
+        );
+      } else if (
+        error instanceof Error
+      ) {
+        setLoginError(
+          error.message
+        );
+      } else {
+        setLoginError(
+          "Unable to login. Please try again."
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -459,7 +369,7 @@ if (token) {
           </p>
         </div>
 
-        {/* Main login error */}
+        {/* Login Error */}
 
         {loginError && (
           <div className="login-error-message">
@@ -514,6 +424,7 @@ if (token) {
                 {emailError}
               </span>
             )}
+
           </div>
 
           {/* Password */}
@@ -571,6 +482,7 @@ if (token) {
                   <Eye size={21} />
                 )}
               </button>
+
             </div>
 
             {passwordError && (
@@ -578,6 +490,7 @@ if (token) {
                 {passwordError}
               </span>
             )}
+
           </div>
 
           {/* Login Button */}
@@ -594,17 +507,16 @@ if (token) {
             </span>
 
             {!loading && (
-              <ArrowRight
-                size={23}
-              />
+              <ArrowRight size={23} />
             )}
           </button>
+
         </form>
 
         <p className="login-authorized">
-          Authorized Tech Leafe
-          employees only.
+          Authorized Tech Leafe employees only.
         </p>
+
       </div>
     </div>
   );
