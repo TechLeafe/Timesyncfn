@@ -20,7 +20,7 @@ import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
 import "./EmployeeCheckInOut.css";
 
 // Use your employee image here
-import employeeImage from "../../assets/CheckInOut/Female_icon.png";
+import employeeImage from "../../assets/CheckInOut/User_icon.png";
 
 // Use the leaf image you provided
 import leafImage from "../../assets/StatCards/Leafe.png";
