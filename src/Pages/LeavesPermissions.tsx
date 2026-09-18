@@ -93,7 +93,13 @@ const EMPTY_FORM: RequestForm = {
 const readRequests = (): LeaveRequest[] => {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) as LeaveRequest[] : [];
+    const parsed = saved ? JSON.parse(saved) as LeaveRequest[] : [];
+    return Array.isArray(parsed)
+      ? parsed.map((request) => ({
+        ...request,
+        createdAt: typeof request.createdAt === "string" ? request.createdAt : new Date().toISOString(),
+      }))
+      : [];
   } catch {
     return [];
   }
