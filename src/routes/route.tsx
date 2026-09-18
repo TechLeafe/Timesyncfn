@@ -5,9 +5,13 @@ import Attendance from "../Pages/Attendance";
 import Admin from "../Pages/Dashboard/AdminDashboard";
 import EmployeeDashboard from "../Pages/Dashboard/EmployeeDashboard";
 import { Login } from "../Pages/Login/Login";
+<<<<<<< HEAD
 import Employee_Creation from "../Pages/Employee_Creation";
 import LeavesPermissions from "../Pages/LeavesPermissions";
 
+=======
+import EmployeeCheckInOut from "../Pages/EmployeeCheckInOut/EmployeeCheckInOut";
+>>>>>>> 1f75c198fc612493e7ce8a7dcbdf71809ee964e5
 export const route = createBrowserRouter([
     {
         path: "/login",
@@ -42,6 +46,10 @@ export const route = createBrowserRouter([
             },            {
                 path: "leaves-permissions",
                 element: <LeavesPermissions />
+            },
+            {
+                path: "checkinout",
+                element: <EmployeeCheckInOut />,
             },
         ],
     },

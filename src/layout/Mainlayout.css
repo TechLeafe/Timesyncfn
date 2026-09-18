@@ -162,7 +162,7 @@
 
 .page-content {
   min-height: calc(100vh - 64px);
-  padding: 20px 24px;
+  padding: 20px;
   box-sizing: border-box;
 }
 

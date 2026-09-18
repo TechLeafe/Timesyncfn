@@ -41,6 +41,11 @@ const navItems: NavItem[] = [
     path:  "/calendar",
   },
   {
+    label: "Check In/Out",
+    icon:  <AccessTimeOutlinedIcon sx={{ fontSize: 20 }} />,
+    path:  "/checkinout",
+  },
+  {
     label: "Leaves and Permissions",
     icon:  <EventAvailableOutlinedIcon sx={{ fontSize: 20 }} />,
     path:  "/leaves-permissions",
