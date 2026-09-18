@@ -5,13 +5,13 @@ import Attendance from "../Pages/Attendance";
 import Admin from "../Pages/Dashboard/AdminDashboard";
 import EmployeeDashboard from "../Pages/Dashboard/EmployeeDashboard";
 import { Login } from "../Pages/Login/Login";
-<<<<<<< HEAD
 import Employee_Creation from "../Pages/Employee_Creation";
-import LeavesPermissions from "../Pages/LeavesPermissions";
+// import LeavesPermissions from "../Pages/LeavesPermissions";
 
-=======
 import EmployeeCheckInOut from "../Pages/EmployeeCheckInOut/EmployeeCheckInOut";
->>>>>>> 1f75c198fc612493e7ce8a7dcbdf71809ee964e5
+import AdminLeavesPermissions from "../Pages/LeavesPermissions/Admin/AdminLeavesPermissions";
+import EmployeeLeavesPermissions from "../Pages/LeavesPermissions/Employee/EmployeeLeavesPermissions";
+import Details  from "../Pages/LeavesPermissions/Admin/Details/Details";
 export const route = createBrowserRouter([
     {
         path: "/login",
@@ -36,16 +36,35 @@ export const route = createBrowserRouter([
             {
                 path: "attendance",
                 element: <Attendance />,
-            },            {
+            }, {
                 path: "employeedashboard",
                 element: <EmployeeDashboard />
             },
-             {
+            {
                 path: "employee-creation",
                 element: <Employee_Creation />,
-            },            {
-                path: "leaves-permissions",
-                element: <LeavesPermissions />
+            },
+            {
+                path: "admin-leaves-permissions",
+                element: <AdminLeavesPermissions />,
+            },
+            {
+                path: "admin-leaves-permissions/employee-Details",
+                element: <Details />,
+            },
+
+            // {
+            //     path: "admin-leaves-permissions",
+            //     element: <AdminLeavesPermissions />,
+            //     children:[{
+            //     path: "details",
+            //     element: <Details />
+
+            //     }]
+            // },
+            {
+                path: "employee-leaves-permissions",
+                element: <EmployeeLeavesPermissions />
             },
             {
                 path: "checkinout",

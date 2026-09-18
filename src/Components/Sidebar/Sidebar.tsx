@@ -45,10 +45,15 @@ const navItems: NavItem[] = [
     icon:  <AccessTimeOutlinedIcon sx={{ fontSize: 20 }} />,
     path:  "/checkinout",
   },
+  // {
+  //   label: "Leaves and Permissions",
+  //   icon:  <EventAvailableOutlinedIcon sx={{ fontSize: 20 }} />,
+  //   path:  "/leaves-permissions",
+  // },
   {
     label: "Leaves and Permissions",
     icon:  <EventAvailableOutlinedIcon sx={{ fontSize: 20 }} />,
-    path:  "/leaves-permissions",
+    path:  "/admin-leaves-permissions",
   },
 ];
 

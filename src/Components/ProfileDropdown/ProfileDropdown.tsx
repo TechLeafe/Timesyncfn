@@ -41,14 +41,17 @@ const handleSelectUser = (user: UserProfile) => {
   switch (user.role) {
     case "Admin":
       navigate("/admindashboard");
+      navigate("/admin-leaves-permissions")
       break;
 
     case "HR Manager":
       navigate("/hrdashboard");
+      navigate("/admin-leaves-permissions")
       break;
 
     case "Employee":
       navigate("/employeedashboard");
+      navigate("/employee-leaves-permissions")
       break;
 
     default:
