@@ -4,18 +4,14 @@ import {
 } from "react-router-dom";
 
 import MainLayout from "../layout/Mainlayout";
-
 import CompanyCalendar from "../Pages/Companycalendar";
 import Attendance from "../Pages/Attendance";
-
 import Admin from "../Pages/Dashboard/AdminDashboard";
 import EmployeeDashboard from "../Pages/Dashboard/EmployeeDashboard";
 import HRDashboard from "../Pages/Dashboard/HRDashboard";
-
 import { Login } from "../Pages/Login/Login";
 import Employee_Creation from "../Pages/Employee_Creation/Employee_Creation";
 import LeavesPermissions from "../Pages/LeavesPermissions";
-
 import EmployeeCheckInOut from "../Pages/EmployeeCheckInOut/EmployeeCheckInOut";
 export const route = createBrowserRouter([
     {
