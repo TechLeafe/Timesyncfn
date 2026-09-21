@@ -1,17 +1,28 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import {
+  createBrowserRouter,
+  Navigate,
+} from "react-router-dom";
+
 import MainLayout from "../layout/Mainlayout";
+
 import CompanyCalendar from "../Pages/Companycalendar";
 import Attendance from "../Pages/Attendance";
+
 import Admin from "../Pages/Dashboard/AdminDashboard";
 import EmployeeDashboard from "../Pages/Dashboard/EmployeeDashboard";
+import HRDashboard from "../Pages/Dashboard/HRDashboard";
+
 import { Login } from "../Pages/Login/Login";
-import Employee_Creation from "../Pages/Employee_Creation";
+import Employee_Creation from "../Pages/Employee_Creation/Employee_Creation";
+// import Employee_Creation from "../Pages/Employee_Creation";
 // import LeavesPermissions from "../Pages/LeavesPermissions";
 
 import EmployeeCheckInOut from "../Pages/EmployeeCheckInOut/EmployeeCheckInOut";
 import AdminLeavesPermissions from "../Pages/LeavesPermissions/Admin/AdminLeavesPermissions";
 import EmployeeLeavesPermissions from "../Pages/LeavesPermissions/Employee/EmployeeLeavesPermissions";
 import Details  from "../Pages/LeavesPermissions/Admin/Details/Details";
+
+// import EmployeeCheckInOut from "../Pages/EmployeeCheckInOut/EmployeeCheckInOut";
 export const route = createBrowserRouter([
     {
         path: "/login",
@@ -45,6 +56,14 @@ export const route = createBrowserRouter([
                 element: <Employee_Creation />,
             },
             {
+                path: "employee-creation/create",
+                element: <Employee_Creation />,
+            },
+            {
+                path: "employee-creation/edit",
+                element: <Employee_Creation />,
+            },
+            {
                 path: "admin-leaves-permissions",
                 element: <AdminLeavesPermissions />,
             },
@@ -52,16 +71,6 @@ export const route = createBrowserRouter([
                 path: "admin-leaves-permissions/employee-Details",
                 element: <Details />,
             },
-
-            // {
-            //     path: "admin-leaves-permissions",
-            //     element: <AdminLeavesPermissions />,
-            //     children:[{
-            //     path: "details",
-            //     element: <Details />
-
-            //     }]
-            // },
             {
                 path: "employee-leaves-permissions",
                 element: <EmployeeLeavesPermissions />

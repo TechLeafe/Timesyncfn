@@ -1,4 +1,161 @@
-import { useLocation, useNavigate } from "react-router-dom";
+// import { useLocation, useNavigate } from "react-router-dom";
+// import type { ReactNode } from "react";
+
+// import {
+//   Box,
+//   Drawer,
+//   List,
+//   ListItemButton,
+//   ListItemIcon,
+//   ListItemText,
+//   Divider,
+// } from "@mui/material";
+
+// import SpaceDashboardRoundedIcon from "@mui/icons-material/SpaceDashboardRounded";
+// import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
+// import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
+// import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
+// import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
+// import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlined";
+// import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
+
+// import "./Sidebar.css";
+
+// interface NavItem {
+//   label: string;
+//   icon: ReactNode;
+//   path?: string;
+// }
+
+// const navItems: NavItem[] = [
+//   {
+//     label: "Dashboard",
+//     icon: <SpaceDashboardRoundedIcon />,
+//     path: "/admindashboard",
+//   },
+//   {
+//     label: "Employee Creation",
+//     icon: <AccessTimeOutlinedIcon />,
+//     path: "/employee-creation",
+//   },
+//   {
+//     label: "Timesheet",
+//     icon: <AccessTimeOutlinedIcon />,
+//   },
+//   {
+//     label: "Attendance",
+//     icon: <FactCheckOutlinedIcon />,
+//     path: "/attendance",
+//   },
+//   {
+//     label: "Monthly Report",
+//     icon: <BarChartOutlinedIcon />,
+//   },
+//   {
+//     label: "Company Calendar",
+//     icon: <CalendarMonthOutlinedIcon />,
+//     path: "/calendar",
+//   },
+//   {
+//     label: "Check In/Out",
+//     icon: <AccessTimeOutlinedIcon />,
+//     path: "/checkinout",
+//   },
+//   {
+//     label: "Leaves and Permissions",
+//     icon: <EventAvailableOutlinedIcon />,
+//     path: "/leaves-permissions",
+//   },
+// ];
+
+// function Sidebar() {
+//   const { pathname } = useLocation();
+//   const navigate = useNavigate();
+
+//   const handleLogout = () => {
+//     localStorage.removeItem("token");
+//     localStorage.removeItem("loggedInUser");
+//     localStorage.removeItem("employeeLoginSession");
+
+//     navigate("/login");
+//   };
+
+//   return (
+//     <Drawer
+//       variant="permanent"
+//       className="sidebar-drawer"
+//     >
+//       {/* Logo */}
+//       <Box className="sidebar-logo">
+//         <img
+//           src="/techleafelogo.png"
+//           alt="Tech Leafe Technologies"
+//         />
+//       </Box>
+
+//       {/* Navigation */}
+//       <List className="sidebar-nav">
+//         {navItems.map((item) => {
+//           const isActive =
+//             item.path !== undefined &&
+//             item.path === pathname;
+
+//           return (
+//             <ListItemButton
+//               key={item.label}
+//               selected={isActive}
+//               className={`sidebar-nav-item ${
+//                 isActive ? "sidebar-nav-item-active" : ""
+//               }`}
+//               onClick={() => {
+//                 if (item.path) {
+//                   navigate(item.path);
+//                 }
+//               }}
+//             >
+//               <ListItemIcon className="sidebar-nav-icon">
+//                 {item.icon}
+//               </ListItemIcon>
+
+//               <ListItemText
+//                 primary={item.label}
+//                 className="sidebar-nav-text"
+//               />
+//             </ListItemButton>
+//           );
+//         })}
+//       </List>
+
+//       {/* Bottom Logout */}
+//       <Box className="sidebar-bottom">
+//         <Divider className="sidebar-divider" />
+
+//         <ListItemButton
+//           className="sidebar-logout"
+//           onClick={handleLogout}
+//         >
+//           <ListItemIcon className="sidebar-logout-icon">
+//             <LogoutOutlinedIcon />
+//           </ListItemIcon>
+
+//           <ListItemText
+//             primary="Log out"
+//             className="sidebar-logout-text"
+//           />
+//         </ListItemButton>
+//       </Box>
+//     </Drawer>
+//   );
+// }
+
+// export default Sidebar;
+import {
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
+
+import type { ReactNode } from "react";
+
 import {
   Box,
   Drawer,
@@ -8,193 +165,210 @@ import {
   ListItemText,
   Divider,
 } from "@mui/material";
+
 import SpaceDashboardRoundedIcon from "@mui/icons-material/SpaceDashboardRounded";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
-import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
-import techLeafeLogo from "../../../public/techleafelogo.png";
+import PersonAddAltOutlinedIcon from "@mui/icons-material/PersonAddAltOutlined";
 
-const DRAWER_WIDTH = 240;
+import {
+  HR,
+  ADMIN,
+  EMPLOYEE,
+} from "../../data/permissions";
+
+import "./Sidebar.css";
 
 interface NavItem {
   label: string;
-  icon: React.ReactNode;
-  path?: string;
+  icon: ReactNode;
+  path: string;
+  roles: number[];
 }
 
 const navItems: NavItem[] = [
-  { label: "Dashboard",       icon: <SpaceDashboardRoundedIcon        sx={{ fontSize: 20 }}/>, path: "/admindashboard" },
-  { label: "Employee Creation", icon: <AccessTimeOutlinedIcon        sx={{ fontSize: 20 }} />, path: "/employee-creation" },
-  { label: "Timesheet",        icon: <AccessTimeOutlinedIcon      sx={{ fontSize: 20 }} /> },
+  // HR Dashboard
+  {
+    label: "Dashboard",
+    icon: <SpaceDashboardRoundedIcon />,
+    path: "/hrdashboard",
+    roles: [HR],
+  },
+
+  // Admin Dashboard
+  {
+    label: "Dashboard",
+    icon: <SpaceDashboardRoundedIcon />,
+    path: "/admindashboard",
+    roles: [ADMIN],
+  },
+
+  // Employee Dashboard
+  {
+    label: "Dashboard",
+    icon: <SpaceDashboardRoundedIcon />,
+    path: "/employeedashboard",
+    roles: [EMPLOYEE],
+  },
+
+  // HR + Admin only
+  {
+    label: "Employee Creation",
+    icon: <PersonAddAltOutlinedIcon />,
+    path: "/employee-creation",
+    roles: [HR, ADMIN],
+  },
+
+  // All roles
   {
     label: "Attendance",
-    icon:  <FactCheckOutlinedIcon sx={{ fontSize: 20 }} />,
-    path:  "/attendance",
+    icon: <FactCheckOutlinedIcon />,
+    path: "/attendance",
+    roles: [HR, ADMIN, EMPLOYEE],
   },
-  { label: "Monthly Report",   icon: <BarChartOutlinedIcon        sx={{ fontSize: 20 }} /> },
+
+  // All roles
   {
     label: "Company Calendar",
-    icon:  <CalendarMonthOutlinedIcon sx={{ fontSize: 20 }} />,
-    path:  "/calendar",
+    icon: <CalendarMonthOutlinedIcon />,
+    path: "/calendar",
+    roles: [HR, ADMIN, EMPLOYEE],
   },
+
+  // All roles
   {
     label: "Check In/Out",
-    icon:  <AccessTimeOutlinedIcon sx={{ fontSize: 20 }} />,
-    path:  "/checkinout",
+    icon: <AccessTimeOutlinedIcon />,
+    path: "/checkinout",
+    roles: [HR, ADMIN, EMPLOYEE],
   },
   // {
   //   label: "Leaves and Permissions",
   //   icon:  <EventAvailableOutlinedIcon sx={{ fontSize: 20 }} />,
   //   path:  "/leaves-permissions",
   // },
+
+
+  // HR + Admin
+  {
+    label: "Leave Requests",
+    icon: <EventAvailableOutlinedIcon />,
+    path: "/admin-leaves-permissions",
+    roles: [HR, ADMIN],
+  },
+
+  // Employee
   {
     label: "Leaves and Permissions",
-    icon:  <EventAvailableOutlinedIcon sx={{ fontSize: 20 }} />,
-    path:  "/admin-leaves-permissions",
+    icon: <EventAvailableOutlinedIcon />,
+    path: "/employee-leaves-permissions",
+    roles: [EMPLOYEE],
   },
 ];
 
-const FONT       = "var(--font-family)";
-const GREEN      = "#1B6B33";
-const GREEN_PALE = "#E8F5E9";
-const GRAY_TEXT  = "#4B5563";
-const GRAY_ICON  = "#6B7280";
-
 function Sidebar() {
   const { pathname } = useLocation();
-  const navigate     = useNavigate();
+  const navigate = useNavigate();
+
+  const storedUser =
+    localStorage.getItem("loggedInUser");
+
+  let userType: number | null = null;
+
+  if (storedUser) {
+    try {
+      const user = JSON.parse(storedUser);
+
+      userType = Number(user.userType);
+    } catch {
+      userType = null;
+    }
+  }
+
+  const visibleNavItems =
+    userType !== null
+      ? navItems.filter((item) =>
+          item.roles.includes(userType)
+        )
+      : [];
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+
+    localStorage.removeItem(
+      "loggedInUser"
+    );
+
+    localStorage.removeItem(
+      "employeeLoginSession"
+    );
+
+    navigate("/login");
+  };
 
   return (
     <Drawer
       variant="permanent"
-      sx={{
-        width: DRAWER_WIDTH,
-        flexShrink: 0,
-        "& .MuiDrawer-paper": {
-          width: DRAWER_WIDTH,
-          boxSizing: "border-box",
-          borderRight: "1px solid #E5E7EB",
-          backgroundColor: "#FFFFFF",
-          display: "flex",
-          flexDirection: "column",
-          overflowX: "hidden",
-        },
-      }}
+      className="sidebar-drawer"
     >
-      {/* ── Logo Header ── */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          px: 2.5,
-          py: 2,
-          height: 64,
-          borderBottom: "1px solid #F3F4F6",
-        }}
-      >
+      {/* Logo */}
+      <Box className="sidebar-logo">
         <img
-          src={techLeafeLogo}
+          src="/techleafelogo.png"
           alt="Tech Leafe Technologies"
-          style={{ width: 148, objectFit: "contain" }}
         />
       </Box>
 
-      {/* ── Nav items ── */}
-      <List sx={{ px: 1.5, pt: 2, pb: 1, flex: 1 }}>
-        {navItems.map((item) => {
-          const isActive = item.path !== undefined && item.path === pathname;
+      {/* Navigation */}
+      <List className="sidebar-nav">
+        {visibleNavItems.map((item) => {
+          const isActive =
+            pathname === item.path;
+
           return (
             <ListItemButton
-              key={item.label}
+              key={`${item.label}-${item.path}`}
               selected={isActive}
-              onClick={() => { if (item.path) navigate(item.path); }}
-              sx={{
-                borderRadius: "10px",
-                mb: 0.75,
-                py: 1,
-                px: 1.5,
-                minHeight: 44,
-                color: isActive ? GREEN : GRAY_TEXT,
-                backgroundColor: isActive ? GREEN_PALE : "transparent",
-                transition: "all 0.15s ease",
-                "&.Mui-selected": {
-                  backgroundColor: GREEN_PALE,
-                  color: GREEN,
-                },
-                "&.Mui-selected:hover": {
-                  backgroundColor: GREEN_PALE,
-                },
-                "&:hover": {
-                  backgroundColor: isActive ? GREEN_PALE : "#F9FAFB",
-                  color: isActive ? GREEN : "#111827",
-                },
-              }}
+              className={`sidebar-nav-item ${
+                isActive
+                  ? "sidebar-nav-item-active"
+                  : ""
+              }`}
+              onClick={() =>
+                navigate(item.path)
+              }
             >
-              <ListItemIcon
-                sx={{
-                  minWidth: 34,
-                  color: isActive ? GREEN : GRAY_ICON,
-                }}
-              >
+              <ListItemIcon className="sidebar-nav-icon">
                 {item.icon}
               </ListItemIcon>
+
               <ListItemText
                 primary={item.label}
-                slotProps={{
-                  primary: {
-                    color: isActive ? GREEN : GRAY_TEXT,
-                    sx: {
-                      fontFamily: FONT,
-                      fontSize: 14,
-                      fontWeight: isActive ? 600 : 500,
-                      lineHeight: 1.3,
-                      WebkitFontSmoothing: "antialiased",
-                      letterSpacing: "-0.01em",
-                    },
-                  },
-                }}
+                className="sidebar-nav-text"
               />
             </ListItemButton>
           );
         })}
       </List>
 
-      {/* ── Bottom Section: Only Log out (Leaf removed) ── */}
-      <Box sx={{ px: 1.5, pb: 2, mt: "auto" }}>
-        <Divider sx={{ borderColor: "#F3F4F6", mb: 1.5 }} />
+      {/* Logout */}
+      <Box className="sidebar-bottom">
+        <Divider className="sidebar-divider" />
+
         <ListItemButton
-          sx={{
-            borderRadius: "10px",
-            py: 1,
-            px: 1.5,
-            minHeight: 42,
-            color: GRAY_TEXT,
-            transition: "all 0.15s ease",
-            "&:hover": {
-              backgroundColor: "#FEF2F2",
-              color: "#D42B2B",
-            },
-          }}
+          className="sidebar-logout"
+          onClick={handleLogout}
         >
-          <ListItemIcon sx={{ minWidth: 34, color: "inherit" }}>
-            <LogoutOutlinedIcon sx={{ fontSize: 20 }} />
+          <ListItemIcon className="sidebar-logout-icon">
+            <LogoutOutlinedIcon />
           </ListItemIcon>
+
           <ListItemText
             primary="Log out"
-            slotProps={{
-              primary: {
-                color: "inherit",
-                sx: {
-                  fontFamily: FONT,
-                  fontSize: 14,
-                  fontWeight: 500,
-                  WebkitFontSmoothing: "antialiased",
-                },
-              },
-            }}
+            className="sidebar-logout-text"
           />
         </ListItemButton>
       </Box>
@@ -203,3 +377,9 @@ function Sidebar() {
 }
 
 export default Sidebar;
+
+  // {
+  //   label: "Leaves and Permissions",
+  //   icon:  <EventAvailableOutlinedIcon />,
+  //   path:  "/admin-leaves-permissions"
+  // },

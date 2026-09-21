@@ -13,10 +13,9 @@ import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import MonthCalendar from "../Components/Calendar/MonthCalendar";
 import type { CalendarDayInfo, CalendarLegendItem } from "../Components/Calendar/calendarTheme";
 import { useCalendarEvents } from "../context/CalendarEventsContext";
-import { useCurrentUser } from "../context/UserContext";
 import { HALF_DAY_SLOTS, isSameDay, toDateKey } from "../data/calendarEvents";
 import type { CalendarEvent, CalendarEventType, HalfDaySlot } from "../data/calendarEvents";
-import { canManageCalendar } from "../data/users";
+import { HR, ADMIN } from "../data/permissions";
 
 const FONT      = "var(--font-family)";
 const GREEN     = "#1B6B33";
@@ -78,10 +77,26 @@ function CompanyCalendar() {
   const [formDate, setFormDate]         = useState(toDateKey(today));
   const [formDescription, setFormDescription] = useState("");
 
-  /* Role based permission: only HR Manager & Admin can edit / delete events */
-  const { currentUser } = useCurrentUser();
-  const canManageEvents = canManageCalendar(currentUser.role);
+  /* Role based permission
+     1 = HR
+     2 = Admin
+     3 = Employee
+  */
+  const storedUser = localStorage.getItem("loggedInUser");
 
+  let userType: number | null = null;
+
+  if (storedUser) {
+    try {
+      const loggedInUser = JSON.parse(storedUser);
+      userType = Number(loggedInUser?.userType);
+    } catch {
+      userType = null;
+    }
+  }
+
+  const canManageEvents =
+    userType === HR || userType === ADMIN;
   /* Edit / delete modal state */
   const [editingTarget, setEditingTarget] = useState<{ key: string; index: number } | null>(null);
   const [deleteTarget, setDeleteTarget]   = useState<{ key: string; index: number; title: string } | null>(null);
@@ -95,6 +110,8 @@ function CompanyCalendar() {
   const hasHalfDay     = selectedEvents.some((e) => e.type === "halfDay");
 
   const handleOpenAddModal = () => {
+    if (!canManageEvents) return;
+
     setEditingTarget(null);
     setFormTitle("");
     setFormType("holiday");
@@ -106,6 +123,8 @@ function CompanyCalendar() {
 
   /* Open the same popup in edit mode, prefilled with the selected event */
   const handleOpenEditModal = (event: CalendarEvent, index: number) => {
+    if (!canManageEvents) return;
+
     setEditingTarget({ key: toDateKey(selectedDate), index });
     setFormTitle(event.title);
     setFormType(event.type);
@@ -122,10 +141,13 @@ function CompanyCalendar() {
 
   /* Small confirmation popup for delete */
   const handleOpenDeleteModal = (event: CalendarEvent, index: number) => {
+    if (!canManageEvents) return;
+
     setDeleteTarget({ key: toDateKey(selectedDate), index, title: event.title });
   };
 
   const handleConfirmDelete = () => {
+    if (!canManageEvents) return;
     if (!deleteTarget) return;
 
     deleteEvent(deleteTarget.key, deleteTarget.index);
@@ -134,6 +156,9 @@ function CompanyCalendar() {
 
   const handleSaveEvent = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!canManageEvents) return;
+
     const title = formTitle.trim();
     if (!title || !formDate) return;
 
@@ -492,7 +517,7 @@ function CompanyCalendar() {
 
       {/* ════ ADD / EDIT EVENT MODAL POPUP (Compact, Crisp, Snug & Beautifully Proportioned) ════ */}
       <Dialog
-        open={openAddModal}
+        open={canManageEvents && openAddModal}
         onClose={closeEventModal}
         maxWidth="xs"
         fullWidth
@@ -784,7 +809,7 @@ function CompanyCalendar() {
 
       {/* ════ DELETE EVENT CONFIRMATION (Small popup) ════ */}
       <Dialog
-        open={deleteTarget !== null}
+        open={canManageEvents && deleteTarget !== null}
         onClose={() => setDeleteTarget(null)}
         maxWidth="xs"
         fullWidth

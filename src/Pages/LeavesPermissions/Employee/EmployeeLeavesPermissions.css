@@ -165,14 +165,14 @@
 }
 
 .cancel-button {
-  color: #1B6B33;
-  border-color: #bbe6c8;
+  color: #1B6B33 !important;
+  border-color: #bbe6c8 !important;
   font-weight: 700;
 }
 
 .submit-button {
-  background-color: #1B6B33;
-  border-color: #1B6B33;
+  background-color: #1B6B33 !important;
+  border-color: #1B6B33 !important;
   color: #FFFFFF;
   font-family: var(--font-family);
   font-weight: 700;
