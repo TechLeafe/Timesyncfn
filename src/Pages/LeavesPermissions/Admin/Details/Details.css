@@ -1,0 +1,252 @@
+.leave-details {
+  max-width: 1240px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 32px;
+  box-sizing: border-box;
+}
+
+/* Back Button */
+
+.leave-details__back-button {
+  color: #1B6B33 !important;
+  font-weight: 700 !important;
+  margin-bottom: 24px !important;
+}
+
+/* Header */
+
+.leave-details__header {
+  margin-bottom: 24px;
+}
+
+.leave-details__title {
+  color: #1B6B33;
+  font-family: var(--font-family);
+  font-size: 32px;
+  font-weight: 800;
+}
+
+.leave-details__subtitle {
+  color: #66756A;
+  font-family: var(--font-family);
+  margin-top: 4px;
+}
+
+/* Employee Information */
+
+.leave-details__employee-card {
+  border: 1px solid #DDE9DF !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.leave-details__employee-item {
+  min-width: 0;
+}
+
+.leave-details__label {
+  color: #66756A;
+  font-family: var(--font-family);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px !important;
+}
+
+.leave-details__value {
+  color: #1B6B33;
+  font-family: var(--font-family);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.leave-details__employee-id {
+  color: #1B6B33 !important;
+}
+
+/* Request Card */
+
+.leave-details__request-card {
+  border: 1px solid #DDE9DF !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.leave-details__request-heading {
+  background-color: #E8F5E9;
+  padding: 14px 20px;
+}
+
+.leave-details__request-title {
+  color: #1B6B33;
+  font-family: var(--font-family);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* Read-only Form */
+
+.leave-details__form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  padding: 24px;
+}
+
+.leave-details__form-field {
+  min-width: 0;
+}
+
+.leave-details__form-field--full {
+  grid-column: 1 / -1;
+}
+
+.leave-details__form-label {
+  color: #66756A;
+  font-family: var(--font-family);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px !important;
+}
+
+.leave-details__readonly-field {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  box-sizing: border-box;
+
+  background-color: #F8FBF8;
+  border: 1px solid #DDE9DF;
+  border-radius: 6px;
+
+  color: #1B6B33;
+  font-family: var(--font-family);
+
+  pointer-events: none;
+}
+
+.leave-details__readonly-field p {
+  color: #1B6B33;
+  font-family: var(--font-family);
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.leave-details__readonly-field--reason {
+  min-height: 100px;
+  align-items: flex-start;
+  padding-top: 14px;
+}
+
+/* Actions */
+
+.leave-details__actions,
+.leave-details__status {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  padding: 0 24px 24px;
+}
+
+.leave-details__approve-button {
+  background-color: #1B6B33 !important;
+  font-weight: 700 !important;
+  text-transform: none !important;
+}
+
+.leave-details__approve-button:hover {
+  background-color: #155a2b !important;
+}
+
+.leave-details__reject-button {
+  border-color: #B42318 !important;
+  color: #B42318 !important;
+  font-weight: 700 !important;
+  text-transform: none !important;
+}
+
+.leave-details__status-chip {
+  font-weight: 600 !important;
+}
+
+.leave-details__status-chip--approved {
+  background-color: #E8F5E9 !important;
+  color: #1B6B33 !important;
+}
+
+.leave-details__status-chip--rejected {
+  background-color: #FDECEC !important;
+  color: #B42318 !important;
+}
+
+/* Empty */
+
+.leave-details__empty {
+  border: 1px solid #DDE9DF !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  padding: 32px;
+  color: #66756A;
+}
+
+/* Tablet */
+
+@media (max-width: 899px) {
+  .leave-details {
+    padding: 32px;
+  }
+
+  .leave-details__employee-card {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .leave-details__form {
+    grid-template-columns: 1fr;
+  }
+
+  .leave-details__form-field--full {
+    grid-column: auto;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 599px) {
+  .leave-details {
+    padding: 32px 16px;
+  }
+
+  .leave-details__title {
+    font-size: 28px;
+  }
+
+  .leave-details__employee-card {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+
+  .leave-details__form {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .leave-details__actions {
+    justify-content: stretch;
+    padding: 0 16px 16px;
+  }
+
+  .leave-details__actions button {
+    flex: 1;
+  }
+}

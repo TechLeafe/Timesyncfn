@@ -260,6 +260,12 @@ const navItems: NavItem[] = [
     path: "/checkinout",
     roles: [HR, ADMIN, EMPLOYEE],
   },
+  // {
+  //   label: "Leaves and Permissions",
+  //   icon:  <EventAvailableOutlinedIcon sx={{ fontSize: 20 }} />,
+  //   path:  "/leaves-permissions",
+  // },
+
 
   // =========================
   // Holiday - HR + Admin only
@@ -277,7 +283,7 @@ const navItems: NavItem[] = [
   {
     label: "Leave Requests",
     icon: <EventAvailableOutlinedIcon />,
-    path: "/leaves-permissions",
+    path: "/admin-leaves-permissions",
     roles: [HR, ADMIN],
   },
 
@@ -287,7 +293,7 @@ const navItems: NavItem[] = [
   {
     label: "Leaves and Permissions",
     icon: <EventAvailableOutlinedIcon />,
-    path: "/leaves-permissions",
+    path: "/employee-leaves-permissions",
     roles: [EMPLOYEE],
   },
 ];
@@ -402,3 +408,9 @@ function Sidebar() {
 }
 
 export default Sidebar;
+
+  // {
+  //   label: "Leaves and Permissions",
+  //   icon:  <EventAvailableOutlinedIcon />,
+  //   path:  "/admin-leaves-permissions"
+  // },
