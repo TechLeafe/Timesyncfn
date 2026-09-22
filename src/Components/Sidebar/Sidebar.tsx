@@ -1,154 +1,3 @@
-// import { useLocation, useNavigate } from "react-router-dom";
-// import type { ReactNode } from "react";
-
-// import {
-//   Box,
-//   Drawer,
-//   List,
-//   ListItemButton,
-//   ListItemIcon,
-//   ListItemText,
-//   Divider,
-// } from "@mui/material";
-
-// import SpaceDashboardRoundedIcon from "@mui/icons-material/SpaceDashboardRounded";
-// import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
-// import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
-// import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
-// import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
-// import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlined";
-// import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
-
-// import "./Sidebar.css";
-
-// interface NavItem {
-//   label: string;
-//   icon: ReactNode;
-//   path?: string;
-// }
-
-// const navItems: NavItem[] = [
-//   {
-//     label: "Dashboard",
-//     icon: <SpaceDashboardRoundedIcon />,
-//     path: "/admindashboard",
-//   },
-//   {
-//     label: "Employee Creation",
-//     icon: <AccessTimeOutlinedIcon />,
-//     path: "/employee-creation",
-//   },
-//   {
-//     label: "Timesheet",
-//     icon: <AccessTimeOutlinedIcon />,
-//   },
-//   {
-//     label: "Attendance",
-//     icon: <FactCheckOutlinedIcon />,
-//     path: "/attendance",
-//   },
-//   {
-//     label: "Monthly Report",
-//     icon: <BarChartOutlinedIcon />,
-//   },
-//   {
-//     label: "Company Calendar",
-//     icon: <CalendarMonthOutlinedIcon />,
-//     path: "/calendar",
-//   },
-//   {
-//     label: "Check In/Out",
-//     icon: <AccessTimeOutlinedIcon />,
-//     path: "/checkinout",
-//   },
-//   {
-//     label: "Leaves and Permissions",
-//     icon: <EventAvailableOutlinedIcon />,
-//     path: "/leaves-permissions",
-//   },
-// ];
-
-// function Sidebar() {
-//   const { pathname } = useLocation();
-//   const navigate = useNavigate();
-
-//   const handleLogout = () => {
-//     localStorage.removeItem("token");
-//     localStorage.removeItem("loggedInUser");
-//     localStorage.removeItem("employeeLoginSession");
-
-//     navigate("/login");
-//   };
-
-//   return (
-//     <Drawer
-//       variant="permanent"
-//       className="sidebar-drawer"
-//     >
-//       {/* Logo */}
-//       <Box className="sidebar-logo">
-//         <img
-//           src="/techleafelogo.png"
-//           alt="Tech Leafe Technologies"
-//         />
-//       </Box>
-
-//       {/* Navigation */}
-//       <List className="sidebar-nav">
-//         {navItems.map((item) => {
-//           const isActive =
-//             item.path !== undefined &&
-//             item.path === pathname;
-
-//           return (
-//             <ListItemButton
-//               key={item.label}
-//               selected={isActive}
-//               className={`sidebar-nav-item ${
-//                 isActive ? "sidebar-nav-item-active" : ""
-//               }`}
-//               onClick={() => {
-//                 if (item.path) {
-//                   navigate(item.path);
-//                 }
-//               }}
-//             >
-//               <ListItemIcon className="sidebar-nav-icon">
-//                 {item.icon}
-//               </ListItemIcon>
-
-//               <ListItemText
-//                 primary={item.label}
-//                 className="sidebar-nav-text"
-//               />
-//             </ListItemButton>
-//           );
-//         })}
-//       </List>
-
-//       {/* Bottom Logout */}
-//       <Box className="sidebar-bottom">
-//         <Divider className="sidebar-divider" />
-
-//         <ListItemButton
-//           className="sidebar-logout"
-//           onClick={handleLogout}
-//         >
-//           <ListItemIcon className="sidebar-logout-icon">
-//             <LogoutOutlinedIcon />
-//           </ListItemIcon>
-
-//           <ListItemText
-//             primary="Log out"
-//             className="sidebar-logout-text"
-//           />
-//         </ListItemButton>
-//       </Box>
-//     </Drawer>
-//   );
-// }
-
-// export default Sidebar;
 import {
   useLocation,
   useNavigate,
@@ -183,6 +32,11 @@ import {
 
 import "./Sidebar.css";
 
+
+/* =========================================================
+   NAV ITEM TYPE
+========================================================= */
+
 interface NavItem {
   label: string;
   icon: ReactNode;
@@ -190,10 +44,16 @@ interface NavItem {
   roles: number[];
 }
 
+
+/* =========================================================
+   SIDEBAR ITEMS
+========================================================= */
+
 const navItems: NavItem[] = [
-  // =========================
-  // HR Dashboard
-  // =========================
+  /* =========================
+     HR DASHBOARD
+  ========================= */
+
   {
     label: "Dashboard",
     icon: <SpaceDashboardRoundedIcon />,
@@ -201,9 +61,10 @@ const navItems: NavItem[] = [
     roles: [HR],
   },
 
-  // =========================
-  // Admin Dashboard
-  // =========================
+  /* =========================
+     ADMIN DASHBOARD
+  ========================= */
+
   {
     label: "Dashboard",
     icon: <SpaceDashboardRoundedIcon />,
@@ -211,9 +72,10 @@ const navItems: NavItem[] = [
     roles: [ADMIN],
   },
 
-  // =========================
-  // Employee Dashboard
-  // =========================
+  /* =========================
+     EMPLOYEE DASHBOARD
+  ========================= */
+
   {
     label: "Dashboard",
     icon: <SpaceDashboardRoundedIcon />,
@@ -221,9 +83,11 @@ const navItems: NavItem[] = [
     roles: [EMPLOYEE],
   },
 
-  // =========================
-  // HR + Admin only
-  // =========================
+  /* =========================
+     EMPLOYEE CREATION
+     HR + ADMIN ONLY
+  ========================= */
+
   {
     label: "Employee Creation",
     icon: <PersonAddAltOutlinedIcon />,
@@ -231,9 +95,11 @@ const navItems: NavItem[] = [
     roles: [HR, ADMIN],
   },
 
-  // =========================
-  // All roles
-  // =========================
+  /* =========================
+     ATTENDANCE
+     ALL ROLES
+  ========================= */
+
   {
     label: "Attendance",
     icon: <FactCheckOutlinedIcon />,
@@ -241,9 +107,11 @@ const navItems: NavItem[] = [
     roles: [HR, ADMIN, EMPLOYEE],
   },
 
-  // =========================
-  // All roles
-  // =========================
+  /* =========================
+     COMPANY CALENDAR
+     ALL ROLES
+  ========================= */
+
   {
     label: "Company Calendar",
     icon: <CalendarMonthOutlinedIcon />,
@@ -251,9 +119,11 @@ const navItems: NavItem[] = [
     roles: [HR, ADMIN, EMPLOYEE],
   },
 
-  // =========================
-  // All roles
-  // =========================
+  /* =========================
+     CHECK IN / OUT
+     ALL ROLES
+  ========================= */
+
   {
     label: "Check In/Out",
     icon: <AccessTimeOutlinedIcon />,
@@ -272,10 +142,11 @@ const navItems: NavItem[] = [
   //   path:  "/leaves-permissions",
   // },
 
+  /* =========================
+     HOLIDAYS
+     HR + ADMIN ONLY
+  ========================= */
 
-  // =========================
-  // Holiday - HR + Admin only
-  // =========================
   {
     label: "Holidays",
     icon: <EventNoteOutlinedIcon />,
@@ -283,9 +154,11 @@ const navItems: NavItem[] = [
     roles: [HR, ADMIN],
   },
 
-  // =========================
-  // HR + Admin
-  // =========================
+  /* =========================
+     LEAVE REQUESTS
+     HR + ADMIN ONLY
+  ========================= */
+
   {
     label: "Leave Requests",
     icon: <EventAvailableOutlinedIcon />,
@@ -293,9 +166,11 @@ const navItems: NavItem[] = [
     roles: [HR, ADMIN],
   },
 
-  // =========================
-  // Employee
-  // =========================
+  /* =========================
+     LEAVES AND PERMISSIONS
+     EMPLOYEE ONLY
+  ========================= */
+
   {
     label: "Leaves and Permissions",
     icon: <EventAvailableOutlinedIcon />,
@@ -304,10 +179,20 @@ const navItems: NavItem[] = [
   },
 ];
 
+
+/* =========================================================
+   SIDEBAR COMPONENT
+========================================================= */
+
 function Sidebar() {
   const { pathname } = useLocation();
 
   const navigate = useNavigate();
+
+
+  /* =========================================================
+     GET LOGGED IN USER
+  ========================================================= */
 
   const storedUser =
     localStorage.getItem("loggedInUser");
@@ -324,7 +209,11 @@ function Sidebar() {
     }
   }
 
-  // Show sidebar items based on user role
+
+  /* =========================================================
+     FILTER MENU BASED ON ROLE
+  ========================================================= */
+
   const visibleNavItems =
     userType !== null
       ? navItems.filter((item) =>
@@ -332,26 +221,55 @@ function Sidebar() {
         )
       : [];
 
+
+  /* =========================================================
+     LOGOUT
+  ========================================================= */
+
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    /*
+      Clear all browser storage used by this app.
 
-    localStorage.removeItem(
-      "loggedInUser"
-    );
+      This removes:
+      - token
+      - loggedInUser
+      - employeeLoginSession
+      - any other localStorage values
+    */
 
-    localStorage.removeItem(
-      "employeeLoginSession"
-    );
+    localStorage.clear();
 
-    navigate("/login");
+    /*
+      Clear sessionStorage also
+    */
+
+    sessionStorage.clear();
+
+    /*
+      Reload the application fresh.
+
+      replace() is better than navigate("/login")
+      for logout because the current authenticated
+      page is replaced in browser history.
+    */
+
+    window.location.replace("/login");
   };
+
+
+  /* =========================================================
+     UI
+  ========================================================= */
 
   return (
     <Drawer
       variant="permanent"
       className="sidebar-drawer"
     >
-      {/* Logo */}
+      {/* =========================
+          LOGO
+      ========================= */}
+
       <Box className="sidebar-logo">
         <img
           src="/techleafelogo.png"
@@ -359,7 +277,11 @@ function Sidebar() {
         />
       </Box>
 
-      {/* Navigation */}
+
+      {/* =========================
+          NAVIGATION
+      ========================= */}
+
       <List className="sidebar-nav">
         {visibleNavItems.map((item) => {
           const isActive =
@@ -391,7 +313,11 @@ function Sidebar() {
         })}
       </List>
 
-      {/* Logout */}
+
+      {/* =========================
+          LOGOUT
+      ========================= */}
+
       <Box className="sidebar-bottom">
         <Divider className="sidebar-divider" />
 
@@ -414,9 +340,3 @@ function Sidebar() {
 }
 
 export default Sidebar;
-
-  // {
-  //   label: "Leaves and Permissions",
-  //   icon:  <EventAvailableOutlinedIcon />,
-  //   path:  "/admin-leaves-permissions"
-  // },
