@@ -17,6 +17,10 @@ import Employee_Creation from "../Pages/Employee_Creation/Employee_Creation";
 
 import EmployeeCheckInOut from "../Pages/EmployeeCheckInOut/EmployeeCheckInOut";
 
+import AdminCheckinout from "../Pages/Employee Management/CheckInOut/AdminCheckinout";
+
+import ProtectedRoute from "../Components/ProtectedRoute/ProtectedRoute";
+
 import Holiday from "../Pages/Holiday/Holiday";
 
 import AdminLeavesPermissions from "../Pages/LeavesPermissions/Admin/AdminLeavesPermissions";
@@ -221,6 +225,14 @@ export const route = createBrowserRouter([
             {
                 path: "checkinout",
                 element: <EmployeeCheckInOut />,
+            },
+            {
+                path: "employee-management",
+                element: (
+                    <ProtectedRoute allowedRoles={[HR, ADMIN]}>
+                        <AdminCheckinout />
+                    </ProtectedRoute>
+                ),
             },
             {
               path : "leave-policies",

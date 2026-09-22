@@ -23,6 +23,7 @@ import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlin
 import EventNoteOutlinedIcon from "@mui/icons-material/EventNoteOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import PersonAddAltOutlinedIcon from "@mui/icons-material/PersonAddAltOutlined";
+import ManageAccountsOutlinedIcon from "@mui/icons-material/ManageAccountsOutlined";
 
 import {
   HR,
@@ -92,6 +93,19 @@ const navItems: NavItem[] = [
     label: "Employee Creation",
     icon: <PersonAddAltOutlinedIcon />,
     path: "/employee-creation",
+    roles: [HR, ADMIN],
+  },
+
+  /* =========================
+     EMPLOYEE MANAGEMENT
+     (admin view of everyone's check-in/out)
+     HR + ADMIN ONLY
+  ========================= */
+
+  {
+    label: "Employee Management",
+    icon: <ManageAccountsOutlinedIcon />,
+    path: "/employee-management",
     roles: [HR, ADMIN],
   },
 
