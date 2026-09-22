@@ -14,6 +14,7 @@ const pageTitles: Record<string, string> = {
   "/leaves-permissions": "Leaves and Permissions",
   "/checkin-checkout": "Check In / Check Out",
   "/leave-policies": "Leave Policies",
+  "/holiday": "Holidays",
   "/roles": "Roles",
   "/settings": "Settings",
 };
@@ -21,7 +22,7 @@ const pageTitles: Record<string, string> = {
 const MainLayout = () => {
   const { pathname } = useLocation();
 
-  const pageTitle = pageTitles[pathname] ;
+  const pageTitle = pageTitles[pathname];
 
   return (
     <Box className="main-layout">

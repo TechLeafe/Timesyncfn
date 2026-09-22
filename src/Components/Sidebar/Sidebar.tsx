@@ -171,6 +171,7 @@ import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlined";
+import EventNoteOutlinedIcon from "@mui/icons-material/EventNoteOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import PersonAddAltOutlinedIcon from "@mui/icons-material/PersonAddAltOutlined";
 
@@ -190,7 +191,9 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
+  // =========================
   // HR Dashboard
+  // =========================
   {
     label: "Dashboard",
     icon: <SpaceDashboardRoundedIcon />,
@@ -198,7 +201,9 @@ const navItems: NavItem[] = [
     roles: [HR],
   },
 
+  // =========================
   // Admin Dashboard
+  // =========================
   {
     label: "Dashboard",
     icon: <SpaceDashboardRoundedIcon />,
@@ -206,7 +211,9 @@ const navItems: NavItem[] = [
     roles: [ADMIN],
   },
 
+  // =========================
   // Employee Dashboard
+  // =========================
   {
     label: "Dashboard",
     icon: <SpaceDashboardRoundedIcon />,
@@ -214,7 +221,9 @@ const navItems: NavItem[] = [
     roles: [EMPLOYEE],
   },
 
+  // =========================
   // HR + Admin only
+  // =========================
   {
     label: "Employee Creation",
     icon: <PersonAddAltOutlinedIcon />,
@@ -222,7 +231,9 @@ const navItems: NavItem[] = [
     roles: [HR, ADMIN],
   },
 
+  // =========================
   // All roles
+  // =========================
   {
     label: "Attendance",
     icon: <FactCheckOutlinedIcon />,
@@ -230,7 +241,9 @@ const navItems: NavItem[] = [
     roles: [HR, ADMIN, EMPLOYEE],
   },
 
+  // =========================
   // All roles
+  // =========================
   {
     label: "Company Calendar",
     icon: <CalendarMonthOutlinedIcon />,
@@ -238,7 +251,9 @@ const navItems: NavItem[] = [
     roles: [HR, ADMIN, EMPLOYEE],
   },
 
+  // =========================
   // All roles
+  // =========================
   {
     label: "Check In/Out",
     icon: <AccessTimeOutlinedIcon />,
@@ -258,7 +273,19 @@ const navItems: NavItem[] = [
   // },
 
 
+  // =========================
+  // Holiday - HR + Admin only
+  // =========================
+  {
+    label: "Holidays",
+    icon: <EventNoteOutlinedIcon />,
+    path: "/holiday",
+    roles: [HR, ADMIN],
+  },
+
+  // =========================
   // HR + Admin
+  // =========================
   {
     label: "Leave Requests",
     icon: <EventAvailableOutlinedIcon />,
@@ -266,7 +293,9 @@ const navItems: NavItem[] = [
     roles: [HR, ADMIN],
   },
 
+  // =========================
   // Employee
+  // =========================
   {
     label: "Leaves and Permissions",
     icon: <EventAvailableOutlinedIcon />,
@@ -277,6 +306,7 @@ const navItems: NavItem[] = [
 
 function Sidebar() {
   const { pathname } = useLocation();
+
   const navigate = useNavigate();
 
   const storedUser =
@@ -294,6 +324,7 @@ function Sidebar() {
     }
   }
 
+  // Show sidebar items based on user role
   const visibleNavItems =
     userType !== null
       ? navItems.filter((item) =>
