@@ -1,0 +1,146 @@
+:root {
+	--leave-primary: #35753B;
+}
+
+.leave-policies {
+	display: grid;
+	gap: 24px;
+	padding: 28px;
+}
+
+.leave-policies__header,
+.leave-policies__detail-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 20px;
+}
+
+.leave-policies__title {
+	color: #17251b;
+	font-size: 28px !important;
+	font-weight: 700 !important;
+}
+
+.leave-policies .MuiButton-root {
+	color: var(--leave-primary);
+}
+
+.leave-policies .MuiButton-contained,
+.leave-policies .MuiButton-containedPrimary {
+	background-color: var(--leave-primary) !important;
+	color: #ffffff !important;
+}
+
+.leave-policies .MuiButton-contained:hover,
+.leave-policies .MuiButton-containedPrimary:hover {
+	background-color: #285d2f !important;
+}
+
+.leave-policies .MuiButton-contained.Mui-disabled,
+.leave-policies .MuiButton-containedPrimary.Mui-disabled {
+	background-color: #d5d9d6 !important;
+	color: #737a75 !important;
+}
+
+.leave-policies .MuiButton-outlined.leave-policies__outlined-button,
+.leave-policies-dialog .MuiButton-outlined.leave-policies__outlined-button {
+	color: var(--leave-primary) !important;
+	border-color: var(--leave-primary) !important;
+}
+
+.leave-policies .MuiButton-outlined.leave-policies__outlined-button:hover,
+.leave-policies-dialog .MuiButton-outlined.leave-policies__outlined-button:hover {
+	color: #285d2f !important;
+	border-color: #285d2f !important;
+	background-color: #edf5ee;
+}
+
+.leave-policies-dialog .MuiButton-contained,
+.leave-policies-dialog .MuiButton-containedPrimary {
+	background-color: var(--leave-primary) !important;
+	color: #ffffff !important;
+}
+
+.leave-policies-dialog .MuiButton-contained:hover,
+.leave-policies-dialog .MuiButton-containedPrimary:hover {
+	background-color: #285d2f !important;
+}
+
+.leave-policies-dialog .MuiDialogActions .MuiButton-text {
+	color: var(--leave-primary) !important;
+}
+
+.leave-policies-dialog .MuiDialogActions .MuiButton-text:hover {
+	background-color: #edf5ee;
+}
+
+.leave-policies-dialog .MuiOutlinedInput-root fieldset {
+	border-color: #b7cdb9;
+}
+
+.leave-policies-dialog .MuiOutlinedInput-root:not(.Mui-error):hover fieldset {
+	border-color: var(--leave-primary);
+}
+
+.leave-policies-dialog .MuiOutlinedInput-root.Mui-focused:not(.Mui-error) fieldset {
+	border-color: var(--leave-primary);
+	border-width: 2px;
+}
+
+.leave-policies-dialog .MuiInputLabel-root.Mui-focused:not(.Mui-error) {
+	color: var(--leave-primary);
+}
+
+.leave-policies-dialog .MuiSelect-select:focus {
+	background-color: #f4faf4;
+}
+
+.leave-policies-dialog .MuiDialogTitle-root {
+	color: #17251b;
+	border-bottom: 1px solid #e1e8e2;
+}
+
+.leave-policies__subtitle { color: #6b756d; margin-top: 5px !important; }
+.leave-policies__table-card,
+.leave-policies__detail-card { padding: 22px; border: 1px solid #e1e8e2; box-shadow: none !important; }
+.leave-policies__table-card .MuiTableHead-root { background: #edf5ee; }
+.leave-policies__table-card .MuiTableCell-head { color: #245c2c; font-weight: 700; }
+.leave-policies__table-card .MuiTableBody-root .MuiTableRow-root:hover { background: #f4faf4; }
+.leave-policies__table-card .MuiIconButton-root { color: var(--leave-primary); }
+.leave-policies__section-title { color: #17251b; font-size: 17px !important; font-weight: 700 !important; margin-bottom: 16px !important; }
+.leave-policies__policy-name { color: #245c2c; font-weight: 600 !important; }
+.leave-policies__status { display: inline-block; min-width: 68px; padding: 4px 9px; border-radius: 12px; font-size: 12px; font-weight: 700; }
+.leave-policies__status--active { color: #256b2d; background: #e2f3e4; }
+.leave-policies__status--inactive { color: #7a4b18; background: #fff1dc; }
+.leave-policies__back { justify-self: start; color: #35753b !important; }
+.leave-policies__stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.leave-policies__stat { padding: 18px; background: #f4f8f4; border-radius: 6px; }
+.leave-policies__stat-label { color: #6b756d; font-size: 13px !important; }
+.leave-policies__stat-value { color: #245c2c; font-size: 21px !important; font-weight: 700 !important; margin-top: 8px !important; }
+.leave-policies__line-list { display: grid; }
+.leave-policies__line { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 16px 0; border-bottom: 1px solid #e1e8e2; }
+.leave-policies__line:first-child { padding-top: 0; }
+.leave-policies__line:last-child { padding-bottom: 0; border-bottom: 0; }
+.leave-policies__line-label { color: #245c2c; font-weight: 700 !important; }
+.leave-policies__line-value { color: #17251b; font-weight: 600 !important; text-align: right; }
+.leave-policies__dialog-content { display: grid; gap: 18px; padding-top: 8px !important; }
+.leave-policies-dialog .MuiDialog-paper { border-top: 4px solid var(--leave-primary); }
+
+.leave-policies-toast .MuiAlert-filledSuccess {
+	background-color: var(--leave-primary) !important;
+}
+
+.leave-policies-toast .MuiAlert-filledError {
+	background-color: #b3261e !important;
+}
+
+@media (max-width: 700px) {
+	.leave-policies { padding: 18px; }
+	.leave-policies__header, .leave-policies__detail-header { flex-direction: column; }
+	.leave-policies__stat-grid { grid-template-columns: repeat(2, 1fr); }
+	.leave-policies__table-card { overflow-x: auto; }
+	.leave-policies__form-grid { grid-template-columns: 1fr; }
+	.leave-policies__line { align-items: flex-start; flex-direction: column; gap: 5px; }
+	.leave-policies__line-value { text-align: left; }
+}

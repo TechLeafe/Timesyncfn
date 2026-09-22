@@ -4,25 +4,155 @@ import {
 } from "react-router-dom";
 
 import MainLayout from "../layout/Mainlayout";
-
 import CompanyCalendar from "../Pages/Companycalendar";
 import Attendance from "../Pages/Attendance";
-
 import Admin from "../Pages/Dashboard/AdminDashboard";
 import EmployeeDashboard from "../Pages/Dashboard/EmployeeDashboard";
-// import HRDashboard from "../Pages/Dashboard/HRDashboard";
-
+//import HRDashboard from "../Pages/Dashboard/HRDashboard";
 import { Login } from "../Pages/Login/Login";
+
 import Employee_Creation from "../Pages/Employee_Creation/Employee_Creation";
 // import Employee_Creation from "../Pages/Employee_Creation";
 // import LeavesPermissions from "../Pages/LeavesPermissions";
 
 import EmployeeCheckInOut from "../Pages/EmployeeCheckInOut/EmployeeCheckInOut";
+
+import Holiday from "../Pages/Holiday/Holiday";
+
 import AdminLeavesPermissions from "../Pages/LeavesPermissions/Admin/AdminLeavesPermissions";
+
 import EmployeeLeavesPermissions from "../Pages/LeavesPermissions/Employee/EmployeeLeavesPermissions";
-import Details  from "../Pages/LeavesPermissions/Admin/Details/Details";
+
+import Details from "../Pages/LeavesPermissions/Admin/Details/Details";
+
 import LeaveDetail from "../Pages/LeavesPermissions/Employee/LeaveDetail/LeaveDetail";
 
+import {
+  ADMIN,
+  HR,
+  EMPLOYEE,
+} from "../data/permissions";
+
+
+/* =========================================================
+   HOLIDAY PROTECTED ROUTE
+   ADMIN + HR ONLY
+========================================================= */
+
+function HolidayRoute() {
+  const storedUser =
+    localStorage.getItem("loggedInUser");
+
+  if (!storedUser) {
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
+  }
+
+  try {
+    const user = JSON.parse(storedUser);
+
+    const userType = Number(user.userType);
+
+    if (
+      userType === ADMIN ||
+      userType === HR
+    ) {
+      return <Holiday />;
+    }
+
+    return (
+      <Navigate
+        to="/employeedashboard"
+        replace
+      />
+    );
+  } catch {
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
+  }
+}
+
+
+/* =========================================================
+   LEAVES / PERMISSIONS REDIRECT
+
+   This keeps your old sidebar route:
+   /leaves-permissions
+
+   Admin/HR -> Admin Leave Requests
+   Employee -> Employee Leaves & Permissions
+========================================================= */
+
+function LeavesPermissionsRoute() {
+  const storedUser =
+    localStorage.getItem("loggedInUser");
+
+  if (!storedUser) {
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
+  }
+
+  try {
+    const user = JSON.parse(storedUser);
+
+    const userType = Number(user.userType);
+
+    if (
+      userType === ADMIN ||
+      userType === HR
+    ) {
+      return (
+        <Navigate
+          to="/admin-leaves-permissions"
+          replace
+        />
+      );
+    }
+
+    if (userType === EMPLOYEE) {
+      return (
+        <Navigate
+          to="/employee-leaves-permissions"
+          replace
+        />
+      );
+    }
+
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
+  } catch {
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
+  }
+}
+
+
+/* =========================================================
+   ROUTER
+========================================================= */
+
+//import Details  from "../Pages/LeavesPermissions/Admin/Details/Details";
+import LeavePolicies from "../Pages/LeavePolicies/LeavePolicies";
 // import EmployeeCheckInOut from "../Pages/EmployeeCheckInOut/EmployeeCheckInOut";
 export const route = createBrowserRouter([
     {
@@ -48,6 +178,10 @@ export const route = createBrowserRouter([
             {
                 path: "calendar",
                 element: <CompanyCalendar />,
+            },
+            {
+              path: "holiday",
+              element: <HolidayRoute />,
             },
             {
                 path: "attendance",
@@ -87,6 +221,10 @@ export const route = createBrowserRouter([
             {
                 path: "checkinout",
                 element: <EmployeeCheckInOut />,
+            },
+            {
+              path : "leave-policies",
+              element: <LeavePolicies />
             },
         ],
     },
