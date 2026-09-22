@@ -1,0 +1,340 @@
+/* Employee Leaves & Permissions
+   All visual styling is kept in this CSS file.
+   UI/content/functionality are preserved from the original TSX.
+*/
+
+.employee-leaves-page {
+  max-width: 1240px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 32px 32px;
+  font-family: var(--font-family);
+}
+
+.employee-leaves-header {
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.page-title {
+  color: #1B6B33;
+  font-family: var(--font-family);
+  font-size: 36px;
+  font-weight: 800;
+}
+
+.page-subtitle {
+  color: #66756A;
+  font-family: var(--font-family);
+  margin-top: 4px;
+}
+
+.feedback-alert {
+  margin-bottom: 16px;
+}
+
+.balance-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.balance-card,
+.apply-card,
+.request-form-card,
+.requests-card {
+  border-radius: 8px;
+}
+
+.balance-card {
+  border: 1px solid #DDE9DF;
+  padding: 20px;
+}
+
+.balance-card-content {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.balance-label {
+  color: #66756A;
+  font-family: var(--font-family);
+  font-size: 14px;
+}
+
+.balance-value {
+  color: #1B6B33;
+  font-family: var(--font-family);
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.balance-unit {
+  color: #8A978D;
+  font-family: var(--font-family);
+  font-size: 12px;
+}
+
+.balance-icon {
+  align-items: center;
+  background-color: #E8F5E9;
+  border-radius: 50%;
+  color: #2E7D32;
+  display: flex;
+  height: 44px;
+  justify-content: center;
+  width: 44px;
+  flex-shrink: 0;
+}
+
+.apply-card {
+  border: 1px dashed #1B6B33;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+}
+
+.apply-button {
+  color: #1B6B33 !important;
+  font-family: var(--font-family);
+  font-weight: 700;
+  text-transform: none;
+  font-size: 16px;
+}
+
+.apply-options {
+  width: 100%;
+}
+
+.apply-options-title {
+  color: #1B6B33;
+  font-family: var(--font-family);
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.apply-option-button {
+  color: #1B6B33;
+  border-color: #bbe6c8;
+  font-weight: 700;
+  justify-content: flex-start;
+}
+
+.request-form-card {
+  border: 1px solid #DDE9DF;
+  margin-bottom: 24px;
+  padding: 24px;
+}
+
+.form-title {
+  color: #1B6B33;
+  font-family: var(--font-family);
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.form-fields {
+  width: 100%;
+}
+
+.field-row {
+  align-items: center;
+}
+
+.field-label {
+  width: 125px;
+  flex-shrink: 0;
+  font-weight: 700;
+  color: #000000;
+  font-family: var(--font-family);
+  font-size: 16px;
+}
+
+.form-actions {
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.cancel-button {
+  color: #1B6B33 !important;
+  border-color: #bbe6c8 !important;
+  font-weight: 700;
+}
+
+.submit-button {
+  background-color: #1B6B33 !important;
+  border-color: #1B6B33 !important;
+  color: #FFFFFF;
+  font-family: var(--font-family);
+  font-weight: 700;
+}
+
+.submit-button:hover {
+  background-color: #2E7D32;
+}
+
+.requests-card {
+  border: 1px solid #DDE9DF;
+  overflow: hidden;
+}
+
+.requests-card-header {
+  background-color: #E8F5E9;
+  padding: 14px 20px;
+}
+
+.requests-title {
+  color: #1B6B33;
+  font-family: var(--font-family);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.requests-table-wrap {
+  overflow-x: auto;
+}
+
+.request-cell {
+  font-family: var(--font-family);
+}
+
+.request-employee-cell {
+  font-weight: 600;
+}
+
+.request-nowrap-cell {
+  white-space: nowrap;
+}
+
+.request-reason-cell {
+  min-width: 180px;
+}
+
+.request-action-cell {
+  white-space: nowrap;
+}
+
+.status-chip {
+  font-weight: 600;
+}
+
+.status-pending {
+  background-color: #FFF7E6 !important;
+  color: #9A6700 !important;
+}
+
+.status-approved {
+  background-color: #E8F5E9 !important;
+  color: #1B6B33 !important;
+}
+
+.status-rejected {
+  background-color: #FDECEC !important;
+  color: #B42318 !important;
+}
+
+.empty-requests {
+  align-items: center;
+  display: flex;
+  min-height: 150px;
+  justify-content: center;
+  padding: 16px;
+  text-align: center;
+}
+
+.empty-requests-text {
+  color: #66756A;
+  font-family: var(--font-family);
+}
+
+@media (max-width: 900px) {
+  .employee-leaves-page {
+    padding: 32px 24px;
+  }
+
+  .balance-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .employee-leaves-page {
+    padding: 32px 16px;
+  }
+
+  .page-title {
+    font-size: 28px;
+  }
+
+  .balance-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .field-label {
+    width: auto;
+    font-size: 14px;
+  }
+
+  .field-row {
+    align-items: stretch;
+  }
+
+  .form-actions {
+    justify-content: flex-end;
+  }
+}
+
+
+/* Requested leave / permission form layout */
+.request-form-card .form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.request-form-card .field-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  gap: 12px;
+}
+
+.request-form-card .field-row > .field-label {
+  width: 125px;
+  flex: 0 0 125px;
+}
+
+.request-form-card .field-row > .MuiFormControl-root,
+.request-form-card .field-row > .MuiTextField-root {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 600px) {
+  .request-form-card .field-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .request-form-card .field-row > .field-label {
+    width: auto;
+    flex: none;
+  }
+}
+
+
+/* Permission / leave selector */
+.request-form-card .field-row .MuiFormControl-root,
+.request-form-card .field-row .MuiTextField-root {
+  width: 100%;
+}

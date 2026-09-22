@@ -32,4 +32,11 @@ export const permissions = {
     manage: [HR, ADMIN],
     viewOwn: [EMPLOYEE],
   },
+
+  leavePolicies: {
+    view: [HR, ADMIN, EMPLOYEE],
+    create: [HR, ADMIN],
+    edit: [HR, ADMIN],
+    delete: [HR, ADMIN],
+  },
 };
