@@ -104,15 +104,6 @@ function AdminLeavesPermissions() {
     (request) => request.status === "Pending",
   );
 
-  const updateStatus = (id: string, status: RequestStatus) => {
-    setRequests((current) =>
-      current.map((request) =>
-        request.id === id ? { ...request, status } : request,
-      ),
-    );
-    setMessage(`Request ${status.toLowerCase()}.`);
-  };
-
   const totalCount = requests.length;
   const approvedCount = requests.filter(
     (request) => request.status === "Approved",

@@ -10,7 +10,7 @@ import Attendance from "../Pages/Attendance";
 
 import Admin from "../Pages/Dashboard/AdminDashboard";
 import EmployeeDashboard from "../Pages/Dashboard/EmployeeDashboard";
-import HRDashboard from "../Pages/Dashboard/HRDashboard";
+// import HRDashboard from "../Pages/Dashboard/HRDashboard";
 
 import { Login } from "../Pages/Login/Login";
 import Employee_Creation from "../Pages/Employee_Creation/Employee_Creation";
@@ -21,6 +21,7 @@ import EmployeeCheckInOut from "../Pages/EmployeeCheckInOut/EmployeeCheckInOut";
 import AdminLeavesPermissions from "../Pages/LeavesPermissions/Admin/AdminLeavesPermissions";
 import EmployeeLeavesPermissions from "../Pages/LeavesPermissions/Employee/EmployeeLeavesPermissions";
 import Details  from "../Pages/LeavesPermissions/Admin/Details/Details";
+import LeaveDetail from "../Pages/LeavesPermissions/Employee/LeaveDetail/LeaveDetail";
 
 // import EmployeeCheckInOut from "../Pages/EmployeeCheckInOut/EmployeeCheckInOut";
 export const route = createBrowserRouter([
@@ -40,6 +41,10 @@ export const route = createBrowserRouter([
                 path: "admindashboard",
                 element: <Admin />
             },
+            // {
+            //     path: "hrdashboard",
+            //     element: <HRDashboard />
+            // },
             {
                 path: "calendar",
                 element: <CompanyCalendar />,
@@ -74,6 +79,10 @@ export const route = createBrowserRouter([
             {
                 path: "employee-leaves-permissions",
                 element: <EmployeeLeavesPermissions />
+            },
+            {
+                path: "employee-leaves-permissions/leave-detail/:id",
+                element: <LeaveDetail />,
             },
             {
                 path: "checkinout",
