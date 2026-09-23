@@ -30,7 +30,9 @@ import EmployeeLeavesPermissions from "../Pages/LeavesPermissions/Employee/Emplo
 import Details from "../Pages/LeavesPermissions/Admin/EmployeeLeaveDetail/EmployeeLeaveDetail";
 
 import LeaveDetail from "../Pages/LeavesPermissions/Employee/LeaveDetail/LeaveDetail";
-
+import DailyTask from "../Pages/DailyTask/DailyTask";
+import AddTask from "../Pages/DailyTask/AddTask";
+import TaskDetails from "../Pages/DailyTask/TaskDetails";
 import {
   ADMIN,
   HR,
@@ -127,6 +129,20 @@ export const route = createBrowserRouter([
                 path: "employeedashboard",
                 element: <EmployeeDashboard />
             },
+            {
+        path: "daily-task",
+        element: <DailyTask />,
+      },
+ 
+      {
+        path: "daily-task/add",
+        element: <AddTask />,
+      },
+ 
+      {
+        path: "daily-task/:id",
+        element: <TaskDetails />,
+      },
             {
                 path: "employee-creation",
                 element: <Employee_Creation />,
