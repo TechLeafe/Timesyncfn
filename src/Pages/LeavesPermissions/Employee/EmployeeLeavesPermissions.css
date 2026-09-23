@@ -1,8 +1,3 @@
-/* Employee Leaves & Permissions
-   All visual styling is kept in this CSS file.
-   UI/content/functionality are preserved from the original TSX.
-*/
-
 .employee-leaves-page {
   max-width: 1240px;
   margin: 0 auto;
@@ -18,14 +13,14 @@
 }
 
 .page-title {
-  color: #1B6B33;
+  color: var(--brand-green-dark);
   font-family: var(--font-family);
   font-size: 36px;
   font-weight: 800;
 }
 
 .page-subtitle {
-  color: #66756A;
+  color: var(--text-secondary);
   font-family: var(--font-family);
   margin-top: 4px;
 }
@@ -46,7 +41,7 @@
 }
 
 .balance-card {
-  border: 1px solid #DDE9DF;
+  border: 1px solid var(--card-border);
   padding: 20px;
 }
 
@@ -56,13 +51,13 @@
 }
 
 .balance-label {
-  color: #66756A;
+  color: var(--text-secondary);
   font-family: var(--font-family);
   font-size: 14px;
 }
 
 .balance-value {
-  color: #1B6B33;
+  color: var(--brand-green-dark);
   font-family: var(--font-family);
   font-size: 32px;
   font-weight: 800;
@@ -70,16 +65,16 @@
 }
 
 .balance-unit {
-  color: #8A978D;
+  color: var(--text-secondary);
   font-family: var(--font-family);
   font-size: 12px;
 }
 
 .balance-icon {
   align-items: center;
-  background-color: #E8F5E9;
+  background-color: var(--brand-green-pale);
   border-radius: 50%;
-  color: #2E7D32;
+  color: var(--brand-green-mid);
   display: flex;
   height: 44px;
   justify-content: center;
@@ -88,7 +83,7 @@
 }
 
 .apply-card {
-  border: 1px dashed #1B6B33;
+  border: 1px dashed var(--brand-green-dark);
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -99,7 +94,7 @@
 }
 
 .apply-button {
-  color: #1B6B33 !important;
+  color: var(--brand-green-dark) !important;
   font-family: var(--font-family);
   font-weight: 700;
   text-transform: none;
@@ -111,7 +106,7 @@
 }
 
 .apply-options-title {
-  color: #1B6B33;
+  color: var(--brand-green-dark);
   font-family: var(--font-family);
   font-size: 13px;
   font-weight: 700;
@@ -119,20 +114,20 @@
 }
 
 .apply-option-button {
-  color: #1B6B33;
-  border-color: #bbe6c8;
+  color: var(--brand-green-dark);
+  border-color: var(--brand-green-light);
   font-weight: 700;
   justify-content: flex-start;
 }
 
 .request-form-card {
-  border: 1px solid #DDE9DF;
+  border: 1px solid var(--card-border);
   margin-bottom: 24px;
   padding: 24px;
 }
 
 .form-title {
-  color: #1B6B33;
+  color: var(--brand-green-dark);
   font-family: var(--font-family);
   font-size: 20px;
   font-weight: 700;
@@ -151,13 +146,13 @@
   width: 125px;
   flex-shrink: 0;
   font-weight: 700;
-  color: #000000;
+  color: var(--text-primary);
   font-family: var(--font-family);
   font-size: 16px;
 }
 
 .required-star {
-  color: #d32f2f;
+  color: var(--brand-red);
   margin-left: 4px;
   font-weight: 700;
 }
@@ -168,38 +163,65 @@
 }
 
 .cancel-button {
-  color: #1B6B33 !important;
-  border-color: #bbe6c8 !important;
+  color: var(--brand-green-dark) !important;
+  border-color: var(--brand-green-light) !important;
   font-weight: 700;
 }
 
 .submit-button {
-  background-color: #1B6B33 !important;
-  border-color: #1B6B33 !important;
-  color: #FFFFFF;
+  background-color: var(--brand-green-dark) !important;
+  border-color: var(--brand-green-dark) !important;
+  color: var(--card-bg);
   font-family: var(--font-family);
   font-weight: 700;
 }
 
 .submit-button:hover {
-  background-color: #2E7D32;
+  background-color: var(--brand-green-mid);
 }
 
 .requests-card {
-  border: 1px solid #DDE9DF;
+  border: 1px solid var(--card-border);
   overflow: hidden;
 }
 
 .requests-card-header {
-  background-color: #E8F5E9;
+  align-items: center;
+  background-color: var(--brand-green-pale);
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
   padding: 14px 20px;
 }
 
 .requests-title {
-  color: #1B6B33;
+  color: var(--brand-green-dark);
   font-family: var(--font-family);
   font-size: 18px;
   font-weight: 700;
+}
+
+.requests-status-filter {
+  min-width: 160px;
+  background-color: var(--sidebar-active-text) !important;
+}
+
+.requests-status-filter .MuiOutlinedInput-notchedOutline {
+  border-color: var(--brand-green-dark) !important;
+}
+
+.requests-status-filter:hover .MuiOutlinedInput-notchedOutline,
+.requests-status-filter.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--brand-green-mid) !important;
+}
+
+.requests-status-menu .MuiMenuItem-root.Mui-selected {
+  background-color: var(--brand-green-dark) !important;
+  color: var(--card-bg) !important;
+}
+
+.requests-status-menu .MuiMenuItem-root.Mui-selected:hover {
+  background-color: var(--brand-green-mid) !important;
 }
 
 .requests-table-wrap {
@@ -237,18 +259,18 @@
 }
 
 .status-pending {
-  background-color: #FFF7E6 !important;
-  color: #9A6700 !important;
+  background-color: var(--status-warning-bg) !important;
+  color: var(--status-warning-text) !important;
 }
 
 .status-approved {
-  background-color: #E8F5E9 !important;
-  color: #1B6B33 !important;
+  background-color: var(--brand-green-pale) !important;
+  color: var(--brand-green-dark) !important;
 }
 
 .status-rejected {
-  background-color: #FDECEC !important;
-  color: #B42318 !important;
+  background-color: var(--status-danger-bg) !important;
+  color: var(--brand-red) !important;
 }
 
 .empty-requests {
@@ -261,7 +283,7 @@
 }
 
 .empty-requests-text {
-  color: #66756A;
+  color: var(--text-secondary);
   font-family: var(--font-family);
 }
 
@@ -295,6 +317,15 @@
 
   .field-row {
     align-items: stretch;
+  }
+
+  .requests-card-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .requests-status-filter {
+    width: 100%;
   }
 
   .form-actions {

@@ -33,7 +33,7 @@ import api from "../../../api/axiosInstance";
 
 type LeaveType = "CL" | "SL" | "COMP_OFF" | "PERMISSION";
 type RequestType = "permission" | "leave";
-type RequestStatus = "Pending" | "Approved" | "Rejected";
+type RequestStatus = "Pending" | "Approved" | "Rejected" | "Cancelled";
 
 interface LeaveRequest {
   id: string;
@@ -68,6 +68,8 @@ interface RequestForm {
   reason: string;
 }
 
+type FieldErrors = Partial<Record<keyof RequestForm, string>>;
+
 interface LeaveApiData {
   _id: string;
   user_id: string;
@@ -86,28 +88,18 @@ interface LeaveApiData {
   rejectionReason: string | null;
 }
 
-interface LeaveListResponse {
-  success: boolean;
-  message: string;
-  data: LeaveApiData[] | LeaveApiData;
-}
-
 interface LeaveApplyResponse {
   success: boolean;
   message: string;
   data?: LeaveApiData;
 }
 
-/*
- * Leave policy returned by:
- *
- * POST /leaves/list
- *
- * Request:
- * {
- *   businessYear: "2026-2027"
- * }
- */
+interface LeaveListResponse {
+  success: boolean;
+  message: string;
+  data: LeaveApiData[] | LeaveApiData;
+}
+
 interface LeavePolicy {
   _id: string;
   policyName: string;
@@ -126,11 +118,11 @@ interface LeavePolicyResponse {
   data: LeavePolicy[];
 }
 
+// Calculate current business year
 export const getBusinessYear = (date = new Date()) => {
   const currentYear = date.getFullYear();
-  const month = date.getMonth(); // 0 = January, 3 = April
+  const month = date.getMonth();
 
-  // April or later begins the new business year.
   if (month >= 3) {
     return `${currentYear}-${currentYear + 1}`;
   }
@@ -138,6 +130,7 @@ export const getBusinessYear = (date = new Date()) => {
   return `${currentYear - 1}-${currentYear}`;
 };
 
+//leave request form
 const EMPTY_FORM: RequestForm = {
   leaveType: "CL",
   date: "",
@@ -149,6 +142,7 @@ const EMPTY_FORM: RequestForm = {
   reason: "",
 };
 
+// Format dates for display
 const formatDate = (value?: string | null) => {
   if (!value) return "-";
 
@@ -159,6 +153,7 @@ const formatDate = (value?: string | null) => {
   return date.toLocaleDateString("en-IN");
 };
 
+// Convert dates for inputs
 const toInputDate = (value?: string | null) => {
   if (!value) return "";
 
@@ -173,29 +168,40 @@ const toInputDate = (value?: string | null) => {
   return `${year}-${month}-${day}`;
 };
 
+// Calculate inclusive leave days
 const diffDaysInclusive = (start: string, end: string) =>
   Math.round(
     (new Date(`${end}T00:00:00`).getTime() -
       new Date(`${start}T00:00:00`).getTime()) /
-      86400000,
-  ) + 1;
+      86400000,) + 1;
 
+// Normalize leave type
 const getLeaveType = (value: string): LeaveType => {
-  switch (value) {
-    case "SL":
-      return "SL";
-
-    case "COMP_OFF":
-      return "COMP_OFF";
-
-    case "PERMISSION":
-      return "PERMISSION";
-
-    default:
-      return "CL";
+  if (["SL", "COMP_OFF", "PERMISSION"].includes(value)) {
+    return value as LeaveType;
   }
+
+  return "CL";
+};
+// Read logged-in employee name
+const getLoggedInUserName = (fallback: string) => {
+  try {
+    const storedUser = localStorage.getItem("loggedInUser");
+
+    if (storedUser) {
+      const user = JSON.parse(storedUser) as {
+        name?: string;
+        email?: string;
+      };
+      return user.name || user.email || fallback;
+    }
+  } catch {
+    return fallback;
+  }
+  return fallback;
 };
 
+// Map API data for display
 const mapApiRequest = (
   item: LeaveApiData,
   employeeName: string,
@@ -254,95 +260,58 @@ function EmployeeLeavesPermissions() {
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
 
-  /*
-   * Leave policy state.
-   *
-   * Values come from:
-   * POST /leaves/list
-   */
+  // Store policy balances
   const [leavePolicy, setLeavePolicy] =
     useState<LeavePolicy | null>(null);
 
   const [policyLoading, setPolicyLoading] =
     useState(false);
+  const [statusFilter, setStatusFilter] =
+    useState<"All" | RequestStatus>("All");
 
-  /*
-   * Fetch employee's leave/permission requests.
-   */
-  const fetchLeaveRequests = async () => {
+  // Load employee requests
+  const fetchLeaveRequests = async (
+    status: "All" | RequestStatus = statusFilter,
+  ) => {
     try {
       setLoading(true);
 
-      // Fetch the employee's leave requests
-      // for the current business year.
-      const response =
-        await api.post<LeaveListResponse>(
-          "/leave-apply/list",
-          {
-            status: "",
-            businessYear: getBusinessYear(),
-          },
-        );
+      const response = await api.post<LeaveListResponse>(
+        "/leave-apply/list",
+        {
+          status: status === "All" ? "" : status,
+          businessYear: getBusinessYear(),
+        },
+      );
 
       if (!response.data.success) {
-        setError(
-          response.data.message ||
-            "Failed to load leave requests.",
-        );
-
+        setError(response.data.message || "Failed to load leave requests.");
         return;
       }
 
-      const apiData = Array.isArray(
-        response.data.data,
-      )
+      const apiData = Array.isArray(response.data.data)
         ? response.data.data
         : response.data.data
           ? [response.data.data]
           : [];
 
-      const employeeRequests =
+      setRequests(
         apiData.map((item) =>
-          mapApiRequest(
-            item,
-            currentUser.name,
-          ),
-        );
-
-      setRequests(employeeRequests);
+          mapApiRequest(item, getLoggedInUserName(currentUser.name)),
+        ),
+      );
     } catch (error) {
-      console.error(
-        "Leave list API error:",
-        error,
-      );
-
-      setError(
-        "Failed to load leave requests.",
-      );
+      console.error("Leave list API error:", error);
+      setError("Failed to load leave requests.");
     } finally {
       setLoading(false);
     }
   };
 
-  /*
-   * Fetch leave policy.
-   *
-   * POST /leaves/list
-   *
-   * Request body:
-   * {
-   *   businessYear: "2026-2027"
-   * }
-   *
-   * Response:
-   * {
-   *   casualLeave: 12,
-   *   sickLeave: 6,
-   *   permissionsPerMonth: 4
-   * }
-   */
+  // Load leave policy
   const fetchLeavePolicy = async () => {
     try {
       setPolicyLoading(true);
@@ -389,11 +358,13 @@ function EmployeeLeavesPermissions() {
     }
   };
 
+  // Load policy on employee change
   useEffect(() => {
     fetchLeaveRequests();
     fetchLeavePolicy();
   }, [currentUser.id]);
 
+  // Update form field
   const updateField = (
     field: keyof RequestForm,
     value: string,
@@ -405,14 +376,21 @@ function EmployeeLeavesPermissions() {
 
     setMessage("");
     setError("");
+    setFieldErrors((current) => ({
+      ...current,
+      [field]: undefined,
+    }));
   };
 
+  // Reset leave form
   const resetForm = () => {
     setForm(EMPTY_FORM);
     setRequestType(null);
     setError("");
+    setFieldErrors({});
   };
 
+  // Open leave application form
   const openForm = (
     type: RequestType,
     leaveType: LeaveType = "CL",
@@ -426,8 +404,10 @@ function EmployeeLeavesPermissions() {
 
     setMessage("");
     setError("");
+    setFieldErrors({});
   };
 
+  // Build application request
   const createApiRequestBody = () => {
     const businessYear = getBusinessYear();
 
@@ -460,19 +440,24 @@ function EmployeeLeavesPermissions() {
     };
   };
 
+  // Validate and submit leave
   const submitRequest = async () => {
     if (!requestType) return;
 
     setMessage("");
     setError("");
+    setFieldErrors({});
 
     if (form.leaveType === "PERMISSION") {
-      if (
-        !form.date ||
-        !form.startTime ||
-        !form.endTime ||
-        !form.reason.trim()
-      ) {
+      const nextErrors: FieldErrors = {};
+
+      if (!form.date) nextErrors.date = "Permission date is required.";
+      if (!form.startTime) nextErrors.startTime = "Start time is required.";
+      if (!form.endTime) nextErrors.endTime = "End time is required.";
+      if (!form.reason.trim()) nextErrors.reason = "Reason is required.";
+
+      if (Object.keys(nextErrors).length > 0) {
+        setFieldErrors(nextErrors);
         setError(
           "Please enter the permission date, time, and reason.",
         );
@@ -481,6 +466,9 @@ function EmployeeLeavesPermissions() {
       }
 
       if (form.endTime <= form.startTime) {
+        setFieldErrors({
+          endTime: "End time must be after start time.",
+        });
         setError(
           "Permission end time must be after the start time.",
         );
@@ -488,11 +476,14 @@ function EmployeeLeavesPermissions() {
         return;
       }
     } else {
-      if (
-        !form.startDate ||
-        !form.endDate ||
-        !form.reason.trim()
-      ) {
+      const nextErrors: FieldErrors = {};
+
+      if (!form.startDate) nextErrors.startDate = "Start date is required.";
+      if (!form.endDate) nextErrors.endDate = "End date is required.";
+      if (!form.reason.trim()) nextErrors.reason = "Reason is required.";
+
+      if (Object.keys(nextErrors).length > 0) {
+        setFieldErrors(nextErrors);
         setError(
           "Please enter the leave dates and reason.",
         );
@@ -501,6 +492,9 @@ function EmployeeLeavesPermissions() {
       }
 
       if (form.endDate < form.startDate) {
+        setFieldErrors({
+          endDate: "End date must be on or after start date.",
+        });
         setError(
           "Leave end date must be on or after the start date.",
         );
@@ -512,6 +506,9 @@ function EmployeeLeavesPermissions() {
         form.leaveType === "COMP_OFF" &&
         !form.compOffDate
       ) {
+        setFieldErrors({
+          compOffDate: "Comp off date is required.",
+        });
         setError(
           "Please select the comp off date.",
         );
@@ -526,7 +523,7 @@ function EmployeeLeavesPermissions() {
       const requestBody =
         createApiRequestBody();
 
-      // Submit the leave/permission request.
+      // Submit leave request
       const response =
         await api.post<LeaveApplyResponse>(
           "/leave-apply/apply",
@@ -547,17 +544,12 @@ function EmployeeLeavesPermissions() {
           "Leave request submitted successfully.",
       );
 
-      /*
-       * The apply API returns the newly created
-       * leave request in response.data.data.
-       *
-       * Show it in the table immediately.
-       */
+      // Add submitted request
       if (response.data.data) {
         const newRequest =
           mapApiRequest(
             response.data.data,
-            currentUser.name,
+            getLoggedInUserName(currentUser.name),
           );
 
         setRequests(
@@ -579,11 +571,9 @@ function EmployeeLeavesPermissions() {
             ];
           },
         );
-      } else {
-        await fetchLeaveRequests();
       }
 
-      // Clear the form after successful submission.
+      // Clear submitted form
       resetForm();
     } catch (error) {
       console.error(
@@ -599,6 +589,7 @@ function EmployeeLeavesPermissions() {
     }
   };
 
+  // Count used leave days
   const usedDays = (
     leaveType: LeaveType,
   ) =>
@@ -614,6 +605,7 @@ function EmployeeLeavesPermissions() {
         0,
       );
 
+  // Count monthly permissions
   const usedPermissionsThisMonth = requests.filter(
     (request) => {
       if (
@@ -638,15 +630,7 @@ function EmployeeLeavesPermissions() {
     },
   ).length;
 
-  /*
-   * Leave policy values from backend.
-   *
-   * Example API response:
-   *
-   * casualLeave: 12
-   * sickLeave: 6
-   * permissionsPerMonth: 4
-   */
+  // Calculate remaining balances
   const clGranted =
     leavePolicy?.casualLeave ?? 0;
 
@@ -656,9 +640,6 @@ function EmployeeLeavesPermissions() {
   const permissionCount =
     leavePolicy?.permissionsPerMonth ?? 0;
 
-  /*
-   * Remaining CL and SL after approved requests.
-   */
   const clRemaining = Math.max(
     clGranted - usedDays("CL"),
     0,
@@ -674,6 +655,7 @@ function EmployeeLeavesPermissions() {
     0,
   );
 
+  // Render employee leave page
   return (
     <Box className="employee-leaves-page">
       <Stack
@@ -852,6 +834,8 @@ function EmployeeLeavesPermissions() {
                     size="small"
                     type="date"
                     value={form.date}
+                    error={Boolean(fieldErrors.date)}
+                    helperText={fieldErrors.date}
                     onChange={(event) =>
                       updateField(
                         "date",
@@ -875,6 +859,8 @@ function EmployeeLeavesPermissions() {
                     size="small"
                     type="time"
                     value={form.startTime}
+                    error={Boolean(fieldErrors.startTime)}
+                    helperText={fieldErrors.startTime}
                     onChange={(event) =>
                       updateField(
                         "startTime",
@@ -898,6 +884,8 @@ function EmployeeLeavesPermissions() {
                     size="small"
                     type="time"
                     value={form.endTime}
+                    error={Boolean(fieldErrors.endTime)}
+                    helperText={fieldErrors.endTime}
                     onChange={(event) =>
                       updateField(
                         "endTime",
@@ -920,6 +908,8 @@ function EmployeeLeavesPermissions() {
                     fullWidth
                     size="small"
                     value={form.reason}
+                    error={Boolean(fieldErrors.reason)}
+                    helperText={fieldErrors.reason}
                     onChange={(event) =>
                       updateField(
                         "reason",
@@ -940,6 +930,8 @@ function EmployeeLeavesPermissions() {
                     size="small"
                     type="date"
                     value={form.startDate}
+                    error={Boolean(fieldErrors.startDate)}
+                    helperText={fieldErrors.startDate}
                     onChange={(event) =>
                       updateField(
                         "startDate",
@@ -963,6 +955,8 @@ function EmployeeLeavesPermissions() {
                     size="small"
                     type="date"
                     value={form.endDate}
+                    error={Boolean(fieldErrors.endDate)}
+                    helperText={fieldErrors.endDate}
                     onChange={(event) =>
                       updateField(
                         "endDate",
@@ -995,6 +989,8 @@ function EmployeeLeavesPermissions() {
                       value={
                         form.compOffDate
                       }
+                        error={Boolean(fieldErrors.compOffDate)}
+                        helperText={fieldErrors.compOffDate}
                       onChange={(event) =>
                         updateField(
                           "compOffDate",
@@ -1018,6 +1014,8 @@ function EmployeeLeavesPermissions() {
                     fullWidth
                     size="small"
                     value={form.reason}
+                    error={Boolean(fieldErrors.reason)}
+                    helperText={fieldErrors.reason}
                     onChange={(event) =>
                       updateField(
                         "reason",
@@ -1061,6 +1059,11 @@ function EmployeeLeavesPermissions() {
       <RequestTable
         requests={requests}
         loading={loading}
+        statusFilter={statusFilter}
+        onStatusChange={(status) => {
+          setStatusFilter(status);
+          fetchLeaveRequests(status);
+        }}
         onView={(id) =>
           navigate(
             `/employee-leaves-permissions/leave-detail/${id}`,
@@ -1078,6 +1081,7 @@ function EmployeeLeavesPermissions() {
   );
 }
 
+// Render labeled form field
 function FieldRow({
   label,
   required = false,
@@ -1114,6 +1118,7 @@ function FieldRow({
   );
 }
 
+// Render leave balance card
 function SimpleBalanceCard({
   label,
   value,
@@ -1156,6 +1161,7 @@ function SimpleBalanceCard({
   );
 }
 
+// Render leave application card
 function ApplyCard({
   onToggle,
 }: {
@@ -1179,13 +1185,18 @@ function ApplyCard({
   );
 }
 
+// Render employee requests table
 function RequestTable({
   requests,
   loading,
+  statusFilter,
+  onStatusChange,
   onView,
 }: {
   requests: LeaveRequest[];
   loading: boolean;
+  statusFilter: "All" | RequestStatus;
+  onStatusChange: (status: "All" | RequestStatus) => void;
   onView: (id: string) => void;
 }) {
   return (
@@ -1195,8 +1206,27 @@ function RequestTable({
     >
       <Box className="requests-card-header">
         <Typography className="requests-title">
-          My requests
+          Leave Requests List
         </Typography>
+        <Select
+          size="small"
+          value={statusFilter}
+          onChange={(event) =>
+            onStatusChange(event.target.value as "All" | RequestStatus)
+          }
+          className="requests-status-filter"
+          MenuProps={{
+            classes: {
+              paper: "requests-status-menu",
+            },
+          }}
+          aria-label="Filter leave requests by status"
+        >
+          <MenuItem value="All">All status</MenuItem>
+          <MenuItem value="Pending">Pending</MenuItem>
+          <MenuItem value="Approved">Approved</MenuItem>
+          <MenuItem value="Rejected">Rejected</MenuItem>
+        </Select>
       </Box>
 
       {loading ? (
@@ -1211,30 +1241,30 @@ function RequestTable({
             <TableHead>
               <TableRow>
                 <TableCell>
-                  Employee
+                  Name
                 </TableCell>
 
                 <TableCell>
-                  Type
+                  Leave Type
                 </TableCell>
 
                 <TableCell>
-                  Date / Time
-                </TableCell>
-
-                <TableCell align="center">
-                  Total days
+                  From
                 </TableCell>
 
                 <TableCell>
-                  Reason
+                  To
+                </TableCell>
+
+                <TableCell>
+                  Duration
                 </TableCell>
 
                 <TableCell>
                   Status
                 </TableCell>
 
-                <TableCell align="center">
+                <TableCell align="right">
                   Action
                 </TableCell>
               </TableRow>
@@ -1254,8 +1284,7 @@ function RequestTable({
       ) : (
         <Box className="empty-requests">
           <Typography className="empty-requests-text">
-            You have not submitted any
-            requests yet.
+            No leave requests match this status.
           </Typography>
         </Box>
       )}
@@ -1263,6 +1292,7 @@ function RequestTable({
   );
 }
 
+// Render one request row
 function RequestRow({
   request,
   onView,
@@ -1270,35 +1300,6 @@ function RequestRow({
   request: LeaveRequest;
   onView: (id: string) => void;
 }) {
-  const details =
-    request.leaveType ===
-    "PERMISSION"
-      ? `${formatDate(request.date)} ${
-          request.startTime ?? "-"
-        } - ${request.endTime ?? "-"}`
-      : request.leaveType ===
-          "COMP_OFF"
-        ? `${formatDate(
-            request.startDate,
-          )} - ${formatDate(
-            request.endDate,
-          )}`
-        : `${formatDate(
-            request.startDate,
-          )} - ${formatDate(
-            request.endDate,
-          )}`;
-
-  const displayType =
-    request.leaveType === "CL"
-      ? "Casual Leave"
-      : request.leaveType === "SL"
-        ? "Sick Leave"
-        : request.leaveType ===
-            "COMP_OFF"
-          ? "Comp Off"
-          : "Permission";
-
   return (
     <TableRow>
       <TableCell className="request-cell request-employee-cell">
@@ -1306,24 +1307,19 @@ function RequestRow({
       </TableCell>
 
       <TableCell className="request-cell">
-        {displayType}
+        {request.leaveType}
       </TableCell>
 
       <TableCell className="request-cell request-nowrap-cell">
-        {details}
+        {formatDate(request.startDate ?? request.date)}
       </TableCell>
 
-      <TableCell
-        className="request-cell request-total-days-cell"
-        align="center"
-      >
-        {request.leaveType === "PERMISSION"
-          ? "-"
-          : request.totalDays}
+      <TableCell className="request-cell request-nowrap-cell">
+        {formatDate(request.endDate ?? request.date)}
       </TableCell>
 
-      <TableCell className="request-cell request-reason-cell">
-        {request.reason}
+      <TableCell className="request-cell request-total-days-cell">
+        {request.leaveType === "PERMISSION" ? "-" : `${request.totalDays} day(s)`}
       </TableCell>
 
       <TableCell>
@@ -1334,16 +1330,10 @@ function RequestRow({
         />
       </TableCell>
 
-      <TableCell
-        className="request-action-cell"
-        align="center"
-      >
+      <TableCell className="request-action-cell" align="center">
         <IconButton
           aria-label="View leave details"
-          onClick={() =>
-            onView(request.id)
-          }
-        >
+          onClick={() => onView(request.id)}>
           <VisibilityOutlinedIcon />
         </IconButton>
       </TableCell>

@@ -161,7 +161,23 @@
   color: #1B6B33;
   font-family: var(--font-family);
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 700; 
+}
+.admin-leaves-permissions__status-filter {
+  background: #ffffff !important;
+}
+
+.admin-leaves-permissions__status-filter .MuiOutlinedInput-notchedOutline {
+  border-color: #1B6B33 !important;
+}
+
+.admin-leaves-permissions__status-filter:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #145225 !important;
+}
+
+.admin-leaves-permissions__status-filter.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #1B6B33 !important;
+  border-width: 2px;
 }
 
 .admin-leaves-permissions__table-wrapper {

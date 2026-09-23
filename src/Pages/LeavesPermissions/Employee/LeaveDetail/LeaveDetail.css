@@ -75,6 +75,13 @@
   background-color: var(--detail-green-dark) !important;
 }
 
+.edit-button.Mui-disabled {
+  background-color: #d6ddd8 !important;
+  color: #7a857e !important;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
 /* Employee information section */
 .employee-info-card,
 .leave-detail-card {

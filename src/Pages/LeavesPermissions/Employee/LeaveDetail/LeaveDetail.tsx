@@ -22,7 +22,7 @@ import { useCurrentUser } from "../../../../context/UserContext";
 import "./LeaveDetail.css";
 
 type LeaveType = "CL" | "SL" | "COMP_OFF" | "PERMISSION";
-type RequestStatus = "Pending" | "Approved" | "Rejected";
+type RequestStatus = "Pending" | "Approved" | "Rejected" | "Cancelled";
 
 interface LeaveApiData {
   _id: string;
@@ -127,6 +127,25 @@ const getBusinessYear = (date = new Date()) => {
   return date.getMonth() >= 3
     ? `${year}-${year + 1}`
     : `${year - 1}-${year}`;
+};
+
+const getLoggedInUserName = (fallback: string) => {
+  try {
+    const storedUser = localStorage.getItem("loggedInUser");
+
+    if (storedUser) {
+      const user = JSON.parse(storedUser) as {
+        name?: string;
+        email?: string;
+      };
+
+      return user.name || user.email || fallback;
+    }
+  } catch {
+    return fallback;
+  }
+
+  return fallback;
 };
 
 const mapApiToForm = (item: LeaveApiData): RequestForm => {
@@ -393,8 +412,9 @@ function LeaveDetail() {
     setError("");
   };
 
-  const displayEmployeeName =
-    currentUser.name || "Employee";
+  const displayEmployeeName = getLoggedInUserName(
+    currentUser.name || "Employee",
+  );
 
   return (
     <Box className="leave-detail-page">
@@ -491,10 +511,10 @@ function LeaveDetail() {
                 label="Request Status"
                 value={request.status}
               />
-              <InfoItem
+              {/* <InfoItem
                 label="Request ID"
                 value={request._id}
-              />
+              /> */}
             </Box>
           </Paper>
 
@@ -515,6 +535,16 @@ function LeaveDetail() {
                 <Button
                   className="edit-button"
                   variant="contained"
+                  disabled={
+                    request.status === "Approved" ||
+                    request.status === "Rejected"
+                  }
+                  title={
+                    request.status === "Approved" ||
+                    request.status === "Rejected"
+                      ? "Approved and rejected requests cannot be edited"
+                      : "Edit leave request"
+                  }
                   onClick={() => setIsEditing(true)}
                 >
                   Edit

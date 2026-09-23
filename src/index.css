@@ -10,6 +10,9 @@
   --brand-green-pale:  #E8F5E9;   /* light bg tints */
   --brand-red:         #D42B2B;   /* logo red / danger */
   --brand-red-light:   #FFEBEE;
+  --status-warning-bg: #FFF7E6;
+  --status-warning-text: #9A6700;
+  --status-danger-bg: #FDECEC;
 
   /* Layout */
   --bg-main:           #F4F6F8;

@@ -23,14 +23,13 @@ import AdminLeavesPermissions from "../Pages/LeavesPermissions/Admin/AdminLeaves
 
 import EmployeeLeavesPermissions from "../Pages/LeavesPermissions/Employee/EmployeeLeavesPermissions";
 
-import Details from "../Pages/LeavesPermissions/Admin/Details/Details";
+import Details from "../Pages/LeavesPermissions/Admin/EmployeeLeaveDetail/EmployeeLeaveDetail";
 
 import LeaveDetail from "../Pages/LeavesPermissions/Employee/LeaveDetail/LeaveDetail";
 
 import {
   ADMIN,
   HR,
-  EMPLOYEE,
 } from "../data/permissions";
 
 
@@ -67,72 +66,6 @@ function HolidayRoute() {
     return (
       <Navigate
         to="/employeedashboard"
-        replace
-      />
-    );
-  } catch {
-    return (
-      <Navigate
-        to="/login"
-        replace
-      />
-    );
-  }
-}
-
-
-/* =========================================================
-   LEAVES / PERMISSIONS REDIRECT
-
-   This keeps your old sidebar route:
-   /leaves-permissions
-
-   Admin/HR -> Admin Leave Requests
-   Employee -> Employee Leaves & Permissions
-========================================================= */
-
-function LeavesPermissionsRoute() {
-  const storedUser =
-    localStorage.getItem("loggedInUser");
-
-  if (!storedUser) {
-    return (
-      <Navigate
-        to="/login"
-        replace
-      />
-    );
-  }
-
-  try {
-    const user = JSON.parse(storedUser);
-
-    const userType = Number(user.userType);
-
-    if (
-      userType === ADMIN ||
-      userType === HR
-    ) {
-      return (
-        <Navigate
-          to="/admin-leaves-permissions"
-          replace
-        />
-      );
-    }
-
-    if (userType === EMPLOYEE) {
-      return (
-        <Navigate
-          to="/employee-leaves-permissions"
-          replace
-        />
-      );
-    }
-
-    return (
-      <Navigate
-        to="/login"
         replace
       />
     );
@@ -207,7 +140,7 @@ export const route = createBrowserRouter([
                 element: <AdminLeavesPermissions />,
             },
             {
-                path: "admin-leaves-permissions/employee-Details",
+                path: "admin-leaves-permissions/employee-Details/:id",
                 element: <Details />,
             },
             {
