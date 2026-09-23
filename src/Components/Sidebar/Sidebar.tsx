@@ -25,6 +25,9 @@ import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import PersonAddAltOutlinedIcon from "@mui/icons-material/PersonAddAltOutlined";
 import ManageAccountsOutlinedIcon from "@mui/icons-material/ManageAccountsOutlined";
 
+/* NEW - DAILY TASK ICON */
+import TaskAltOutlinedIcon from "@mui/icons-material/TaskAltOutlined";
+
 import {
   HR,
   ADMIN,
@@ -51,6 +54,7 @@ interface NavItem {
 ========================================================= */
 
 const navItems: NavItem[] = [
+
   /* =========================
      HR DASHBOARD
   ========================= */
@@ -61,6 +65,7 @@ const navItems: NavItem[] = [
     path: "/hrdashboard",
     roles: [HR],
   },
+
 
   /* =========================
      ADMIN DASHBOARD
@@ -73,6 +78,7 @@ const navItems: NavItem[] = [
     roles: [ADMIN],
   },
 
+
   /* =========================
      EMPLOYEE DASHBOARD
   ========================= */
@@ -83,6 +89,20 @@ const navItems: NavItem[] = [
     path: "/employeedashboard",
     roles: [EMPLOYEE],
   },
+
+
+  /* =========================
+     DAILY TASK
+     ADMIN ONLY
+  ========================= */
+
+  {
+    label: "Daily Task",
+    icon: <TaskAltOutlinedIcon />,
+    path: "/daily-task",
+    roles: [ADMIN],
+  },
+
 
   /* =========================
      EMPLOYEE CREATION
@@ -95,6 +115,7 @@ const navItems: NavItem[] = [
     path: "/employee-creation",
     roles: [HR, ADMIN],
   },
+
 
   /* =========================
      EMPLOYEE MANAGEMENT
@@ -121,6 +142,7 @@ const navItems: NavItem[] = [
     roles: [HR, ADMIN, EMPLOYEE],
   },
 
+
   /* =========================
      COMPANY CALENDAR
      ALL ROLES
@@ -133,6 +155,7 @@ const navItems: NavItem[] = [
     roles: [HR, ADMIN, EMPLOYEE],
   },
 
+
   /* =========================
      CHECK IN / OUT
      ALL ROLES
@@ -144,17 +167,20 @@ const navItems: NavItem[] = [
     path: "/checkinout",
     roles: [HR, ADMIN, EMPLOYEE],
   },
+
+
+  /* =========================
+     LEAVE POLICIES
+     ALL ROLES
+  ========================= */
+
   {
     label: "Leave Policies",
     icon: <EventAvailableOutlinedIcon />,
     path: "/leave-policies",
     roles: [HR, ADMIN, EMPLOYEE],
   },
-  // {
-  //   label: "Leaves and Permissions",
-  //   icon:  <EventAvailableOutlinedIcon sx={{ fontSize: 20 }} />,
-  //   path:  "/leaves-permissions",
-  // },
+
 
   /* =========================
      HOLIDAYS
@@ -168,6 +194,7 @@ const navItems: NavItem[] = [
     roles: [HR, ADMIN],
   },
 
+
   /* =========================
      LEAVE REQUESTS
      HR + ADMIN ONLY
@@ -179,6 +206,7 @@ const navItems: NavItem[] = [
     path: "/admin-leaves-permissions",
     roles: [HR, ADMIN],
   },
+
 
   /* =========================
      LEAVES AND PERMISSIONS
@@ -199,6 +227,7 @@ const navItems: NavItem[] = [
 ========================================================= */
 
 function Sidebar() {
+
   const { pathname } = useLocation();
 
   const navigate = useNavigate();
@@ -215,11 +244,15 @@ function Sidebar() {
 
   if (storedUser) {
     try {
+
       const user = JSON.parse(storedUser);
 
       userType = Number(user.userType);
+
     } catch {
+
       userType = null;
+
     }
   }
 
@@ -241,30 +274,26 @@ function Sidebar() {
   ========================================================= */
 
   const handleLogout = () => {
-    /*
-      Clear all browser storage used by this app.
 
-      This removes:
+    /*
+      Clear localStorage:
       - token
       - loggedInUser
       - employeeLoginSession
-      - any other localStorage values
+      - other stored values
     */
 
     localStorage.clear();
 
     /*
-      Clear sessionStorage also
+      Clear sessionStorage
     */
 
     sessionStorage.clear();
 
     /*
-      Reload the application fresh.
-
-      replace() is better than navigate("/login")
-      for logout because the current authenticated
-      page is replaced in browser history.
+      Go to login and remove previous
+      authenticated page from history
     */
 
     window.location.replace("/login");
@@ -280,6 +309,7 @@ function Sidebar() {
       variant="permanent"
       className="sidebar-drawer"
     >
+
       {/* =========================
           LOGO
       ========================= */}
@@ -297,9 +327,22 @@ function Sidebar() {
       ========================= */}
 
       <List className="sidebar-nav">
+
         {visibleNavItems.map((item) => {
+
+          /*
+            Example:
+
+            /daily-task
+            /daily-task/add
+            /daily-task/123
+
+            All will keep Daily Task active.
+          */
+
           const isActive =
-            pathname === item.path;
+            pathname === item.path ||
+            pathname.startsWith(`${item.path}/`);
 
           return (
             <ListItemButton
@@ -314,6 +357,7 @@ function Sidebar() {
                 navigate(item.path)
               }
             >
+
               <ListItemIcon className="sidebar-nav-icon">
                 {item.icon}
               </ListItemIcon>
@@ -322,9 +366,11 @@ function Sidebar() {
                 primary={item.label}
                 className="sidebar-nav-text"
               />
+
             </ListItemButton>
           );
         })}
+
       </List>
 
 
@@ -333,12 +379,14 @@ function Sidebar() {
       ========================= */}
 
       <Box className="sidebar-bottom">
+
         <Divider className="sidebar-divider" />
 
         <ListItemButton
           className="sidebar-logout"
           onClick={handleLogout}
         >
+
           <ListItemIcon className="sidebar-logout-icon">
             <LogoutOutlinedIcon />
           </ListItemIcon>
@@ -347,8 +395,11 @@ function Sidebar() {
             primary="Log out"
             className="sidebar-logout-text"
           />
+
         </ListItemButton>
+
       </Box>
+
     </Drawer>
   );
 }
