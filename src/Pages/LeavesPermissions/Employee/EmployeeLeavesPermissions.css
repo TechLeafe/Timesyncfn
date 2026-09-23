@@ -252,7 +252,9 @@
 
 .request-action-cell {
   white-space: nowrap;
+  color: var(--brand-green-dark) !important;
 }
+
 
 .status-chip {
   font-weight: 600;

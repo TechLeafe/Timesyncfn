@@ -1264,7 +1264,7 @@ function RequestTable({
                   Status
                 </TableCell>
 
-                <TableCell align="right">
+                <TableCell>
                   Action
                 </TableCell>
               </TableRow>
@@ -1330,7 +1330,7 @@ function RequestRow({
         />
       </TableCell>
 
-      <TableCell className="request-action-cell" align="center">
+      <TableCell className="request-action-cell">
         <IconButton
           aria-label="View leave details"
           onClick={() => onView(request.id)}>
