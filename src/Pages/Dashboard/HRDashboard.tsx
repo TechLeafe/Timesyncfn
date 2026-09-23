@@ -32,22 +32,22 @@ interface LeaveStatistics {
   rejected: number;
 }
 
-interface AttendanceRecord {
-  user_id: string;
-  employeeId: string;
-  name: string;
-  email: string;
-  checkInTime: string;
-  checkOutTime: string;
-  totalWorkingSeconds: number;
-  status: string;
-}
-
 interface HRDashboardData {
   employeeStatistics: EmployeeStatistics;
   attendanceStatistics: AttendanceStatistics;
   leaveStatistics: LeaveStatistics;
-  todaysAttendance: AttendanceRecord[];
+}
+
+/* Matches the real Daily Attendance API response — no name/status field,
+   only employeeId / email / user_id / times. */
+interface DailyAttendanceRecord {
+  _id?: string;
+  user_id: string;
+  employeeId: string;
+  email: string;
+  checkInTime: string | null;
+  checkOutTime: string | null;
+  totalWorkingSeconds: number | null;
 }
 
 type ApiResponse<T> = { success?: boolean; message?: string; data?: T };
@@ -56,47 +56,96 @@ const EMPTY_DATA: HRDashboardData = {
   employeeStatistics: { totalEmployees: 0, activeEmployees: 0, inactiveEmployees: 0 },
   attendanceStatistics: { present: 0, absent: 0, onLeave: 0, notCheckedIn: 0 },
   leaveStatistics: { pending: 0, approved: 0, rejected: 0 },
-  todaysAttendance: [],
 };
 
-const formatTime = (isoString?: string) => {
+const formatTime = (isoString?: string | null) => {
   if (!isoString) return "—";
   return new Date(isoString).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
 };
 
+const attendanceStatus = (record: DailyAttendanceRecord) => {
+  if (record.checkInTime && record.checkOutTime) return "Checked Out";
+  if (record.checkInTime) return "Checked In";
+  return "Not Checked In";
+};
+
 const statusPillClass = (status: string) => {
-  const normalized = status.toLowerCase();
-  if (normalized.includes("present")) return "admin-dashboard__status-pill--present";
-  if (normalized.includes("absent")) return "admin-dashboard__status-pill--absent";
-  if (normalized.includes("leave")) return "admin-dashboard__status-pill--leave";
+  if (status === "Checked Out") return "admin-dashboard__status-pill--present";
+  if (status === "Checked In") return "admin-dashboard__status-pill--leave";
   return "admin-dashboard__status-pill--pending";
 };
 
 function HRDashboard() {
   const [data, setData] = useState<HRDashboardData>(EMPTY_DATA);
+  const [todaysAttendance, setTodaysAttendance] = useState<DailyAttendanceRecord[]>([]);
 
   useEffect(() => {
-    const loadDashboard = async () => {
-      try {
-        const response = await api.post<ApiResponse<HRDashboardData>>("/dashboard/admin", { date: "" });
-        const payload = response.data.data;
+    const loadAll = async () => {
+      // Run both requests together, then combine them — Present/Not-checked-in
+      // needs both totalEmployees (from the dashboard) and the real check-in
+      // list (from Daily Attendance) to compute correctly.
+      const [dashboardResult, dailyResult] = await Promise.allSettled([
+        api.post<ApiResponse<HRDashboardData>>("/dashboard/admin", { date: "" }),
+        api.post<ApiResponse<DailyAttendanceRecord[]>>("/attendance/daily", { user_id: "", date: "" }),
+      ]);
+
+      let employeeStatistics = EMPTY_DATA.employeeStatistics;
+      let leaveStatistics = EMPTY_DATA.leaveStatistics;
+      // absent/onLeave have no independent source here — they can only
+      // come from the dashboard's own numbers, with 0 as a safe fallback
+      // for any field it doesn't actually populate.
+      let dashboardAbsent = 0;
+      let dashboardOnLeave = 0;
+
+      if (dashboardResult.status === "fulfilled") {
+        console.log("HR dashboard response:", dashboardResult.value.data);
+
+        const payload = dashboardResult.value.data.data;
         if (payload) {
-          setData({
-            employeeStatistics: payload.employeeStatistics ?? EMPTY_DATA.employeeStatistics,
-            attendanceStatistics: payload.attendanceStatistics ?? EMPTY_DATA.attendanceStatistics,
-            leaveStatistics: payload.leaveStatistics ?? EMPTY_DATA.leaveStatistics,
-            todaysAttendance: payload.todaysAttendance ?? [],
-          });
+          employeeStatistics = payload.employeeStatistics ?? EMPTY_DATA.employeeStatistics;
+          leaveStatistics = payload.leaveStatistics ?? EMPTY_DATA.leaveStatistics;
+          dashboardAbsent = payload.attendanceStatistics?.absent ?? 0;
+          dashboardOnLeave = payload.attendanceStatistics?.onLeave ?? 0;
         }
-      } catch {
-        setData(EMPTY_DATA);
+      } else {
+        console.error("HR dashboard error:", dashboardResult.reason);
       }
+
+      let records: DailyAttendanceRecord[] = [];
+
+      if (dailyResult.status === "fulfilled") {
+        console.log("Today's check-ins (daily attendance):", dailyResult.value.data);
+
+        const dailyData = dailyResult.value.data.data;
+        records = Array.isArray(dailyData) ? dailyData : [];
+      } else {
+        console.error("Daily attendance error:", dailyResult.reason);
+      }
+
+      setTodaysAttendance(records);
+
+      // Present = anyone with a real check-in today, computed from the
+      // actual attendance records rather than the dashboard's own
+      // (unreliable) present/notCheckedIn fields.
+      const present = records.filter((record) => record.checkInTime).length;
+      const notCheckedIn = Math.max(0, employeeStatistics.totalEmployees - present);
+
+      setData({
+        employeeStatistics,
+        leaveStatistics,
+        attendanceStatistics: {
+          present,
+          notCheckedIn,
+          absent: dashboardAbsent,
+          onLeave: dashboardOnLeave,
+        },
+      });
     };
 
-    void loadDashboard();
+    void loadAll();
   }, []);
 
-  const { employeeStatistics, attendanceStatistics, leaveStatistics, todaysAttendance } = data;
+  const { employeeStatistics, attendanceStatistics, leaveStatistics } = data;
 
   const STATS: StatCardProps[] = [
     {
@@ -176,8 +225,8 @@ function HRDashboard() {
             <table className="admin-dashboard__table">
               <thead>
                 <tr>
-                  <th>Employee</th>
                   <th>Employee ID</th>
+                  <th>Email</th>
                   <th>Check-in</th>
                   <th>Check-out</th>
                   <th>Status</th>
@@ -185,19 +234,23 @@ function HRDashboard() {
               </thead>
               <tbody>
                 {todaysAttendance.length > 0 ? (
-                  todaysAttendance.map((record) => (
-                    <tr key={record.user_id}>
-                      <td>{record.name}</td>
-                      <td>{record.employeeId}</td>
-                      <td>{formatTime(record.checkInTime)}</td>
-                      <td>{record.checkOutTime ? formatTime(record.checkOutTime) : "—"}</td>
-                      <td>
-                        <span className={`admin-dashboard__status-pill ${statusPillClass(record.status)}`}>
-                          {record.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))
+                  todaysAttendance.map((record, index) => {
+                    const status = attendanceStatus(record);
+
+                    return (
+                      <tr key={record._id ?? `${record.employeeId}-${index}`}>
+                        <td>{record.employeeId || "-"}</td>
+                        <td>{record.email || "-"}</td>
+                        <td>{formatTime(record.checkInTime)}</td>
+                        <td>{formatTime(record.checkOutTime)}</td>
+                        <td>
+                          <span className={`admin-dashboard__status-pill ${statusPillClass(status)}`}>
+                            {status}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
                 ) : (
                   <tr>
                     <td colSpan={5} className="admin-dashboard__empty-row">
