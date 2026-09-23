@@ -2,9 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
-  Button,
   Chip,
-  FormControl,
   IconButton,
   MenuItem,
   Paper,
@@ -15,7 +13,6 @@ import {
   TableCell,
   TableHead,
   TableRow,
-  TextField,
   Typography,
 } from "@mui/material";
 import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
@@ -23,11 +20,49 @@ import ThumbUpOutlinedIcon from "@mui/icons-material/ThumbUpOutlined";
 import PendingActionsOutlinedIcon from "@mui/icons-material/PendingActionsOutlined";
 import HighlightOffOutlinedIcon from "@mui/icons-material/HighlightOffOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import api from "../../../api/axiosInstance";
 import "./AdminLeavesPermissions.css";
 
 type RequestType = "permission" | "leave";
-type LeaveType = "CL" | "SL";
-type RequestStatus = "Pending" | "Approved" | "Rejected";
+type LeaveType = "CL" | "SL" | "COMP_OFF" | "PERMISSION";
+type RequestStatus = "Pending" | "Approved" | "Rejected" ;
+
+interface LeaveApiData {
+  _id: string;
+  employeeId: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  user_id: string;
+  leaveType: string;
+  fromDate: string;
+  toDate: string | null;
+  fromTime: string | null;
+  toTime: string | null;
+  totalDays: number;
+  totalHours: number;
+  reason: string;
+  status: RequestStatus;
+  rejectionReason: string | null;
+  createdAt?: string;
+}
+
+interface LeaveListResponse {
+  success: boolean;
+  message: string;
+  data: LeaveApiData[] | LeaveApiData;
+}
+
+const isLeaveRequest = (value: LeaveApiData) =>
+  Boolean(
+    value &&
+      value._id &&
+      value.user_id &&
+      value.leaveType &&
+      value.fromDate &&
+      value.status,
+  );
 
 interface LeaveRequest {
   id: string;
@@ -40,6 +75,7 @@ interface LeaveRequest {
   endDate?: string;
   startTime?: string;
   endTime?: string;
+  totalDays: number;
   reason: string;
   status: RequestStatus;
   createdAt: string;
@@ -50,68 +86,135 @@ interface LeaveRequest {
   currentPermission?: number;
 }
 
-const STORAGE_KEY = "timesync-leave-requests";
+const getBusinessYear = (date = new Date()) => {
+  const year = date.getFullYear();
+  return date.getMonth() >= 3
+    ? `${year}-${year + 1}`
+    : `${year - 1}-${year}`;
+};
 
-const readRequests = (): LeaveRequest[] => {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    const parsed = saved ? JSON.parse(saved) as LeaveRequest[] : [];
-    return Array.isArray(parsed)
-      ? parsed.map((request) => ({
-          ...request,
-          createdAt:
-            typeof request.createdAt === "string"
-              ? request.createdAt
-              : new Date().toISOString(),
-        }))
-      : [];
-  } catch {
-    return [];
+const getLeaveType = (value: string): LeaveType => {
+  if (["SL", "COMP_OFF", "PERMISSION"].includes(value)) {
+    return value as LeaveType;
   }
+
+  return "CL";
 };
 
-const formatDate = (value?: string) =>
-  value ? new Date(`${value}T00:00:00`).toLocaleDateString("en-IN") : "-";
+const mapApiRequest = (item: LeaveApiData): LeaveRequest => {
+  const leaveType = getLeaveType(item.leaveType);
+  const isPermission = leaveType === "PERMISSION";
 
-const diffDaysInclusive = (start: string, end: string) =>
-  Math.round(
-    (new Date(`${end}T00:00:00`).getTime() -
-      new Date(`${start}T00:00:00`).getTime()) /
-      86400000,
-  ) + 1;
-
-const timeToMinutes = (time: string) => {
-  const [hours, minutes] = time.split(":").map(Number);
-  return hours * 60 + minutes;
+  return {
+    id: item._id,
+    type: isPermission ? "permission" : "leave",
+    leaveType,
+    employeeId: item.user_id,
+    employeeName: item.employeeId.name,
+    date: isPermission ? item.fromDate : undefined,
+    startDate: isPermission ? undefined : item.fromDate,
+    endDate: isPermission ? undefined : item.toDate ?? undefined,
+    startTime: item.fromTime ?? undefined,
+    endTime: item.toTime ?? undefined,
+    totalDays: item.totalDays,
+    reason: item.reason,
+    status: item.status,
+    createdAt: item.createdAt ?? item.fromDate,
+  };
 };
 
-const diffHours = (start: string, end: string) =>
-  (timeToMinutes(end) - timeToMinutes(start)) / 60;
+const formatDate = (value?: string) => {
+  if (!value) return "-";
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? "-"
+    : date.toLocaleDateString("en-IN");
+};
 
 function AdminLeavesPermissions() {
   const navigate = useNavigate();
-  const [requests, setRequests] = useState<LeaveRequest[]>(readRequests);
+  const [requests, setRequests] = useState<LeaveRequest[]>([]);
+  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
-  const [filterEmployee, setFilterEmployee] = useState("all");
-  const [filterFrom, setFilterFrom] = useState("");
-  const [filterTo, setFilterTo] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"All" | RequestStatus>("All");
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(requests));
-  }, [requests]);
+    const fetchRequests = async () => {
+      try {
+        setLoading(true);
+        const response = await api.post<LeaveListResponse>(
+          "/leave-apply/list",
+          {
+            status: statusFilter === "All" ? "" : statusFilter,
+            businessYear: getBusinessYear(),
+          },
+        );
+
+        if (!response.data.success) {
+          setMessage(response.data.message || "Failed to load leave requests.");
+          return;
+        }
+
+        const apiData = Array.isArray(response.data.data)
+          ? response.data.data
+          : response.data.data
+            ? [response.data.data]
+            : [];
+
+        if (!apiData.every(isLeaveRequest)) {
+          setRequests([]);
+          setMessage(
+            "The leave request API returned leave policy data. Please configure /leave-apply/list to return employee leave requests.",
+          );
+          return;
+        }
+
+        setRequests(apiData.map(mapApiRequest));
+      } catch (error) {
+        console.error("Admin leave list API error:", error);
+
+        const responseStatus =
+          typeof error === "object" &&
+          error !== null &&
+          "response" in error
+            ? (
+                error as {
+                  response?: { status?: number };
+                }
+              ).response?.status
+            : undefined;
+
+        if (responseStatus === 401) {
+          navigate("/login", { replace: true });
+          return;
+        }
+
+        const responseMessage =
+          typeof error === "object" &&
+          error !== null &&
+          "response" in error
+            ? (
+                error as {
+                  response?: { data?: { message?: string } };
+                }
+              ).response?.data?.message
+            : undefined;
+
+        setMessage(
+          responseMessage || "Failed to load leave requests.",
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRequests();
+  }, [navigate, statusFilter]);
 
   const pendingRequests = requests.filter(
     (request) => request.status === "Pending",
   );
-
-  const updateStatus = (id: string, status: RequestStatus) => {
-    setRequests((current) =>
-      current.map((request) =>
-        request.id === id ? { ...request, status } : request,
-      ),
-    );
-    setMessage(`Request ${status.toLowerCase()}.`);
-  };
 
   const totalCount = requests.length;
   const approvedCount = requests.filter(
@@ -121,41 +224,8 @@ function AdminLeavesPermissions() {
     (request) => request.status === "Rejected",
   ).length;
 
-  const employeeOptions = Array.from(
-    new Map(
-      requests.map((request) => [request.employeeId, request.employeeName]),
-    ).entries(),
-  ).sort((a, b) => a[1].localeCompare(b[1]));
-
-  const filteredRequests = requests
-    .filter((request) => {
-      if (
-        filterEmployee !== "all" &&
-        request.employeeId !== filterEmployee
-      ) {
-        return false;
-      }
-
-      const primaryDate =
-        request.type === "leave" ? request.startDate : request.date;
-
-      if (filterFrom && primaryDate && primaryDate < filterFrom) {
-        return false;
-      }
-
-      if (filterTo && primaryDate && primaryDate > filterTo) {
-        return false;
-      }
-
-      return true;
-    })
+  const sortedRequests = [...requests]
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-
-  const resetFilters = () => {
-    setFilterEmployee("all");
-    setFilterFrom("");
-    setFilterTo("");
-  };
 
   return (
     <Box
@@ -217,70 +287,49 @@ function AdminLeavesPermissions() {
         />
       </Box>
 
-      <Paper elevation={0} className="admin-leaves-permissions__filters">
-        <Stack className="admin-leaves-permissions__filter-row">
-          <FilterField label="From">
-            <TextField
-              fullWidth
-              size="small"
-              type="date"
-              value={filterFrom}
-              onChange={(event) => setFilterFrom(event.target.value)}
-              slotProps={{ inputLabel: { shrink: true } }}
-            />
-          </FilterField>
-
-          <FilterField label="To">
-            <TextField
-              fullWidth
-              size="small"
-              type="date"
-              value={filterTo}
-              onChange={(event) => setFilterTo(event.target.value)}
-              slotProps={{ inputLabel: { shrink: true } }}
-            />
-          </FilterField>
-
-          <FilterField label="Employee">
-            <FormControl fullWidth size="small">
-              <Select
-                value={filterEmployee}
-                onChange={(event) => setFilterEmployee(event.target.value)}
-              >
-                <MenuItem value="all">All employees</MenuItem>
-                {employeeOptions.map(([id, name]) => (
-                  <MenuItem key={id} value={id}>
-                    {name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </FilterField>
-
-          <Button
-            variant="outlined"
-            onClick={resetFilters}
-            className="admin-leaves-permissions__reset-button"
-          >
-            Reset filters
-          </Button>
-        </Stack>
-      </Paper>
-
       <Paper elevation={0} className="admin-leaves-permissions__request-panel">
-        <Box className="admin-leaves-permissions__request-heading">
+        <Box
+          className="admin-leaves-permissions__request-heading"
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            alignItems: { xs: "stretch", sm: "center" },
+            justifyContent: "space-between",
+            gap: 2,
+          }}
+        >
           <Typography className="admin-leaves-permissions__request-title">
             Leave Requests List
           </Typography>
+          <Select
+            size="small"
+            value={statusFilter}
+            onChange={(event) =>
+              setStatusFilter(event.target.value as "All" | RequestStatus)
+            }
+            className="admin-leaves-permissions__status-filter"
+            sx={{ minWidth: 160}}
+            aria-label="Filter leave requests by status"
+          >
+            <MenuItem value="All">All status</MenuItem>
+            <MenuItem value="Pending">Pending</MenuItem>
+            <MenuItem value="Approved">Approved</MenuItem>
+            <MenuItem value="Rejected">Rejected</MenuItem>
+          </Select>
         </Box>
 
-        {filteredRequests.length ? (
+        {loading ? (
+          <Box className="admin-leaves-permissions__empty-state">
+            <Typography className="admin-leaves-permissions__empty-text">
+              Loading leave requests...
+            </Typography>
+          </Box>
+        ) : sortedRequests.length ? (
           <Box className="admin-leaves-permissions__table-wrapper">
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell>Emp Code</TableCell>
-                  <TableCell>Employee Name</TableCell>
+                  <TableCell>Name</TableCell>
                   <TableCell>Leave Type</TableCell>
                   <TableCell>Request Date</TableCell>
                   <TableCell>From</TableCell>
@@ -292,13 +341,14 @@ function AdminLeavesPermissions() {
               </TableHead>
 
               <TableBody>
-                {filteredRequests.map((request) => (
+                {sortedRequests.map((request) => (
                   <AdminRequestRow
                     key={request.id}
                     request={request}
                     onView={() =>
                       navigate(
-                        `employee-Details`,
+                        `/admin-leaves-permissions/employee-Details/${request.id}`,
+                        { state: { request } },
                       )
                     }
                   />
@@ -309,7 +359,7 @@ function AdminLeavesPermissions() {
         ) : (
           <Box className="admin-leaves-permissions__empty-state">
             <Typography className="admin-leaves-permissions__empty-text">
-              No leave or permission requests match these filters.
+              No leave or permission requests match this status.
             </Typography>
           </Box>
         )}
@@ -318,23 +368,6 @@ function AdminLeavesPermissions() {
   );
 }
 
-
-function FilterField({
-  label,
-  children,
-}: {
-  label: string;
-  children: ReactNode;
-}) {
-  return (
-    <Box className="admin-leaves-permissions__filter-field">
-      <Typography className="admin-leaves-permissions__filter-label">
-        {label}
-      </Typography>
-      {children}
-    </Box>
-  );
-}
 
 function StatCard({
   label,
@@ -381,30 +414,19 @@ function AdminRequestRow({
   request: LeaveRequest;
   onView: () => void;
 }) {
-  const leaveTypeLabel =
-    request.type === "permission"
-      ? "Permission"
-      : request.leaveType === "CL"
-        ? "Casual Leave"
-        : "Sick Leave";
+  const leaveTypeLabel = request.leaveType ?? "-";
 
   const fromDate =
     request.type === "leave" ? request.startDate : request.date;
   const toDate = request.type === "leave" ? request.endDate : request.date;
 
-  const duration =
-    request.type === "leave"
-      ? `${diffDaysInclusive(request.startDate!, request.endDate!)} day(s)`
-      : `${request.startTime}–${request.endTime} (${Math.round(diffHours(request.startTime!, request.endTime!) * 10) / 10}h)`;
+  const duration = `${request.totalDays} day(s)`;
 
   return (
     <TableRow hover>
       <TableCell
         className="admin-leaves-permissions__employee-id"
       >
-        {request.employeeId}
-      </TableCell>
-      <TableCell className="admin-leaves-permissions__table-cell">
         {request.employeeName}
       </TableCell>
       <TableCell className="admin-leaves-permissions__table-cell">{leaveTypeLabel}</TableCell>

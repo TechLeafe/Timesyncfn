@@ -23,6 +23,7 @@ import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlin
 import EventNoteOutlinedIcon from "@mui/icons-material/EventNoteOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import PersonAddAltOutlinedIcon from "@mui/icons-material/PersonAddAltOutlined";
+import ManageAccountsOutlinedIcon from "@mui/icons-material/ManageAccountsOutlined";
 
 /* NEW - DAILY TASK ICON */
 import TaskAltOutlinedIcon from "@mui/icons-material/TaskAltOutlined";
@@ -115,6 +116,19 @@ const navItems: NavItem[] = [
     roles: [HR, ADMIN],
   },
 
+
+  /* =========================
+     EMPLOYEE MANAGEMENT
+     (admin view of everyone's check-in/out)
+     HR + ADMIN ONLY
+  ========================= */
+
+  {
+    label: "Employee Management",
+    icon: <ManageAccountsOutlinedIcon />,
+    path: "/employee-management",
+    roles: [HR, ADMIN],
+  },
 
   /* =========================
      ATTENDANCE

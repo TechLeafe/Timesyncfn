@@ -9,6 +9,7 @@ import {
   MenuItem,
   Paper,
   Select,
+  Snackbar,
   Stack,
   Table,
   TableBody,
@@ -18,24 +19,27 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+
 import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlined";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlined";
-import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutlined";
+
+import { useNavigate } from "react-router-dom";
 import { useCurrentUser } from "../../../context/UserContext";
 import "./EmployeeLeavesPermissions.css";
+import api from "../../../api/axiosInstance";
 
-type RequestType = "permission" | "leave";
 type LeaveType = "CL" | "SL" | "COMP_OFF" | "PERMISSION";
-type RequestStatus = "Pending" | "Approved" | "Rejected";
+type RequestType = "permission" | "leave";
+type RequestStatus = "Pending" | "Approved" | "Rejected" | "Cancelled";
 
 interface LeaveRequest {
   id: string;
+  userId: string;
   type: RequestType;
-  leaveType?: LeaveType;
-  employeeId: string;
+  leaveType: LeaveType;
   employeeName: string;
   date?: string;
   startDate?: string;
@@ -43,9 +47,14 @@ interface LeaveRequest {
   compOffDate?: string;
   startTime?: string;
   endTime?: string;
+  totalDays: number;
+  totalHours: number;
   reason: string;
   status: RequestStatus;
-  createdAt: string;
+  reviewedBy?: string | null;
+  reviewedAt?: string | null;
+  rejectionReason?: string | null;
+  apiData?: LeaveApiData;
 }
 
 interface RequestForm {
@@ -59,12 +68,69 @@ interface RequestForm {
   reason: string;
 }
 
-const STORAGE_KEY = "timesync-leave-requests";
+type FieldErrors = Partial<Record<keyof RequestForm, string>>;
 
-const CL_GRANTED = 12;
-const SL_GRANTED = 12;
-const PERMISSION_GRANTED_HOURS = 24;
+interface LeaveApiData {
+  _id: string;
+  user_id: string;
+  leaveType: string;
+  fromDate: string;
+  toDate: string | null;
+  fromTime: string | null;
+  toTime: string | null;
+  totalDays: number;
+  totalHours: number;
+  compensatingDate: string | null;
+  reason: string;
+  status: RequestStatus;
+  reviewedBy: string | null;
+  reviewedAt: string | null;
+  rejectionReason: string | null;
+}
 
+interface LeaveApplyResponse {
+  success: boolean;
+  message: string;
+  data?: LeaveApiData;
+}
+
+interface LeaveListResponse {
+  success: boolean;
+  message: string;
+  data: LeaveApiData[] | LeaveApiData;
+}
+
+interface LeavePolicy {
+  _id: string;
+  policyName: string;
+  businessYear: string;
+  casualLeave: number;
+  sickLeave: number;
+  compensatoryOff: number;
+  permissionsPerMonth: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface LeavePolicyResponse {
+  success: boolean;
+  message: string;
+  data: LeavePolicy[];
+}
+
+// Calculate current business year
+export const getBusinessYear = (date = new Date()) => {
+  const currentYear = date.getFullYear();
+  const month = date.getMonth();
+
+  if (month >= 3) {
+    return `${currentYear}-${currentYear + 1}`;
+  }
+
+  return `${currentYear - 1}-${currentYear}`;
+};
+
+//leave request form
 const EMPTY_FORM: RequestForm = {
   leaveType: "CL",
   date: "",
@@ -76,415 +142,885 @@ const EMPTY_FORM: RequestForm = {
   reason: "",
 };
 
-const readRequests = (): LeaveRequest[] => {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    const parsed = saved ? JSON.parse(saved) as LeaveRequest[] : [];
-    return Array.isArray(parsed)
-      ? parsed.map((request) => ({
-          ...request,
-          createdAt:
-            typeof request.createdAt === "string"
-              ? request.createdAt
-              : new Date().toISOString(),
-        }))
-      : [];
-  } catch {
-    return [];
-  }
+// Format dates for display
+const formatDate = (value?: string | null) => {
+  if (!value) return "-";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "-";
+
+  return date.toLocaleDateString("en-IN");
 };
 
-const formatDate = (value?: string) =>
-  value ? new Date(`${value}T00:00:00`).toLocaleDateString("en-IN") : "-";
+// Convert dates for inputs
+const toInputDate = (value?: string | null) => {
+  if (!value) return "";
 
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "";
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+// Calculate inclusive leave days
 const diffDaysInclusive = (start: string, end: string) =>
   Math.round(
     (new Date(`${end}T00:00:00`).getTime() -
       new Date(`${start}T00:00:00`).getTime()) /
-      86400000,
-  ) + 1;
+      86400000,) + 1;
 
-const timeToMinutes = (time: string) => {
-  const [hours, minutes] = time.split(":").map(Number);
-  return hours * 60 + minutes;
+// Normalize leave type
+const getLeaveType = (value: string): LeaveType => {
+  if (["SL", "COMP_OFF", "PERMISSION"].includes(value)) {
+    return value as LeaveType;
+  }
+
+  return "CL";
+};
+// Read logged-in employee name
+const getLoggedInUserName = (fallback: string) => {
+  try {
+    const storedUser = localStorage.getItem("loggedInUser");
+
+    if (storedUser) {
+      const user = JSON.parse(storedUser) as {
+        name?: string;
+        email?: string;
+      };
+      return user.name || user.email || fallback;
+    }
+  } catch {
+    return fallback;
+  }
+  return fallback;
 };
 
-const diffHours = (start: string, end: string) =>
-  (timeToMinutes(end) - timeToMinutes(start)) / 60;
+// Map API data for display
+const mapApiRequest = (
+  item: LeaveApiData,
+  employeeName: string,
+): LeaveRequest => {
+  const leaveType = getLeaveType(item.leaveType);
+
+  return {
+    id: item._id,
+    userId: item.user_id,
+    type:
+      leaveType === "PERMISSION"
+        ? "permission"
+        : "leave",
+    leaveType,
+    employeeName,
+    date:
+      leaveType === "PERMISSION"
+        ? toInputDate(item.fromDate)
+        : undefined,
+    startDate:
+      leaveType !== "PERMISSION"
+        ? toInputDate(item.fromDate)
+        : undefined,
+    endDate:
+      leaveType !== "PERMISSION"
+        ? toInputDate(item.toDate)
+        : undefined,
+    compOffDate: item.compensatingDate
+      ? toInputDate(item.compensatingDate)
+      : undefined,
+    startTime: item.fromTime ?? undefined,
+    endTime: item.toTime ?? undefined,
+    totalDays: item.totalDays,
+    totalHours: item.totalHours,
+    reason: item.reason,
+    status: item.status,
+    reviewedBy: item.reviewedBy,
+    reviewedAt: item.reviewedAt,
+    rejectionReason: item.rejectionReason,
+    apiData: item,
+  };
+};
 
 function EmployeeLeavesPermissions() {
   const { currentUser } = useCurrentUser();
-  const [requests, setRequests] = useState<LeaveRequest[]>(readRequests);
-  const [requestType, setRequestType] = useState<RequestType | null>(null);
-  const [form, setForm] = useState<RequestForm>(EMPTY_FORM);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  const [requests, setRequests] =
+    useState<LeaveRequest[]>([]);
+
+  const [requestType, setRequestType] =
+    useState<RequestType | null>(null);
+
+  const [form, setForm] =
+    useState<RequestForm>(EMPTY_FORM);
+
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [loading, setLoading] = useState(false);
 
+  // Store policy balances
+  const [leavePolicy, setLeavePolicy] =
+    useState<LeavePolicy | null>(null);
+
+  const [policyLoading, setPolicyLoading] =
+    useState(false);
+  const [statusFilter, setStatusFilter] =
+    useState<"All" | RequestStatus>("All");
+
+  // Load employee requests
+  const fetchLeaveRequests = async (
+    status: "All" | RequestStatus = statusFilter,
+  ) => {
+    try {
+      setLoading(true);
+
+      const response = await api.post<LeaveListResponse>(
+        "/leave-apply/list",
+        {
+          status: status === "All" ? "" : status,
+          businessYear: getBusinessYear(),
+        },
+      );
+
+      if (!response.data.success) {
+        setError(response.data.message || "Failed to load leave requests.");
+        return;
+      }
+
+      const apiData = Array.isArray(response.data.data)
+        ? response.data.data
+        : response.data.data
+          ? [response.data.data]
+          : [];
+
+      setRequests(
+        apiData.map((item) =>
+          mapApiRequest(item, getLoggedInUserName(currentUser.name)),
+        ),
+      );
+    } catch (error) {
+      console.error("Leave list API error:", error);
+      setError("Failed to load leave requests.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load leave policy
+  const fetchLeavePolicy = async () => {
+    try {
+      setPolicyLoading(true);
+
+      const response =
+        await api.post<LeavePolicyResponse>(
+          "/leaves/list",
+          {
+            businessYear: getBusinessYear(),
+          },
+        );
+
+      if (!response.data.success) {
+        setError(
+          response.data.message ||
+            "Failed to load leave policy.",
+        );
+
+        return;
+      }
+
+      const policies = response.data.data;
+
+      if (policies.length > 0) {
+        setLeavePolicy(policies[0]);
+      } else {
+        setLeavePolicy(null);
+
+        setError(
+          "No leave policy found for the current business year.",
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Leave policy API error:",
+        error,
+      );
+
+      setError(
+        "Failed to load leave policy.",
+      );
+    } finally {
+      setPolicyLoading(false);
+    }
+  };
+
+  // Load policy on employee change
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(requests));
-  }, [requests]);
+    fetchLeaveRequests();
+    fetchLeavePolicy();
+  }, [currentUser.id]);
 
-  const employeeRequests = requests.filter(
-    (request) => request.employeeId === currentUser.id,
-  );
-
-  const updateField = (field: keyof RequestForm, value: string) => {
-    setForm((current) => ({ ...current, [field]: value }));
-    setMessage("");
-    setError("");
-  };
-
-  const resetForm = () => {
-    setForm(EMPTY_FORM);
-    setEditingId(null);
-    setRequestType(null);
-    setError("");
-  };
-
-  const openForm = (type: RequestType, leaveType?: LeaveType) => {
-    setRequestType(type);
+  // Update form field
+  const updateField = (
+    field: keyof RequestForm,
+    value: string,
+  ) => {
     setForm((current) => ({
       ...current,
-      leaveType: leaveType ?? current.leaveType,
+      [field]: value,
     }));
-    setError("");
-  };
-
-  const submitRequest = () => {
-    if (!requestType) return;
-
-    const isPermission = form.leaveType === "PERMISSION";
-    const activeRequestType: RequestType = isPermission ? "permission" : "leave";
 
     setMessage("");
     setError("");
+    setFieldErrors((current) => ({
+      ...current,
+      [field]: undefined,
+    }));
+  };
 
-    if (activeRequestType === "permission") {
-      if (
-        !form.date ||
-        !form.startTime ||
-        !form.endTime ||
-        !form.reason.trim()
-      ) {
-        setError("Please enter the permission date, time, and reason.");
+  // Reset leave form
+  const resetForm = () => {
+    setForm(EMPTY_FORM);
+    setRequestType(null);
+    setError("");
+    setFieldErrors({});
+  };
+
+  // Open leave application form
+  const openForm = (
+    type: RequestType,
+    leaveType: LeaveType = "CL",
+  ) => {
+    setRequestType(type);
+
+    setForm({
+      ...EMPTY_FORM,
+      leaveType,
+    });
+
+    setMessage("");
+    setError("");
+    setFieldErrors({});
+  };
+
+  // Build application request
+  const createApiRequestBody = () => {
+    const businessYear = getBusinessYear();
+
+    if (form.leaveType === "PERMISSION") {
+      return {
+        leaveType: "PERMISSION",
+        fromDate: form.date,
+        fromTime: form.startTime,
+        toTime: form.endTime,
+        reason: form.reason.trim(),
+        businessYear,
+      };
+    }
+
+    const totalDays = diffDaysInclusive(
+      form.startDate,
+      form.endDate,
+    );
+
+    return {
+      leaveType: form.leaveType,
+      fromDate: form.startDate,
+      toDate: form.endDate,
+      totalDays,
+      ...(form.leaveType === "COMP_OFF" && {
+        compensatingDate: form.compOffDate,
+      }),
+      reason: form.reason.trim(),
+      businessYear,
+    };
+  };
+
+  // Validate and submit leave
+  const submitRequest = async () => {
+    if (!requestType) return;
+
+    setMessage("");
+    setError("");
+    setFieldErrors({});
+
+    if (form.leaveType === "PERMISSION") {
+      const nextErrors: FieldErrors = {};
+
+      if (!form.date) nextErrors.date = "Permission date is required.";
+      if (!form.startTime) nextErrors.startTime = "Start time is required.";
+      if (!form.endTime) nextErrors.endTime = "End time is required.";
+      if (!form.reason.trim()) nextErrors.reason = "Reason is required.";
+
+      if (Object.keys(nextErrors).length > 0) {
+        setFieldErrors(nextErrors);
+        setError(
+          "Please enter the permission date, time, and reason.",
+        );
+
         return;
       }
 
       if (form.endTime <= form.startTime) {
-        setError("Permission end time must be after the start time.");
+        setFieldErrors({
+          endTime: "End time must be after start time.",
+        });
+        setError(
+          "Permission end time must be after the start time.",
+        );
+
         return;
       }
     } else {
-      if (
-        !form.startDate ||
-        !form.endDate ||
-        !form.reason.trim() ||
-        (form.leaveType === "COMP_OFF" && !form.compOffDate)
-      ) {
+      const nextErrors: FieldErrors = {};
+
+      if (!form.startDate) nextErrors.startDate = "Start date is required.";
+      if (!form.endDate) nextErrors.endDate = "End date is required.";
+      if (!form.reason.trim()) nextErrors.reason = "Reason is required.";
+
+      if (Object.keys(nextErrors).length > 0) {
+        setFieldErrors(nextErrors);
         setError(
-          form.leaveType === "COMP_OFF"
-            ? "Please enter the leave dates, comp off date, and reason."
-            : "Please enter the leave dates and reason.",
+          "Please enter the leave dates and reason.",
         );
+
         return;
       }
 
       if (form.endDate < form.startDate) {
-        setError("Leave end date must be on or after the start date.");
+        setFieldErrors({
+          endDate: "End date must be on or after start date.",
+        });
+        setError(
+          "Leave end date must be on or after the start date.",
+        );
+
+        return;
+      }
+
+      if (
+        form.leaveType === "COMP_OFF" &&
+        !form.compOffDate
+      ) {
+        setFieldErrors({
+          compOffDate: "Comp off date is required.",
+        });
+        setError(
+          "Please select the comp off date.",
+        );
+
         return;
       }
     }
 
-    const original = editingId
-      ? requests.find((request) => request.id === editingId)
-      : undefined;
+    try {
+      setLoading(true);
 
-    const nextRequest: LeaveRequest = {
-      id: editingId ?? crypto.randomUUID(),
-      type: activeRequestType,
-      leaveType:
-        activeRequestType === "leave" ? form.leaveType : undefined,
-      employeeId: currentUser.id,
-      employeeName: currentUser.name,
-      date: activeRequestType === "permission" ? form.date : undefined,
-      startDate: activeRequestType === "leave" ? form.startDate : undefined,
-      endDate: activeRequestType === "leave" ? form.endDate : undefined,
-      compOffDate:
-        activeRequestType === "leave" && form.leaveType === "COMP_OFF"
-          ? form.compOffDate
-          : undefined,
-      startTime:
-        activeRequestType === "permission" ? form.startTime : undefined,
-      endTime:
-        activeRequestType === "permission" ? form.endTime : undefined,
-      reason: form.reason.trim(),
-      status: "Pending",
-      createdAt: original?.createdAt ?? new Date().toISOString(),
-    };
+      const requestBody =
+        createApiRequestBody();
 
-    setRequests((current) =>
-      editingId
-        ? current.map((request) =>
-            request.id === editingId ? nextRequest : request,
-          )
-        : [nextRequest, ...current],
-    );
+      // Submit leave request
+      const response =
+        await api.post<LeaveApplyResponse>(
+          "/leave-apply/apply",
+          requestBody,
+        );
 
-    setMessage(
-      editingId
-        ? "Request updated and sent to HR."
-        : "Request sent to HR for review.",
-    );
-    resetForm();
+      if (!response.data.success) {
+        setError(
+          response.data.message ||
+            "Failed to submit leave request.",
+        );
+
+        return;
+      }
+
+      setMessage(
+        response.data.message ||
+          "Leave request submitted successfully.",
+      );
+
+      // Add submitted request
+      if (response.data.data) {
+        const newRequest =
+          mapApiRequest(
+            response.data.data,
+            getLoggedInUserName(currentUser.name),
+          );
+
+        setRequests(
+          (currentRequests) => {
+            const alreadyExists =
+              currentRequests.some(
+                (request) =>
+                  request.id ===
+                  newRequest.id,
+              );
+
+            if (alreadyExists) {
+              return currentRequests;
+            }
+
+            return [
+              newRequest,
+              ...currentRequests,
+            ];
+          },
+        );
+      }
+
+      // Clear submitted form
+      resetForm();
+    } catch (error) {
+      console.error(
+        "Leave apply API error:",
+        error,
+      );
+
+      setError(
+        "Failed to submit leave request. Please try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const editRequest = (request: LeaveRequest) => {
-    setRequestType(request.type);
-    setEditingId(request.id);
-    setForm({
-      leaveType:
-        request.type === "permission"
-          ? "PERMISSION"
-          : request.leaveType ?? "CL",
-      date: request.date ?? "",
-      startDate: request.startDate ?? "",
-      endDate: request.endDate ?? "",
-      compOffDate: request.compOffDate ?? "",
-      startTime: request.startTime ?? "",
-      endTime: request.endTime ?? "",
-      reason: request.reason,
-    });
-    setMessage("");
-    setError("");
-  };
-
-  const deleteRequest = (id: string) => {
-    setRequests((current) => current.filter((request) => request.id !== id));
-    setMessage("Request deleted.");
-  };
-
-  const approvedDays = (leaveType: LeaveType) =>
-    employeeRequests
+  // Count used leave days
+  const usedDays = (
+    leaveType: LeaveType,
+  ) =>
+    requests
       .filter(
         (request) =>
-          request.type === "leave" &&
           request.leaveType === leaveType &&
-          request.status === "Approved",
+          request.status !== "Rejected",
       )
       .reduce(
         (sum, request) =>
-          sum + diffDaysInclusive(request.startDate!, request.endDate!),
+          sum + request.totalDays,
         0,
       );
 
-  const approvedPermissionHours = employeeRequests
-    .filter(
-      (request) =>
-        request.type === "permission" && request.status === "Approved",
-    )
-    .reduce(
-      (sum, request) =>
-        sum + diffHours(request.startTime!, request.endTime!),
-      0,
-    );
+  // Count monthly permissions
+  const usedPermissionsThisMonth = requests.filter(
+    (request) => {
+      if (
+        request.leaveType !== "PERMISSION" ||
+        request.status === "Rejected" ||
+        !request.date
+      ) {
+        return false;
+      }
 
-  const clRemaining = Math.max(CL_GRANTED - approvedDays("CL"), 0);
-  const slRemaining = Math.max(SL_GRANTED - approvedDays("SL"), 0);
-  const permissionRemaining = Math.max(
-    Math.round((PERMISSION_GRANTED_HOURS - approvedPermissionHours) * 10) / 10,
+      const permissionDate = new Date(
+        `${request.date}T00:00:00`,
+      );
+      const today = new Date();
+
+      return (
+        permissionDate.getFullYear() ===
+          today.getFullYear() &&
+        permissionDate.getMonth() ===
+          today.getMonth()
+      );
+    },
+  ).length;
+
+  // Calculate remaining balances
+  const clGranted =
+    leavePolicy?.casualLeave ?? 0;
+
+  const slGranted =
+    leavePolicy?.sickLeave ?? 0;
+
+  const permissionCount =
+    leavePolicy?.permissionsPerMonth ?? 0;
+
+  const clRemaining = Math.max(
+    clGranted - usedDays("CL"),
     0,
   );
 
+  const slRemaining = Math.max(
+    slGranted - usedDays("SL"),
+    0,
+  );
+
+  const permissionRemaining = Math.max(
+    permissionCount - usedPermissionsThisMonth,
+    0,
+  );
+
+  // Render employee leave page
   return (
     <Box className="employee-leaves-page">
-    
-      <Stack className="employee-leaves-header" direction={{ xs: "column", sm: "row" }} spacing={2}>
-      
+      <Stack
+        className="employee-leaves-header"
+        direction={{
+          xs: "column",
+          sm: "row",
+        }}
+        spacing={2}
+      >
         <Box>
           <Typography className="page-title">
-          
             Leaves and Permissions
           </Typography>
+
           <Typography className="page-subtitle">
-            Request time away and track your approvals.
+            Request time away and track your
+            approvals.
           </Typography>
         </Box>
       </Stack>
 
-      {message && (
+      <Snackbar
+        open={Boolean(message)}
+        autoHideDuration={3000}
+        onClose={() => setMessage("")}
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+      >
         <Alert
           severity="success"
+          variant="filled"
           onClose={() => setMessage("")}
         >
           {message}
         </Alert>
-      )}
+      </Snackbar>
 
-      {error && (
-        <Alert className="feedback-alert" severity="error" onClose={() => setError("")}>
+      <Snackbar
+        open={Boolean(error)}
+        autoHideDuration={4000}
+        onClose={() => setError("")}
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+      >
+        <Alert
+          severity="error"
+          variant="filled"
+          onClose={() => setError("")}
+        >
           {error}
         </Alert>
-      )}
+      </Snackbar>
 
       <Box className="balance-grid">
-      
         <SimpleBalanceCard
           label="Casual Leave (CL)"
           value={clRemaining}
-          unit="days left"
-          icon={<EventAvailableOutlinedIcon />}
+          unit={
+            policyLoading
+              ? "Loading..."
+              : "days left"
+          }
+          icon={
+            <EventAvailableOutlinedIcon />
+          }
         />
+
         <SimpleBalanceCard
           label="Sick Leave (SL)"
           value={slRemaining}
-          unit="days left"
-          icon={<AccessTimeOutlinedIcon />}
+          unit={
+            policyLoading
+              ? "Loading..."
+              : "days left"
+          }
+          icon={
+            <AccessTimeOutlinedIcon />
+          }
         />
+
         <SimpleBalanceCard
           label="Permissions"
           value={permissionRemaining}
-          unit="hrs left"
-          icon={<FactCheckOutlinedIcon />}
+          unit={
+            policyLoading
+              ? "Loading..."
+              : "left this month"
+          }
+          icon={
+            <FactCheckOutlinedIcon />
+          }
         />
+
         <ApplyCard
-          onToggle={() => openForm("leave", "CL")}
+          onToggle={() =>
+            openForm("leave", "CL")
+          }
         />
       </Box>
 
       {requestType && (
-        <Paper className="request-form-card" elevation={0}>
-        
+        <Paper
+          className="request-form-card"
+          elevation={0}
+        >
           <Typography className="form-title">
-          
-            {editingId
-              ? "Edit request"
-              : form.leaveType === "PERMISSION"
-                ? "Permission request"
-                : "Leave request"}
+            {form.leaveType === "PERMISSION"
+              ? "Permission request"
+              : "Leave request"}
           </Typography>
 
-          <Stack className="form-fields" spacing={2.5}>
-            <FieldRow label="Leave type">
-              <FormControl fullWidth size="small">
+          <Stack
+            className="form-fields"
+            spacing={2.5}
+          >
+            <FieldRow
+              label="Leave type"
+              required
+            >
+              <FormControl
+                fullWidth
+                size="small"
+              >
                 <Select
                   value={form.leaveType}
                   onChange={(event) => {
-                    const value = event.target.value as LeaveType;
-                    updateField("leaveType", value);
-                    setRequestType(value === "PERMISSION" ? "permission" : "leave");
+                    const value =
+                      event.target
+                        .value as LeaveType;
+
+                    updateField(
+                      "leaveType",
+                      value,
+                    );
+
+                    setRequestType(
+                      value === "PERMISSION"
+                        ? "permission"
+                        : "leave",
+                    );
                   }}
                 >
-                  <MenuItem value="CL">Casual Leave (CL)</MenuItem>
-                  <MenuItem value="SL">Sick Leave (SL)</MenuItem>
-                  <MenuItem value="PERMISSION">Permission</MenuItem>
-                  <MenuItem value="COMP_OFF">Comp Off</MenuItem>
+                  <MenuItem value="CL">
+                    Casual Leave (CL)
+                  </MenuItem>
+
+                  <MenuItem value="SL">
+                    Sick Leave (SL)
+                  </MenuItem>
+
+                  <MenuItem value="PERMISSION">
+                    Permission
+                  </MenuItem>
+
+                  <MenuItem value="COMP_OFF">
+                    Comp Off
+                  </MenuItem>
                 </Select>
               </FormControl>
             </FieldRow>
 
-            {form.leaveType === "PERMISSION" ? (
+            {form.leaveType ===
+            "PERMISSION" ? (
               <>
-                <FieldRow label="Permission date">
+                <FieldRow
+                  label="Permission date"
+                  required
+                >
                   <TextField
                     fullWidth
                     size="small"
                     type="date"
                     value={form.date}
+                    error={Boolean(fieldErrors.date)}
+                    helperText={fieldErrors.date}
                     onChange={(event) =>
-                      updateField("date", event.target.value)
+                      updateField(
+                        "date",
+                        event.target.value,
+                      )
                     }
-                    slotProps={{ inputLabel: { shrink: true } }}
+                    slotProps={{
+                      inputLabel: {
+                        shrink: true,
+                      },
+                    }}
                   />
                 </FieldRow>
 
-                <FieldRow label="Start time">
+                <FieldRow
+                  label="Start time"
+                  required
+                >
                   <TextField
                     fullWidth
                     size="small"
                     type="time"
                     value={form.startTime}
+                    error={Boolean(fieldErrors.startTime)}
+                    helperText={fieldErrors.startTime}
                     onChange={(event) =>
-                      updateField("startTime", event.target.value)
+                      updateField(
+                        "startTime",
+                        event.target.value,
+                      )
                     }
-                    slotProps={{ inputLabel: { shrink: true } }}
+                    slotProps={{
+                      inputLabel: {
+                        shrink: true,
+                      },
+                    }}
                   />
                 </FieldRow>
 
-                <FieldRow label="End time">
+                <FieldRow
+                  label="End time"
+                  required
+                >
                   <TextField
                     fullWidth
                     size="small"
                     type="time"
                     value={form.endTime}
+                    error={Boolean(fieldErrors.endTime)}
+                    helperText={fieldErrors.endTime}
                     onChange={(event) =>
-                      updateField("endTime", event.target.value)
+                      updateField(
+                        "endTime",
+                        event.target.value,
+                      )
                     }
-                    slotProps={{ inputLabel: { shrink: true } }}
+                    slotProps={{
+                      inputLabel: {
+                        shrink: true,
+                      },
+                    }}
                   />
                 </FieldRow>
 
-                <FieldRow label="Permission reason">
+                <FieldRow
+                  label="Permission reason"
+                  required
+                >
                   <TextField
                     fullWidth
                     size="small"
                     value={form.reason}
+                    error={Boolean(fieldErrors.reason)}
+                    helperText={fieldErrors.reason}
                     onChange={(event) =>
-                      updateField("reason", event.target.value)
+                      updateField(
+                        "reason",
+                        event.target.value,
+                      )
                     }
                   />
                 </FieldRow>
               </>
             ) : (
               <>
-                <FieldRow label="Start date">
+                <FieldRow
+                  label="Start date"
+                  required
+                >
                   <TextField
                     fullWidth
                     size="small"
                     type="date"
                     value={form.startDate}
+                    error={Boolean(fieldErrors.startDate)}
+                    helperText={fieldErrors.startDate}
                     onChange={(event) =>
-                      updateField("startDate", event.target.value)
+                      updateField(
+                        "startDate",
+                        event.target.value,
+                      )
                     }
-                    slotProps={{ inputLabel: { shrink: true } }}
+                    slotProps={{
+                      inputLabel: {
+                        shrink: true,
+                      },
+                    }}
                   />
                 </FieldRow>
 
-                <FieldRow label="End date">
+                <FieldRow
+                  label="End date"
+                  required
+                >
                   <TextField
                     fullWidth
                     size="small"
                     type="date"
                     value={form.endDate}
+                    error={Boolean(fieldErrors.endDate)}
+                    helperText={fieldErrors.endDate}
                     onChange={(event) =>
-                      updateField("endDate", event.target.value)
+                      updateField(
+                        "endDate",
+                        event.target.value,
+                      )
                     }
-                    slotProps={{ inputLabel: { shrink: true } }}
+                    slotProps={{
+                      htmlInput: {
+                        min:
+                          form.startDate ||
+                          undefined,
+                      },
+                      inputLabel: {
+                        shrink: true,
+                      },
+                    }}
                   />
                 </FieldRow>
 
-                {form.leaveType === "COMP_OFF" && (
-                  <FieldRow label="Comp off date">
+                {form.leaveType ===
+                  "COMP_OFF" && (
+                  <FieldRow
+                    label="Comp off date"
+                    required
+                  >
                     <TextField
                       fullWidth
                       size="small"
                       type="date"
-                      value={form.compOffDate}
-                      onChange={(event) =>
-                        updateField("compOffDate", event.target.value)
+                      value={
+                        form.compOffDate
                       }
-                      slotProps={{ inputLabel: { shrink: true } }}
+                        error={Boolean(fieldErrors.compOffDate)}
+                        helperText={fieldErrors.compOffDate}
+                      onChange={(event) =>
+                        updateField(
+                          "compOffDate",
+                          event.target.value,
+                        )
+                      }
+                      slotProps={{
+                        inputLabel: {
+                          shrink: true,
+                        },
+                      }}
                     />
                   </FieldRow>
                 )}
 
-                <FieldRow label="Leave reason">
+                <FieldRow
+                  label="Leave reason"
+                  required
+                >
                   <TextField
                     fullWidth
                     size="small"
                     value={form.reason}
+                    error={Boolean(fieldErrors.reason)}
+                    helperText={fieldErrors.reason}
                     onChange={(event) =>
-                      updateField("reason", event.target.value)
+                      updateField(
+                        "reason",
+                        event.target.value,
+                      )
                     }
                   />
                 </FieldRow>
@@ -492,52 +1028,97 @@ function EmployeeLeavesPermissions() {
             )}
           </Stack>
 
-          <Stack className="form-actions" direction="row" spacing={1}>
-          
-            <Button className="cancel-button" variant="outlined" onClick={resetForm}>
-            
+          <Stack
+            className="form-actions"
+            direction="row"
+            spacing={1}
+          >
+            <Button
+              className="cancel-button"
+              variant="outlined"
+              onClick={resetForm}
+            >
               Cancel
             </Button>
-            <Button className="submit-button" variant="contained" onClick={submitRequest}
+
+            <Button
+              className="submit-button"
+              variant="contained"
+              onClick={submitRequest}
+              disabled={loading}
             >
-              {editingId
-                ? "Update request"
-                : form.leaveType === "PERMISSION"
-                  ? "Get permission"
-                  : "Get leave"}
+              {form.leaveType ===
+              "PERMISSION"
+                ? "Get permission"
+                : "Get leave"}
             </Button>
           </Stack>
         </Paper>
       )}
 
       <RequestTable
-        requests={employeeRequests}
-        onEdit={editRequest}
-        onDelete={deleteRequest}
+        requests={requests}
+        loading={loading}
+        statusFilter={statusFilter}
+        onStatusChange={(status) => {
+          setStatusFilter(status);
+          fetchLeaveRequests(status);
+        }}
+        onView={(id) =>
+          navigate(
+            `/employee-leaves-permissions/leave-detail/${id}`,
+            {
+              state: {
+                request: requests.find(
+                  (item) => item.id === id,
+                )?.apiData,
+              },
+            },
+          )
+        }
       />
     </Box>
   );
 }
 
+// Render labeled form field
 function FieldRow({
   label,
+  required = false,
   children,
 }: {
   label: string;
+  required?: boolean;
   children: ReactNode;
 }) {
   return (
-    <Stack className="field-row" direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 1.5 }}>
-    
+    <Stack
+      className="field-row"
+      direction={{
+        xs: "column",
+        sm: "row",
+      }}
+      spacing={{
+        xs: 0.5,
+        sm: 1.5,
+      }}
+    >
       <Typography className="field-label">
-      
         {label}
+
+        {required && (
+          <span className="required-star">
+            *
+          </span>
+        )}
       </Typography>
+
       {children}
     </Stack>
   );
 }
 
+// Render leave balance card
 function SimpleBalanceCard({
   label,
   value,
@@ -550,24 +1131,29 @@ function SimpleBalanceCard({
   icon: ReactNode;
 }) {
   return (
-    <Paper className="balance-card" elevation={0}>
-    
-      <Stack className="balance-card-content" direction="row">
-      
+    <Paper
+      className="balance-card"
+      elevation={0}
+    >
+      <Stack
+        className="balance-card-content"
+        direction="row"
+      >
         <Box>
           <Typography className="balance-label">
             {label}
           </Typography>
+
           <Typography className="balance-value">
-          
             {value}
           </Typography>
+
           <Typography className="balance-unit">
             {unit}
           </Typography>
         </Box>
+
         <Box className="balance-icon">
-        
           {icon}
         </Box>
       </Stack>
@@ -575,17 +1161,23 @@ function SimpleBalanceCard({
   );
 }
 
+// Render leave application card
 function ApplyCard({
   onToggle,
 }: {
   onToggle: () => void;
 }) {
   return (
-    <Paper className="apply-card" elevation={0}>
+    <Paper
+      className="apply-card"
+      elevation={0}
+    >
       <Button
         className="apply-button"
         onClick={onToggle}
-        startIcon={<AddCircleOutlineIcon />}
+        startIcon={
+          <AddCircleOutlineIcon />
+        }
       >
         Apply
       </Button>
@@ -593,71 +1185,106 @@ function ApplyCard({
   );
 }
 
+// Render employee requests table
 function RequestTable({
   requests,
-  onEdit,
-  onDelete,
+  loading,
+  statusFilter,
+  onStatusChange,
+  onView,
 }: {
   requests: LeaveRequest[];
-  onEdit: (request: LeaveRequest) => void;
-  onDelete: (id: string) => void;
+  loading: boolean;
+  statusFilter: "All" | RequestStatus;
+  onStatusChange: (status: "All" | RequestStatus) => void;
+  onView: (id: string) => void;
 }) {
-  const rows = requests.map((request) => (
-    <RequestRow
-      key={request.id}
-      request={request}
-      actions={
-        request.status === "Pending" ? (
-          <>
-            <IconButton
-              aria-label="Edit request"
-              onClick={() => onEdit(request)}
-            >
-              <EditOutlinedIcon />
-            </IconButton>
-            <IconButton
-              aria-label="Delete request"
-              onClick={() => onDelete(request.id)}
-            >
-              <DeleteOutlineIcon />
-            </IconButton>
-          </>
-        ) : undefined
-      }
-    />
-  ));
-
   return (
-    <Paper className="requests-card" elevation={0}>
-    
+    <Paper
+      className="requests-card"
+      elevation={0}
+    >
       <Box className="requests-card-header">
         <Typography className="requests-title">
-        
-          My requests
+          Leave Requests List
         </Typography>
+        <Select
+          size="small"
+          value={statusFilter}
+          onChange={(event) =>
+            onStatusChange(event.target.value as "All" | RequestStatus)
+          }
+          className="requests-status-filter"
+          MenuProps={{
+            classes: {
+              paper: "requests-status-menu",
+            },
+          }}
+          aria-label="Filter leave requests by status"
+        >
+          <MenuItem value="All">All status</MenuItem>
+          <MenuItem value="Pending">Pending</MenuItem>
+          <MenuItem value="Approved">Approved</MenuItem>
+          <MenuItem value="Rejected">Rejected</MenuItem>
+        </Select>
       </Box>
 
-      {rows.length ? (
+      {loading ? (
+        <Box className="empty-requests">
+          <Typography className="empty-requests-text">
+            Loading requests...
+          </Typography>
+        </Box>
+      ) : requests.length ? (
         <Box className="requests-table-wrap">
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>Employee</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Date / time</TableCell>
-                <TableCell>Reason</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell align="right">Action</TableCell>
+                <TableCell>
+                  Name
+                </TableCell>
+
+                <TableCell>
+                  Leave Type
+                </TableCell>
+
+                <TableCell>
+                  From
+                </TableCell>
+
+                <TableCell>
+                  To
+                </TableCell>
+
+                <TableCell>
+                  Duration
+                </TableCell>
+
+                <TableCell>
+                  Status
+                </TableCell>
+
+                <TableCell align="right">
+                  Action
+                </TableCell>
               </TableRow>
             </TableHead>
-            <TableBody>{rows}</TableBody>
+
+            <TableBody>
+              {requests.map((request) => (
+                <RequestRow
+                  key={request.id}
+                  request={request}
+                  onView={onView}
+                />
+              ))}
+            </TableBody>
           </Table>
         </Box>
       ) : (
         <Box className="empty-requests">
-        
           <Typography className="empty-requests-text">
-            You have not submitted any requests yet.
+            No leave requests match this status.
           </Typography>
         </Box>
       )}
@@ -665,50 +1292,53 @@ function RequestTable({
   );
 }
 
+// Render one request row
 function RequestRow({
   request,
-  actions,
+  onView,
 }: {
   request: LeaveRequest;
-  actions?: ReactNode;
+  onView: (id: string) => void;
 }) {
-  const details =
-    request.type === "permission"
-      ? `${formatDate(request.date)} ${request.startTime}-${request.endTime}`
-      : request.leaveType === "COMP_OFF"
-        ? `${formatDate(request.startDate)} - ${formatDate(request.endDate)} | Comp Off: ${formatDate(request.compOffDate)}`
-        : `${formatDate(request.startDate)} - ${formatDate(request.endDate)}`;
-
   return (
     <TableRow>
       <TableCell className="request-cell request-employee-cell">
         {request.employeeName}
       </TableCell>
+
       <TableCell className="request-cell">
-        {request.type === "permission" ? "Permission" : request.leaveType}
+        {request.leaveType}
       </TableCell>
+
       <TableCell className="request-cell request-nowrap-cell">
-        {details}
+        {formatDate(request.startDate ?? request.date)}
       </TableCell>
-      <TableCell className="request-cell request-reason-cell">
-        {request.reason}
+
+      <TableCell className="request-cell request-nowrap-cell">
+        {formatDate(request.endDate ?? request.date)}
       </TableCell>
+
+      <TableCell className="request-cell request-total-days-cell">
+        {request.leaveType === "PERMISSION" ? "-" : `${request.totalDays} day(s)`}
+      </TableCell>
+
       <TableCell>
-        <StatusChip status={request.status} />
+        <Chip
+          label={request.status}
+          size="small"
+          className={`status-chip status-${request.status.toLowerCase()}`}
+        />
       </TableCell>
-      <TableCell className="request-action-cell" align="right">
-        {actions}
+
+      <TableCell className="request-action-cell" align="center">
+        <IconButton
+          aria-label="View leave details"
+          onClick={() => onView(request.id)}>
+          <VisibilityOutlinedIcon />
+        </IconButton>
       </TableCell>
     </TableRow>
   );
 }
-
-function StatusChip({ status }: { status: RequestStatus }) {
-
-  return (
-    <Chip label={status} size="small" className={`status-chip status-${status.toLowerCase()}`} />
-  );
-}
-
 
 export default EmployeeLeavesPermissions;
