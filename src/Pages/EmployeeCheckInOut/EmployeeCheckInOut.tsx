@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 
 import {
+  Alert,
   Box,
   Button,
   Card,
   CardContent,
   Divider,
+  Snackbar,
   Typography,
 } from "@mui/material";
 
@@ -85,63 +87,95 @@ const EmployeeCheckInOut = () => {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [toast, setToast] = useState<{ severity: "success" | "error"; text: string } | null>(null);
 
   /* =========================================
-     FETCH OWN CHECK IN / OUT DATA
-     GET /checkinout/me
+     FETCH OWN STATUS
+
+     There's no dedicated "/checkinout/me" endpoint on this backend
+     (confirmed 404). We previously used /dashboard/employee to find
+     this user's internal user_id, but that endpoint is restricted to
+     Employee-role accounts only (confirmed: an Admin account gets a
+     403 there) — and this page has to work identically for Employee,
+     HR, and Admin. So status now comes from /attendance/daily with an
+     empty user_id (get everyone today — the same call the Admin/HR
+     "Employee Management" table already uses successfully for every
+     role), filtered down to this person's own row. The dashboard call
+     is now only used as optional, best-effort profile enrichment — if
+     it 403s (HR/Admin), we just keep the localStorage-based details.
+
+     Returns the real checkInTime if one was found, so callers
+     (e.g. a failed check-in) know whether status actually synced.
   ========================================= */
 
-  useEffect(() => {
-    const fetchCheckInOut = async () => {
+  const fetchStatus = async (): Promise<Date | null> => {
+    try {
+      setLoading(true);
+
       try {
-        setLoading(true);
-        setError("");
+        const dashboardResponse = await api.post("/dashboard/employee", { date: "" });
 
-        const response = await api.get("/checkinout/me");
+        console.log("Employee dashboard (profile enrichment):", dashboardResponse.data);
 
-        console.log("Own Check In/Out:", response.data);
+        const dashboardData = dashboardResponse.data?.data ?? dashboardResponse.data;
+        const info = dashboardData?.employeeInformation;
 
-        const data = response.data?.data ?? response.data;
-
-        /*
-          Expected example:
-
-          data: {
-            employee: {...},
-            isCheckedIn: true,
-            checkInTime: "..."
-          }
-        */
-
-        if (data?.employee) {
-          setEmployee({
-            name: data.employee.name ?? loggedInUser?.name ?? "Employee",
-            designation: data.employee.designation ?? "-",
-            employeeId: data.employee.employeeId ?? loggedInUser?.employeeId ?? "-",
-            department: data.employee.department ?? "-",
-            email: data.employee.email ?? loggedInUser?.email ?? "-",
-            reportingManager: data.employee.reportingManager ?? "-",
-            location: data.employee.location ?? "Office - TechLeafe",
-          });
+        if (info) {
+          setEmployee((current) => ({
+            ...current,
+            name: info.name ?? current.name,
+            designation: info.designation ?? current.designation,
+            employeeId: info.employeeId ?? current.employeeId,
+            email: info.email ?? current.email,
+          }));
         }
-
-        if (data?.isCheckedIn) {
-          setIsCheckedIn(true);
-        }
-
-        if (data?.checkInTime) {
-          setCheckInTime(new Date(data.checkInTime));
-        }
-      } catch (err: any) {
-        console.error("Check In/Out error:", err);
-
-        setError(err.response?.data?.message || "Unable to load check-in/out data.");
-      } finally {
-        setLoading(false);
+      } catch (dashboardErr) {
+        // Expected for HR/Admin accounts — this endpoint is Employee-only.
+        console.warn("Employee dashboard not accessible for this account's role (expected for HR/Admin):", dashboardErr);
       }
-    };
 
-    fetchCheckInOut();
+      const dailyResponse = await api.post("/attendance/daily", { user_id: "", date: "" });
+
+      console.log("Today's attendance (all employees):", dailyResponse.data);
+
+      const dailyData = dailyResponse.data?.data ?? dailyResponse.data;
+      const records = Array.isArray(dailyData) ? dailyData : [];
+
+      const myEmployeeId: string | undefined = loggedInUser?.userId ?? loggedInUser?.employeeId;
+      const myEmail: string | undefined = loggedInUser?.email;
+
+      const todaysRecord = records.find(
+        (record: any) =>
+          (myEmployeeId && record.employeeId === myEmployeeId) ||
+          (myEmail && record.email === myEmail)
+      );
+
+      const checkedIn = Boolean(todaysRecord?.checkInTime) && !todaysRecord?.checkOutTime;
+
+      setIsCheckedIn(checkedIn);
+
+      if (checkedIn && todaysRecord?.checkInTime) {
+        const time = new Date(todaysRecord.checkInTime);
+        setCheckInTime(time);
+        return time;
+      }
+
+      setCheckInTime(null);
+      return null;
+    } catch (err: any) {
+      console.error("Status fetch error:", err);
+
+      setError(err.response?.data?.message || "Unable to load check-in/out status.");
+
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setError("");
+    fetchStatus();
   }, []);
 
   /* =========================================
@@ -174,7 +208,7 @@ const EmployeeCheckInOut = () => {
     try {
       setError("");
 
-      const response = await api.post("/checkinout/check-in");
+      const response = await api.post("/attendance/check-in");
 
       console.log("Check In:", response.data);
 
@@ -185,10 +219,16 @@ const EmployeeCheckInOut = () => {
       setCheckInTime(time);
       setIsCheckedIn(true);
       setElapsedSeconds(0);
+      setToast({ severity: "success", text: "Checked in successfully." });
     } catch (err: any) {
       console.error("Check In error:", err);
 
-      setError(err.response?.data?.message || "Unable to check in.");
+      const message: string = err.response?.data?.message || "Unable to check in.";
+
+      // Already checked in for the day — just tell them, don't start the
+      // timer or flip the button. There's no session here to "resume":
+      // one check-in per day, and today's is already used.
+      setToast({ severity: "error", text: message });
     }
   };
 
@@ -200,17 +240,20 @@ const EmployeeCheckInOut = () => {
     try {
       setError("");
 
-      const response = await api.post("/checkinout/check-out");
+      const response = await api.post("/attendance/check-out");
 
       console.log("Check Out:", response.data);
 
       setIsCheckedIn(false);
       setCheckInTime(null);
       setElapsedSeconds(0);
+      setToast({ severity: "success", text: "Checked out successfully." });
     } catch (err: any) {
       console.error("Check Out error:", err);
 
-      setError(err.response?.data?.message || "Unable to check out.");
+      const message: string = err.response?.data?.message || "Unable to check out.";
+
+      setToast({ severity: "error", text: message });
     }
   };
 
@@ -232,6 +275,19 @@ const EmployeeCheckInOut = () => {
 
   return (
     <Box className="employee-attendance-page">
+      <Snackbar
+        open={!!toast}
+        autoHideDuration={4000}
+        onClose={() => setToast(null)}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        {toast ? (
+          <Alert severity={toast.severity} variant="filled" onClose={() => setToast(null)}>
+            {toast.text}
+          </Alert>
+        ) : undefined}
+      </Snackbar>
+
       {error && (
         <Typography sx={{ mb: 2, color: "#D42B2B", fontSize: 13 }}>
           {error}

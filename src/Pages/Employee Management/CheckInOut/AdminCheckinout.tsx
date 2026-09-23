@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
+import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
 
 import api from "../../../api/axiosInstance";
 
@@ -20,89 +21,175 @@ import "./AdminCheckinout.css";
 
 /* =========================================
    TYPES
+
+   Matches the real Daily Attendance and
+   Attendance History API response shapes —
+   both return the same record shape. Note
+   there is no employee name field, only
+   employeeId / email / user_id.
 ========================================= */
 
-interface CheckInOutRecord {
-  _id?: string;
+interface AttendanceRecord {
+  _id: string;
+  day: string;
+  user_id: string;
   employeeId: string;
-  name?: string;
-  employeeName?: string;
-  checkIn?: string;
-  checkOut?: string;
-  checkInTime?: string;
-  checkOutTime?: string;
-  workingHours?: string;
-  date?: string;
+  email: string;
+  checkInTime: string | null;
+  checkOutTime: string | null;
+  totalWorkingSeconds: number | null;
 }
+
+/* =========================================
+   HELPERS
+========================================= */
+
+const getTodayDateString = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const formatDateTime = (value: string | null) => {
+  if (!value) {
+    return "-";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+};
+
+const formatDay = (value: string) => {
+  const date = new Date(`${value}T00:00:00`);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+};
+
+const formatDuration = (totalSeconds: number | null) => {
+  if (totalSeconds === null || totalSeconds === undefined) {
+    return "-";
+  }
+
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  return `${hours}h ${minutes}m`;
+};
+
+const attendanceStatus = (record: AttendanceRecord) => {
+  if (record.checkInTime && record.checkOutTime) return "Checked Out";
+  if (record.checkInTime) return "Checked In";
+  return "Not Checked In";
+};
+
+const statusPillClass = (status: string) => {
+  if (status === "Checked Out") return "admin-checkinout__status-pill--out";
+  if (status === "Checked In") return "admin-checkinout__status-pill--in";
+  return "admin-checkinout__status-pill--none";
+};
 
 /* =========================================
    COMPONENT
 
-   HR / Admin only — lists every employee's
-   check-in / check-out records for the day.
-   Access to this page itself is gated by the
-   route (ProtectedRoute allowedRoles=[HR, ADMIN]),
-   so this component just renders the data.
+   HR / Admin only. Two sections:
+   1. A given day's attendance for everyone (Daily Attendance API),
+      with a date picker to browse any day.
+   2. The full attendance history for everyone, across all days
+      (Attendance History API), newest first.
+   Access to this page itself is gated by the route
+   (ProtectedRoute allowedRoles=[HR, ADMIN]).
 ========================================= */
 
 const AdminCheckinout = () => {
-  const [allRecords, setAllRecords] = useState<CheckInOutRecord[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [selectedDate, setSelectedDate] = useState(getTodayDateString());
+  const [dailyRecords, setDailyRecords] = useState<AttendanceRecord[]>([]);
+  const [dailyLoading, setDailyLoading] = useState(false);
+  const [dailyError, setDailyError] = useState("");
+
+  const [historyRecords, setHistoryRecords] = useState<AttendanceRecord[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState("");
 
   /* =========================================
-     FETCH ALL RECORDS
-     GET /checkinout
+     FETCH EVERYONE'S ATTENDANCE FOR THE SELECTED DAY
+     POST /attendance/daily  { user_id: "", date }
   ========================================= */
 
   useEffect(() => {
-    const fetchAllRecords = async () => {
+    const fetchDailyAttendance = async () => {
       try {
-        setLoading(true);
-        setError("");
+        setDailyLoading(true);
+        setDailyError("");
 
-        const response = await api.get("/checkinout");
+        const response = await api.post("/attendance/daily", {
+          user_id: "",
+          date: selectedDate,
+        });
 
-        console.log("All Check In/Out:", response.data);
+        console.log("Daily attendance:", response.data);
 
         const data = response.data?.data ?? response.data;
 
-        const records = Array.isArray(data)
-          ? data
-          : Array.isArray(data?.records)
-          ? data.records
-          : [];
-
-        setAllRecords(records);
+        setDailyRecords(Array.isArray(data) ? data : []);
       } catch (err: any) {
-        console.error("Check In/Out error:", err);
+        console.error("Daily attendance error:", err);
 
-        setError(err.response?.data?.message || "Unable to load check-in/out data.");
+        setDailyError(err.response?.data?.message || "Unable to load attendance records.");
       } finally {
-        setLoading(false);
+        setDailyLoading(false);
       }
     };
 
-    fetchAllRecords();
-  }, []);
+    fetchDailyAttendance();
+  }, [selectedDate]);
 
   /* =========================================
-     FORMAT DATE/TIME
+     FETCH EVERYONE'S FULL ATTENDANCE HISTORY
+     POST /attendance/history  { user_id: "", date: "" }
   ========================================= */
 
-  const formatDateTime = (value?: string) => {
-    if (!value) {
-      return "-";
-    }
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        setHistoryLoading(true);
+        setHistoryError("");
 
-    const date = new Date(value);
+        const response = await api.post("/attendance/history", {
+          user_id: "",
+          date: "",
+        });
 
-    if (Number.isNaN(date.getTime())) {
-      return value;
-    }
+        console.log("Attendance history:", response.data);
 
-    return date.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
-  };
+        const data = response.data?.data ?? response.data;
+
+        const records: AttendanceRecord[] = Array.isArray(data) ? data : [];
+
+        // Newest day first, so the most recent activity is easy to find.
+        records.sort((a, b) => (a.day < b.day ? 1 : a.day > b.day ? -1 : 0));
+
+        setHistoryRecords(records);
+      } catch (err: any) {
+        console.error("Attendance history error:", err);
+
+        setHistoryError(err.response?.data?.message || "Unable to load attendance history.");
+      } finally {
+        setHistoryLoading(false);
+      }
+    };
+
+    fetchHistory();
+  }, []);
 
   /* =========================================
      VIEW
@@ -110,9 +197,113 @@ const AdminCheckinout = () => {
 
   return (
     <Box sx={{ width: "100%", fontFamily: "var(--font-family)" }}>
-      {/* PAGE TITLE */}
+      {/* ==================== DAILY ATTENDANCE ==================== */}
 
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
+      <Box className="admin-checkinout__toolbar">
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Box
+            sx={{
+              width: 44,
+              height: 44,
+              borderRadius: "12px",
+              backgroundColor: "#E8F5E9",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#1B6B33",
+            }}
+          >
+            <AccessTimeOutlinedIcon />
+          </Box>
+
+          <Box>
+            <Typography sx={{ fontSize: 18, fontWeight: 700, color: "#1B6B33" }}>
+              Employee Check In / Out
+            </Typography>
+
+            <Typography sx={{ fontSize: 13, color: "#6B7280" }}>
+              View every employee's check-in and check-out records.
+            </Typography>
+          </Box>
+        </Box>
+
+        <label className="admin-checkinout__date-field">
+          <span>Date</span>
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(event) => setSelectedDate(event.target.value)}
+          />
+        </label>
+      </Box>
+
+      {dailyError && (
+        <Typography sx={{ mb: 2, color: "#D42B2B", fontSize: 13 }}>
+          {dailyError}
+        </Typography>
+      )}
+
+      <TableContainer
+        component={Paper}
+        sx={{
+          borderRadius: "14px",
+          border: "1px solid #E5E7EB",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+          mb: 4,
+        }}
+      >
+        <Table>
+          <TableHead>
+            <TableRow sx={{ backgroundColor: "#F8FAFC" }}>
+              <TableCell>Employee ID</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell>Check In</TableCell>
+              <TableCell>Check Out</TableCell>
+              <TableCell>Working Hours</TableCell>
+              <TableCell>Status</TableCell>
+            </TableRow>
+          </TableHead>
+
+          <TableBody>
+            {dailyLoading ? (
+              <TableRow>
+                <TableCell colSpan={6} align="center">
+                  Loading...
+                </TableCell>
+              </TableRow>
+            ) : dailyRecords.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} align="center">
+                  No attendance records found for this date.
+                </TableCell>
+              </TableRow>
+            ) : (
+              dailyRecords.map((record, index) => {
+                const status = attendanceStatus(record);
+
+                return (
+                  <TableRow key={record._id ?? `${record.employeeId}-${index}`} hover>
+                    <TableCell>{record.employeeId || "-"}</TableCell>
+                    <TableCell>{record.email || "-"}</TableCell>
+                    <TableCell>{formatDateTime(record.checkInTime)}</TableCell>
+                    <TableCell>{formatDateTime(record.checkOutTime)}</TableCell>
+                    <TableCell>{formatDuration(record.totalWorkingSeconds)}</TableCell>
+                    <TableCell>
+                      <span className={`admin-checkinout__status-pill ${statusPillClass(status)}`}>
+                        {status}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* ==================== ATTENDANCE HISTORY ==================== */}
+
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
         <Box
           sx={{
             width: 44,
@@ -125,23 +316,23 @@ const AdminCheckinout = () => {
             color: "#1B6B33",
           }}
         >
-          <AccessTimeOutlinedIcon />
+          <HistoryOutlinedIcon />
         </Box>
 
         <Box>
           <Typography sx={{ fontSize: 18, fontWeight: 700, color: "#1B6B33" }}>
-            Employee Check In / Out
+            Attendance History
           </Typography>
 
           <Typography sx={{ fontSize: 13, color: "#6B7280" }}>
-            View employee check-in and check-out records.
+            Every employee's check-in and check-out record, across all days.
           </Typography>
         </Box>
       </Box>
 
-      {error && (
+      {historyError && (
         <Typography sx={{ mb: 2, color: "#D42B2B", fontSize: 13 }}>
-          {error}
+          {historyError}
         </Typography>
       )}
 
@@ -151,46 +342,55 @@ const AdminCheckinout = () => {
           borderRadius: "14px",
           border: "1px solid #E5E7EB",
           boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+          maxHeight: 480,
         }}
       >
-        <Table>
+        <Table stickyHeader>
           <TableHead>
             <TableRow sx={{ backgroundColor: "#F8FAFC" }}>
-              <TableCell>Employee</TableCell>
-              <TableCell>Employee ID</TableCell>
               <TableCell>Date</TableCell>
+              <TableCell>Employee ID</TableCell>
+              <TableCell>Email</TableCell>
               <TableCell>Check In</TableCell>
               <TableCell>Check Out</TableCell>
               <TableCell>Working Hours</TableCell>
+              <TableCell>Status</TableCell>
             </TableRow>
           </TableHead>
 
           <TableBody>
-            {loading ? (
+            {historyLoading ? (
               <TableRow>
-                <TableCell colSpan={6} align="center">
+                <TableCell colSpan={7} align="center">
                   Loading...
                 </TableCell>
               </TableRow>
-            ) : allRecords.length === 0 ? (
+            ) : historyRecords.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} align="center">
-                  No check-in/out records found.
+                <TableCell colSpan={7} align="center">
+                  No attendance history found.
                 </TableCell>
               </TableRow>
             ) : (
-              allRecords.map((record, index) => (
-                <TableRow key={record._id ?? `${record.employeeId}-${index}`} hover>
-                  <TableCell>{record.name ?? record.employeeName ?? "-"}</TableCell>
-                  <TableCell>{record.employeeId}</TableCell>
-                  <TableCell>
-                    {record.date ? new Date(record.date).toLocaleDateString("en-IN") : "-"}
-                  </TableCell>
-                  <TableCell>{formatDateTime(record.checkInTime ?? record.checkIn)}</TableCell>
-                  <TableCell>{formatDateTime(record.checkOutTime ?? record.checkOut)}</TableCell>
-                  <TableCell>{record.workingHours ?? "-"}</TableCell>
-                </TableRow>
-              ))
+              historyRecords.map((record, index) => {
+                const status = attendanceStatus(record);
+
+                return (
+                  <TableRow key={record._id ?? `${record.employeeId}-${record.day}-${index}`} hover>
+                    <TableCell>{formatDay(record.day)}</TableCell>
+                    <TableCell>{record.employeeId || "-"}</TableCell>
+                    <TableCell>{record.email || "-"}</TableCell>
+                    <TableCell>{formatDateTime(record.checkInTime)}</TableCell>
+                    <TableCell>{formatDateTime(record.checkOutTime)}</TableCell>
+                    <TableCell>{formatDuration(record.totalWorkingSeconds)}</TableCell>
+                    <TableCell>
+                      <span className={`admin-checkinout__status-pill ${statusPillClass(status)}`}>
+                        {status}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
