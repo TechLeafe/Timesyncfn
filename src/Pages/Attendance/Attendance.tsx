@@ -2,8 +2,8 @@ import { useMemo, useState, type CSSProperties } from "react";
 import { Box, Typography } from "@mui/material";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 
-import MonthCalendar from "../../Components/Calendar/MonthCalendar";
-import CalendarLegend from "../../Components/Calendar/CalendarLegend";
+import MonthCalendar from "../../Components/Calendar/MonthCalendar/MonthCalendar";
+import CalendarLegend from "../../Components/Calendar/CalendarLegend/CalendarLegend";
 
 import {
   ATTENDANCE_STATUSES,

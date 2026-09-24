@@ -1,94 +1,186 @@
+/* =========================================================
+   DAILY TASK PAGE
+========================================================= */
+
 .daily-task-page {
   width: 100%;
+  min-width: 0;
   min-height: 100vh;
-  padding: 28px;
+
+  padding: clamp(16px, 2vw, 28px)
+    clamp(14px, 2vw, 24px);
+
   box-sizing: border-box;
-  background: #f7f9fb;
+
+  background: #f4f7f9;
+
+  overflow-x: hidden;
 }
 
+/* =========================================================
+   HEADER
+========================================================= */
+
 .daily-task-header {
+  width: 100%;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: 20px;
-  margin-bottom: 24px;
+
+  margin-bottom: 28px;
+}
+
+.daily-task-heading {
+  min-width: 0;
 }
 
 .daily-task-header h1 {
   margin: 0;
-  color: #17202a;
-  font-size: clamp(24px, 3vw, 32px);
+
+  color: #16743a;
+
+  font-size: clamp(24px, 2.2vw, 28px);
   font-weight: 700;
+  line-height: 1.2;
 }
 
 .daily-task-header p {
-  margin: 6px 0 0;
+  margin: 7px 0 0;
+
   color: #667085;
+
   font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+
+  overflow-wrap: anywhere;
 }
 
+/* =========================================================
+   ADD TASK BUTTON
+========================================================= */
+
 .add-task-button {
+  flex-shrink: 0;
+
+  min-height: 44px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  padding: 10px 20px;
+
   border: none;
   border-radius: 8px;
-  padding: 11px 18px;
-  background: #1d620c;
+
+  background: #16743a;
   color: #ffffff;
+
+  font-family: inherit;
   font-size: 14px;
   font-weight: 600;
+
   cursor: pointer;
   white-space: nowrap;
+
   transition:
-    transform 0.2s ease,
-    opacity 0.2s ease;
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 
 .add-task-button:hover {
+  background: #115f30;
   transform: translateY(-1px);
-  opacity: 0.92;
 }
+
+.add-task-plus {
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 400;
+}
+
+/* =========================================================
+   TABLE CARD
+========================================================= */
 
 .task-table-card {
   width: 100%;
+  min-width: 0;
+
   background: #ffffff;
-  border: 1px solid #e8eaed;
-  border-radius: 12px;
+
+  border: 1px solid #e4e7ec;
+  border-radius: 14px;
+
   overflow: hidden;
+
   box-shadow:
-    0 2px 8px
-    rgba(16, 24, 40, 0.04);
+    0 2px 8px rgba(16, 24, 40, 0.06);
 }
+
+/* =========================================================
+   TABLE WRAPPER
+========================================================= */
 
 .task-table-wrapper {
   width: 100%;
+  min-width: 0;
+
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
+
+/* =========================================================
+   TABLE
+========================================================= */
 
 .task-table {
   width: 100%;
-  min-width: 760px;
+  min-width: 720px;
+
   border-collapse: collapse;
+
+  table-layout: auto;
 }
 
 .task-table thead {
-  background: #f8fafc;
+  background: #ffffff;
 }
 
 .task-table th {
-  padding: 15px 18px;
-  color: #475467;
-  font-size: 13px;
-  font-weight: 600;
+  padding: 18px;
+
+  color: #344054;
+
+  font-size: 14px;
+  font-weight: 500;
+
   text-align: left;
-  border-bottom:
-    1px solid #eaecf0;
+
+  border-bottom: 1px solid #e4e7ec;
+
+  white-space: nowrap;
 }
 
 .task-table td {
-  padding: 17px 18px;
+  padding: 20px 18px;
+
   color: #344054;
+
   font-size: 14px;
-  border-bottom:
-    1px solid #f0f1f3;
+  line-height: 1.5;
+
+  vertical-align: middle;
+
+  border-bottom: 1px solid #eaecf0;
+
+  overflow-wrap: anywhere;
 }
 
 .task-table tbody tr:last-child td {
@@ -96,23 +188,45 @@
 }
 
 .task-table tbody tr:hover {
-  background: #fbfcfd;
+  background: #fafcfc;
 }
 
+/* =========================================================
+   TITLE
+========================================================= */
+
 .task-title-cell {
-  color: #101828;
+  max-width: 360px;
+
+  color: #17202a;
+
+  font-size: 14px;
   font-weight: 600;
+
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
+
+/* =========================================================
+   PRIORITY + STATUS
+========================================================= */
 
 .task-priority,
 .task-status {
   display: inline-flex;
+
   align-items: center;
   justify-content: center;
-  padding: 5px 10px;
+
+  min-height: 27px;
+
+  padding: 4px 12px;
+
   border-radius: 999px;
+
   font-size: 12px;
   font-weight: 600;
+
   white-space: nowrap;
 }
 
@@ -146,18 +260,36 @@
   background: #f0fdf4;
 }
 
+/* =========================================================
+   VIEW BUTTON
+========================================================= */
+
 .view-task-button {
+  min-width: 70px;
+  min-height: 38px;
+
+  padding: 8px 16px;
+
   border: 1px solid #d0d5dd;
-  border-radius: 7px;
-  padding: 7px 14px;
+  border-radius: 8px;
+
   background: #ffffff;
   color: #344054;
+
+  font-family: inherit;
+  font-size: 14px;
   font-weight: 600;
+
   cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .view-task-button:hover {
   background: #f8fafc;
+  border-color: #98a2b3;
 }
 
 .view-task-button:disabled {
@@ -165,48 +297,263 @@
   opacity: 0.5;
 }
 
+/* =========================================================
+   LOADING / EMPTY
+========================================================= */
+
 .task-table-message {
-  padding: 40px !important;
+  padding: 32px 18px !important;
+
   text-align: center !important;
+
   color: #667085 !important;
+
+  font-size: 14px !important;
 }
 
+/* =========================================================
+   ERROR
+========================================================= */
+
 .task-error {
+  width: 100%;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: 16px;
 
-  margin-bottom: 18px;
+  margin-bottom: 20px;
+
   padding: 12px 14px;
+
+  box-sizing: border-box;
 
   color: #b42318;
   background: #fef3f2;
 
-  border:
-    1px solid #fecdca;
+  border: 1px solid #fecdca;
   border-radius: 8px;
+
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.task-error span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .task-error button {
+  flex-shrink: 0;
+
   border: none;
+
   background: transparent;
   color: #b42318;
+
+  font-family: inherit;
   font-weight: 700;
+
   cursor: pointer;
 }
 
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+  .daily-task-page {
+    padding: 22px 18px;
+  }
+
+  .task-table th,
+  .task-table td {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
 @media (max-width: 700px) {
   .daily-task-page {
-    padding: 18px;
+    padding: 18px 14px;
   }
 
   .daily-task-header {
-    align-items: flex-start;
+    align-items: stretch;
     flex-direction: column;
+
+    gap: 16px;
+
+    margin-bottom: 20px;
   }
 
   .add-task-button {
     width: 100%;
+  }
+
+  .task-error {
+    align-items: flex-start;
+    flex-direction: column;
+
+    gap: 8px;
+  }
+
+  /*
+     TABLE -> MOBILE TASK CARDS
+  */
+
+  .task-table-card {
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    overflow: visible;
+  }
+
+  .task-table-wrapper {
+    overflow: visible;
+  }
+
+  .task-table {
+    min-width: 0;
+
+    display: block;
+  }
+
+  .task-table thead {
+    display: none;
+  }
+
+  .task-table tbody {
+    display: grid;
+
+    gap: 14px;
+  }
+
+  .task-table tbody tr {
+    width: 100%;
+
+    display: block;
+
+    padding: 6px 16px;
+
+    box-sizing: border-box;
+
+    background: #ffffff;
+
+    border: 1px solid #e4e7ec;
+    border-radius: 12px;
+
+    box-shadow:
+      0 2px 8px rgba(16, 24, 40, 0.05);
+  }
+
+  .task-table tbody tr:hover {
+    background: #ffffff;
+  }
+
+  .task-table tbody td {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 16px;
+
+    padding: 13px 0;
+
+    box-sizing: border-box;
+
+    text-align: right;
+
+    border-bottom: 1px solid #eaecf0;
+  }
+
+  .task-table tbody td::before {
+    content: attr(data-label);
+
+    flex: 0 0 38%;
+
+    color: #667085;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    text-align: left;
+  }
+
+  .task-table tbody td:last-child {
+    border-bottom: none;
+  }
+
+  .task-title-cell {
+    max-width: 58%;
+
+    text-align: right;
+
+    overflow-wrap: anywhere;
+  }
+
+  .view-task-button {
+    min-width: 84px;
+  }
+
+  /*
+     LOADING / EMPTY should not become cards
+  */
+
+  .task-table tbody tr.task-message-row {
+    padding: 0;
+
+    background: #ffffff;
+
+    border: 1px solid #e4e7ec;
+  }
+
+  .task-table tbody tr.task-message-row td {
+    display: block;
+
+    padding: 28px 16px !important;
+
+    text-align: center !important;
+
+    border-bottom: none;
+  }
+
+  .task-table tbody tr.task-message-row td::before {
+    display: none;
+  }
+}
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 420px) {
+  .daily-task-page {
+    padding: 14px 12px;
+  }
+
+  .task-table tbody tr {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .task-table tbody td {
+    gap: 10px;
+  }
+
+  .task-table tbody td::before {
+    flex-basis: 40%;
+  }
+
+  .task-title-cell {
+    max-width: 56%;
   }
 }

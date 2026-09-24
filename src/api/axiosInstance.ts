@@ -2,7 +2,9 @@ import axios from "axios";
  
 // 1. Create Axios Instance
 const axiosInstance = axios.create({
-  baseURL: "http://192.168.1.41:5000/api",
+  // baseURL: "http://192.168.1.41:5000/api",
+  baseURL: "https://time-sync-backend-4452.onrender.com/api/",
+
   headers: {
     "Content-Type": "application/json",
   },

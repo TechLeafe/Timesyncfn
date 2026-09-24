@@ -1,10 +1,3 @@
-/* ──────────────────────────────────────────────────────────────
-   Shared palette + types for the reusable calendar components.
-   MonthCalendar / CalendarLegend read the tones from here and the
-   feature pages (company calendar, attendance, ...) pick a tone per
-   day cell so both calendars stay visually consistent.
-   ────────────────────────────────────────────────────────────── */
-
 export type CalendarTone = "green" | "red" | "amber" | "purple" | "blue" | "pink";
 
 export interface CalendarTonePalette {

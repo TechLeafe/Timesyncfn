@@ -1,0 +1,203 @@
+
+.month-calendar {
+  width: 100%;
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  background-color: var(--card-bg);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  font-family: var(--font-family);
+}
+
+/* Month navigation */
+.month-calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.month-calendar-nav-button {
+  padding: 4.8px !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 8px !important;
+  color: var(--text-primary) !important;
+}
+
+.month-calendar-nav-button:hover {
+  background-color: var(--bg-main) !important;
+  border-color: var(--text-secondary) !important;
+}
+
+.month-calendar-nav-icon {
+  font-size: 20px !important;
+}
+
+.month-calendar-month-label {
+  font-family: var(--font-family) !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: var(--text-primary) !important;
+  text-align: center;
+  letter-spacing: -0.01em;
+}
+
+/* Calendar grid */
+.month-calendar-body {
+  padding: 12px 16px 16px;
+}
+
+.month-calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 8px;
+}
+
+.month-calendar-weekday {
+  padding: 4px 0;
+  font-family: var(--font-family) !important;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  color: var(--text-secondary) !important;
+  letter-spacing: 0.03em;
+}
+
+.month-calendar-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.month-calendar-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+/* Day cell */
+.month-calendar-cell {
+  position: relative;
+  height: 68px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+  background-color: var(--cell-bg);
+  border: var(--cell-border);
+  opacity: var(--cell-opacity);
+
+  transition: all 0.12s ease;
+}
+
+.month-calendar-cell-clickable {
+  cursor: pointer;
+}
+
+.month-calendar-cell:hover {
+  background-color: var(--cell-hover-bg);
+  border-color: var(--cell-hover-border);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
+}
+
+.month-calendar-date {
+  font-family: var(--font-family) !important;
+  font-size: 15px !important;
+  font-weight: var(--date-weight) !important;
+  color: var(--date-color) !important;
+  line-height: 1 !important;
+}
+
+/* Dot indicator */
+.month-calendar-dot {
+  width: 6px;
+  height: 6px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background-color: var(--dot-color);
+  flex-shrink: 0;
+}
+
+/* Corner label */
+.month-calendar-corner-label {
+  position: absolute;
+  top: 3px;
+  right: 5px;
+
+  font-family: var(--font-family) !important;
+  font-size: 9.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em;
+  line-height: 1 !important;
+  color: var(--corner-color) !important;
+  opacity: 0.85;
+}
+
+/* Tooltip */
+.month-calendar-tooltip {
+  background-color: rgba(17, 24, 39, 0.9) !important;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+
+  color: var(--card-bg) !important;
+  border-radius: 9px !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.28) !important;
+
+  padding: 6.8px 12px !important;
+}
+
+.month-calendar-tooltip-arrow {
+  color: rgba(17, 24, 39, 0.9) !important;
+}
+
+.month-calendar-tooltip-text {
+  font-family: var(--font-family) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: inherit !important;
+  letter-spacing: -0.01em;
+}
+
+/* Responsive calendar */
+@media (max-width: 900px) {
+  .month-calendar-body {
+    padding: 10px 12px 14px;
+  }
+
+  .month-calendar-header {
+    padding: 14px 18px;
+  }
+
+  .month-calendar-cell {
+    height: 60px;
+  }
+}
+
+@media (max-width: 600px) {
+  .month-calendar-header {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .month-calendar-body {
+    padding: 8px;
+  }
+
+  .month-calendar-cell {
+    height: 50px;
+  }
+
+  .month-calendar-weekday {
+    font-size: 11px !important;
+  }
+
+  .month-calendar-date {
+    font-size: 13px !important;
+  }
+}
+

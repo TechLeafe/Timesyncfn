@@ -1,0 +1,78 @@
+
+.calendar-legend {
+  font-family: var(--font-family);
+}
+
+/* Stacked layout */
+.calendar-legend-stacked {
+  width: 100%;
+}
+
+.calendar-legend-title {
+  margin-bottom: 12px !important;
+  font-family: var(--font-family) !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  color: var(--text-primary) !important;
+}
+
+.calendar-legend-stacked-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.calendar-legend-stacked-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.calendar-legend-label {
+  font-family: var(--font-family) !important;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+}
+
+.calendar-legend-note {
+  font-family: var(--font-family) !important;
+  font-size: 12px !important;
+  color: var(--text-secondary) !important;
+}
+
+/* Inline layout */
+.calendar-legend-inline {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.calendar-legend-with-divider {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--card-border);
+}
+
+.calendar-legend-inline-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calendar-legend-dot {
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.calendar-legend-dot-stacked {
+  width: 10px;
+  height: 10px;
+}
+
+.calendar-legend-dot-inline {
+  width: 8px;
+  height: 8px;
+}
+

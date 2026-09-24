@@ -15,18 +15,32 @@ import {
   Divider,
 } from "@mui/material";
 
-import SpaceDashboardRoundedIcon from "@mui/icons-material/SpaceDashboardRounded";
-import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
-import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
-import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
-import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlined";
-import EventNoteOutlinedIcon from "@mui/icons-material/EventNoteOutlined";
-import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
-import PersonAddAltOutlinedIcon from "@mui/icons-material/PersonAddAltOutlined";
-import ManageAccountsOutlinedIcon from "@mui/icons-material/ManageAccountsOutlined";
+import SpaceDashboardRoundedIcon
+  from "@mui/icons-material/SpaceDashboardRounded";
 
-/* NEW - DAILY TASK ICON */
-import TaskAltOutlinedIcon from "@mui/icons-material/TaskAltOutlined";
+import AccessTimeOutlinedIcon
+  from "@mui/icons-material/AccessTimeOutlined";
+
+import CalendarMonthOutlinedIcon
+  from "@mui/icons-material/CalendarMonthOutlined";
+
+import EventAvailableOutlinedIcon
+  from "@mui/icons-material/EventAvailableOutlined";
+
+import EventNoteOutlinedIcon
+  from "@mui/icons-material/EventNoteOutlined";
+
+import LogoutOutlinedIcon
+  from "@mui/icons-material/LogoutOutlined";
+
+import PersonAddAltOutlinedIcon
+  from "@mui/icons-material/PersonAddAltOutlined";
+
+import ManageAccountsOutlinedIcon
+  from "@mui/icons-material/ManageAccountsOutlined";
+
+import TaskAltOutlinedIcon
+  from "@mui/icons-material/TaskAltOutlined";
 
 import {
   HR,
@@ -35,6 +49,17 @@ import {
 } from "../../data/permissions";
 
 import "./Sidebar.css";
+
+
+/* =========================================================
+   PROPS
+========================================================= */
+
+interface SidebarProps {
+  mobileOpen: boolean;
+  isMobile: boolean;
+  onClose: () => void;
+}
 
 
 /* =========================================================
@@ -54,22 +79,12 @@ interface NavItem {
 ========================================================= */
 
 const navItems: NavItem[] = [
-
-  /* =========================
-     HR DASHBOARD
-  ========================= */
-
   {
     label: "Dashboard",
     icon: <SpaceDashboardRoundedIcon />,
     path: "/hrdashboard",
     roles: [HR],
   },
-
-
-  /* =========================
-     ADMIN DASHBOARD
-  ========================= */
 
   {
     label: "Dashboard",
@@ -78,23 +93,12 @@ const navItems: NavItem[] = [
     roles: [ADMIN],
   },
 
-
-  /* =========================
-     EMPLOYEE DASHBOARD
-  ========================= */
-
   {
     label: "Dashboard",
     icon: <SpaceDashboardRoundedIcon />,
     path: "/employeedashboard",
     roles: [EMPLOYEE],
   },
-
-
-  /* =========================
-     DAILY TASK
-     ADMIN ONLY
-  ========================= */
 
   {
     label: "Daily Task",
@@ -103,25 +107,12 @@ const navItems: NavItem[] = [
     roles: [ADMIN],
   },
 
-
-  /* =========================
-     EMPLOYEE CREATION
-     HR + ADMIN ONLY
-  ========================= */
-
   {
     label: "Employee Creation",
     icon: <PersonAddAltOutlinedIcon />,
     path: "/employee-creation",
     roles: [HR, ADMIN],
   },
-
-
-  /* =========================
-     EMPLOYEE MANAGEMENT
-     (admin view of everyone's check-in/out)
-     HR + ADMIN ONLY
-  ========================= */
 
   {
     label: "Employee Management",
@@ -130,23 +121,12 @@ const navItems: NavItem[] = [
     roles: [HR, ADMIN],
   },
 
-  /* =========================
-     ATTENDANCE
-     ALL ROLES
-  ========================= */
-
-  {
-    label: "Attendance",
-    icon: <FactCheckOutlinedIcon />,
-    path: "/attendance",
-    roles: [HR, ADMIN, EMPLOYEE],
-  },
-
-
-  /* =========================
-     COMPANY CALENDAR
-     ALL ROLES
-  ========================= */
+  // {
+  //   label: "Attendance",
+  //   icon: <FactCheckOutlinedIcon />,
+  //   path: "/attendance",
+  //   roles: [HR, ADMIN, EMPLOYEE],
+  // },
 
   {
     label: "Company Calendar",
@@ -155,24 +135,12 @@ const navItems: NavItem[] = [
     roles: [HR, ADMIN, EMPLOYEE],
   },
 
-
-  /* =========================
-     CHECK IN / OUT
-     ALL ROLES
-  ========================= */
-
   {
     label: "Check In/Out",
     icon: <AccessTimeOutlinedIcon />,
     path: "/checkinout",
     roles: [HR, ADMIN, EMPLOYEE],
   },
-
-
-  /* =========================
-     LEAVE POLICIES
-     ALL ROLES
-  ========================= */
 
   {
     label: "Leave Policies",
@@ -181,12 +149,6 @@ const navItems: NavItem[] = [
     roles: [HR, ADMIN, EMPLOYEE],
   },
 
-
-  /* =========================
-     HOLIDAYS
-     HR + ADMIN ONLY
-  ========================= */
-
   {
     label: "Holidays",
     icon: <EventNoteOutlinedIcon />,
@@ -194,24 +156,12 @@ const navItems: NavItem[] = [
     roles: [HR, ADMIN],
   },
 
-
-  /* =========================
-     LEAVE REQUESTS
-     HR + ADMIN ONLY
-  ========================= */
-
   {
     label: "Leave Requests",
     icon: <EventAvailableOutlinedIcon />,
     path: "/admin-leaves-permissions",
     roles: [HR, ADMIN],
   },
-
-
-  /* =========================
-     LEAVES AND PERMISSIONS
-     EMPLOYEE ONLY
-  ========================= */
 
   {
     label: "Leaves Apply",
@@ -223,10 +173,14 @@ const navItems: NavItem[] = [
 
 
 /* =========================================================
-   SIDEBAR COMPONENT
+   SIDEBAR
 ========================================================= */
 
-function Sidebar() {
+function Sidebar({
+  mobileOpen,
+  isMobile,
+  onClose,
+}: SidebarProps) {
 
   const { pathname } = useLocation();
 
@@ -234,7 +188,7 @@ function Sidebar() {
 
 
   /* =========================================================
-     GET LOGGED IN USER
+     GET USER ROLE
   ========================================================= */
 
   const storedUser =
@@ -244,21 +198,20 @@ function Sidebar() {
 
   if (storedUser) {
     try {
+      const user =
+        JSON.parse(storedUser);
 
-      const user = JSON.parse(storedUser);
-
-      userType = Number(user.userType);
+      userType =
+        Number(user.userType);
 
     } catch {
-
       userType = null;
-
     }
   }
 
 
   /* =========================================================
-     FILTER MENU BASED ON ROLE
+     FILTER NAVIGATION
   ========================================================= */
 
   const visibleNavItems =
@@ -270,95 +223,85 @@ function Sidebar() {
 
 
   /* =========================================================
+     NAVIGATION
+  ========================================================= */
+
+  const handleNavigate = (
+    path: string
+  ) => {
+    navigate(path);
+
+    if (isMobile) {
+      onClose();
+    }
+  };
+
+
+  /* =========================================================
      LOGOUT
   ========================================================= */
 
   const handleLogout = () => {
 
-    /*
-      Clear localStorage:
-      - token
-      - loggedInUser
-      - employeeLoginSession
-      - other stored values
-    */
-
     localStorage.clear();
 
-    /*
-      Clear sessionStorage
-    */
-
     sessionStorage.clear();
-
-    /*
-      Go to login and remove previous
-      authenticated page from history
-    */
 
     window.location.replace("/login");
   };
 
 
   /* =========================================================
-     UI
+     SIDEBAR CONTENT
   ========================================================= */
 
-  return (
-    <Drawer
-      variant="permanent"
-      className="sidebar-drawer"
-    >
+  const sidebarContent = (
+    <Box className="sidebar-container">
 
-      {/* =========================
-          LOGO
-      ========================= */}
+      {/* LOGO */}
 
       <Box className="sidebar-logo">
+
         <img
           src="/techleafelogo.png"
           alt="Tech Leafe Technologies"
         />
+
       </Box>
 
 
-      {/* =========================
-          NAVIGATION
-      ========================= */}
+      {/* NAVIGATION */}
 
       <List className="sidebar-nav">
 
         {visibleNavItems.map((item) => {
 
-          /*
-            Example:
-
-            /daily-task
-            /daily-task/add
-            /daily-task/123
-
-            All will keep Daily Task active.
-          */
-
           const isActive =
             pathname === item.path ||
-            pathname.startsWith(`${item.path}/`);
+            pathname.startsWith(
+              `${item.path}/`
+            );
 
           return (
+
             <ListItemButton
               key={`${item.label}-${item.path}`}
               selected={isActive}
-              className={`sidebar-nav-item ${
-                isActive
-                  ? "sidebar-nav-item-active"
-                  : ""
-              }`}
+              className={
+                `sidebar-nav-item ${
+                  isActive
+                    ? "sidebar-nav-item-active"
+                    : ""
+                }`
+              }
               onClick={() =>
-                navigate(item.path)
+                handleNavigate(item.path)
               }
             >
 
-              <ListItemIcon className="sidebar-nav-icon">
+              <ListItemIcon
+                className="sidebar-nav-icon"
+              >
                 {item.icon}
               </ListItemIcon>
 
@@ -368,26 +311,29 @@ function Sidebar() {
               />
 
             </ListItemButton>
+
           );
         })}
 
       </List>
 
 
-      {/* =========================
-          LOGOUT
-      ========================= */}
+      {/* LOGOUT */}
 
       <Box className="sidebar-bottom">
 
-        <Divider className="sidebar-divider" />
+        <Divider
+          className="sidebar-divider"
+        />
 
         <ListItemButton
           className="sidebar-logout"
           onClick={handleLogout}
         >
 
-          <ListItemIcon className="sidebar-logout-icon">
+          <ListItemIcon
+            className="sidebar-logout-icon"
+          >
             <LogoutOutlinedIcon />
           </ListItemIcon>
 
@@ -400,6 +346,37 @@ function Sidebar() {
 
       </Box>
 
+    </Box>
+  );
+
+
+  /* =========================================================
+     DRAWER
+  ========================================================= */
+
+  return (
+    <Drawer
+      variant={
+        isMobile
+          ? "temporary"
+          : "permanent"
+      }
+      open={
+        isMobile
+          ? mobileOpen
+          : true
+      }
+      onClose={onClose}
+      ModalProps={{
+        keepMounted: true,
+      }}
+      className={
+        isMobile
+          ? "sidebar-drawer sidebar-drawer-mobile"
+          : "sidebar-drawer"
+      }
+    >
+      {sidebarContent}
     </Drawer>
   );
 }

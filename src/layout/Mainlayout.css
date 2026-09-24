@@ -1,229 +1,247 @@
+/* =========================================================
+   MAIN LAYOUT
+========================================================= */
+
 .main-layout {
-  min-height: 100vh;
-  display: flex;
-  background: var(--bg-main, #F4F6F8);
-}
-
-/* ================================
-   LEFT SIDEBAR
-================================ */
-
-.sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-
-  width: 240px;
-  height: 100vh;
-
-  background: #ffffff;
-  border-right: 1px solid #e5e7eb;
-
-  display: flex;
-  flex-direction: column;
-
-  z-index: 1000;
-}
-
-/* Logo / Website Name */
-
-.sidebar-logo {
-  height: 70px;
-
-  display: flex;
-  align-items: center;
-
-  padding: 0 24px;
-
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.sidebar-logo h2 {
-  margin: 0;
-
-  font-size: 20px;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-/* Sidebar Menu */
-
-.sidebar-menu {
-  display: flex;
-  flex-direction: column;
-
-  padding: 20px 12px;
-
-  gap: 5px;
-}
-
-/* Sidebar Links */
-
-.sidebar-link {
-  display: flex;
-  align-items: center;
-
-  gap: 13px;
-
   width: 100%;
-  padding: 12px 14px;
 
-  box-sizing: border-box;
-
-  border-radius: 8px;
-
-  color: #6b7280;
-  background: transparent;
-
-  text-decoration: none;
-
-  font-size: 14px;
-  font-weight: 500;
-
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
-}
-
-/* Hover */
-
-.sidebar-link:hover {
-  background: #f3f4f6;
-  color: #1f2937;
-}
-
-/* Active Link */
-
-.sidebar-link.active {
-  background: #e8f5e5;
-  color: var(--green);
-}
-
-/* Icon */
-
-.sidebar-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  min-width: 22px;
-}
-
-.sidebar-icon svg {
-  font-size: 20px;
-}
-
-/* Text */
-
-.sidebar-label {
-  white-space: nowrap;
-}
-
-
-/* ================================
-   RIGHT SIDE
-================================ */
-
-.main-content {
-  flex: 1;
   min-width: 0;
   min-height: 100vh;
-  box-sizing: border-box;
+  min-height: 100dvh;
+
+  display: flex;
+
+  background:
+    var(--bg-main, #f4f6f8);
+
+  overflow-x: hidden;
 }
 
 
-/* ================================
-   TOP PAGE HEADER
-================================ */
+/* =========================================================
+   MAIN CONTENT
+========================================================= */
+
+.main-content {
+  flex: 1 1 auto;
+
+  width: calc(100% - 270px);
+
+  min-width: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  box-sizing: border-box;
+
+  background:
+    var(--bg-main, #f4f6f8);
+}
+
+
+/* =========================================================
+   TOP HEADER
+========================================================= */
 
 .page-header {
+  width: 100%;
+
+  min-width: 0;
+
   height: 64px;
-  display: flex;
-  align-items: center;
+
+  display: flex !important;
+
+  align-items: center !important;
+
+  justify-content:
+    space-between !important;
+
+  gap: 16px;
+
   padding: 0 24px;
+
+  box-sizing: border-box;
+
   background: #ffffff;
-  border-bottom: 1px solid #E5E7EB;
+
+  border-bottom:
+    1px solid #e5e7eb;
+
   position: sticky;
+
   top: 0;
+
   z-index: 900;
 }
 
-.page-title {
-  margin: 0 !important;
-  color: #111827;
-  font-size: 20px !important;
-  font-weight: 700 !important;
+
+/* =========================================================
+   LEFT SIDE OF HEADER
+========================================================= */
+
+.page-header-left {
+  min-width: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
 }
 
 
-/* ================================
+/* =========================================================
+   TITLE
+========================================================= */
+
+.page-title {
+  min-width: 0;
+
+  margin: 0 !important;
+
+  color: #111827;
+
+  font-size: 20px !important;
+
+  font-weight: 700 !important;
+
+  line-height: 1.2 !important;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   MOBILE MENU BUTTON
+========================================================= */
+
+.mobile-menu-button {
+  flex-shrink: 0;
+
+  color: #344054 !important;
+}
+
+
+/* =========================================================
+   PROFILE
+========================================================= */
+
+.page-header-profile {
+  min-width: 0;
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: flex-end;
+}
+
+
+/* =========================================================
    PAGE CONTENT
-================================ */
+========================================================= */
 
 .page-content {
-  min-height: calc(100vh - 64px);
+  width: 100%;
+
+  min-width: 0;
+
+  min-height:
+    calc(100vh - 64px);
+
   padding: 20px;
+
   box-sizing: border-box;
+
+  overflow-x: hidden;
 }
 
 
-/* ================================
-   RESPONSIVE
-================================ */
+/* =========================================================
+   TABLET + MOBILE
+========================================================= */
 
-@media (max-width: 900px) {
-  .sidebar {
-    width: 210px;
-  }
+@media (max-width: 899.98px) {
 
   .main-content {
-    width: calc(100% - 210px);
-    margin-left: 210px;
-  }
+    width: 100%;
 
-  .page-content {
-    padding: 24px;
-  }
-}
-
-
-@media (max-width: 700px) {
-  .sidebar {
-    width: 70px;
-  }
-
-  .sidebar-logo {
-    justify-content: center;
-    padding: 0;
-  }
-
-  .sidebar-logo h2 {
-    display: none;
-  }
-
-  .sidebar-menu {
-    padding: 20px 8px;
-  }
-
-  .sidebar-link {
-    justify-content: center;
-    padding: 12px;
-  }
-
-  .sidebar-label {
-    display: none;
-  }
-
-  .main-content {
-    width: calc(100% - 70px);
-    margin-left: 70px;
+    flex: 1 1 100%;
   }
 
   .page-header {
-    padding: 0 20px;
+    height: 62px;
+
+    padding: 0 18px;
   }
 
   .page-content {
-    padding: 20px;
+    min-height:
+      calc(100vh - 62px);
+
+    padding: 16px;
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+  .page-header {
+    height: 60px;
+
+    gap: 8px;
+
+    padding: 0 12px;
+  }
+
+  .page-header-left {
+    gap: 6px;
+  }
+
+  .page-title {
+    font-size: 17px !important;
+  }
+
+  .mobile-menu-button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .page-content {
+    min-height:
+      calc(100vh - 60px);
+
+    padding: 12px;
+  }
+}
+
+
+/* =========================================================
+   VERY SMALL MOBILE
+========================================================= */
+
+@media (max-width: 380px) {
+
+  .page-header {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .page-title {
+    font-size: 16px !important;
+  }
+
+  .page-content {
+    padding: 10px;
   }
 }

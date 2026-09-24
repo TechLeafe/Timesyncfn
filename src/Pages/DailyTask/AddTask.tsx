@@ -9,6 +9,7 @@ import {
   createTask,
   type TaskPriority,
 } from "../../services/dailyTaskApi";
+import { getBusinessYear } from "../../utils/businessYear";
 
 import "./AddTask.css";
 
@@ -118,6 +119,9 @@ function AddTask() {
           description.trim(),
 
         priority,
+
+        businessYear:
+          getBusinessYear(),
 
         ...(fromDate
           ? { fromDate }
