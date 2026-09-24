@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useState,
 } from "react";
 
@@ -7,7 +8,6 @@ import {
   IconButton,
   Typography,
   useMediaQuery,
-  useTheme,
 } from "@mui/material";
 
 import MenuRoundedIcon
@@ -94,17 +94,6 @@ const MainLayout = () => {
   const { pathname } =
     useLocation();
 
-  const theme =
-    useTheme();
-
-  const isMobile =
-    useMediaQuery(
-      theme.breakpoints.down("md")
-    );
-
-  const [mobileOpen, setMobileOpen] =
-    useState(false);
-
 
   /* =========================================================
      PAGE TITLE
@@ -127,8 +116,37 @@ const MainLayout = () => {
     );
   };
 
+
   const pageTitle =
     getPageTitle();
+
+
+  /* =========================================================
+     RESPONSIVE SIDEBAR
+  ========================================================= */
+
+  const isMobile =
+    useMediaQuery(
+      "(max-width:899.98px)"
+    );
+
+
+  const [
+    mobileOpen,
+    setMobileOpen,
+  ] =
+    useState(false);
+
+
+  /* =========================================================
+     CLOSE DRAWER AFTER NAVIGATION
+  ========================================================= */
+
+  useEffect(() => {
+
+    setMobileOpen(false);
+
+  }, [pathname]);
 
 
   /* =========================================================
@@ -136,58 +154,67 @@ const MainLayout = () => {
   ========================================================= */
 
   return (
-    <Box className="main-layout">
+
+    <Box className="app-main-layout">
 
       <ScrollRestoration />
 
 
-      {/* =========================
+      {/* =====================================================
           SIDEBAR
-      ========================= */}
+      ===================================================== */}
 
       <Sidebar
-        mobileOpen={mobileOpen}
-        isMobile={isMobile}
+        mobileOpen={
+          mobileOpen
+        }
+        isMobile={
+          isMobile
+        }
         onClose={() =>
           setMobileOpen(false)
         }
       />
 
 
-      {/* =========================
-          MAIN AREA
-      ========================= */}
+      {/* =====================================================
+          MAIN CONTENT
+      ===================================================== */}
 
       <Box
         component="main"
-        className="main-content"
+        className="app-main-content"
       >
 
-        {/* =========================
-            TOP HEADER
-        ========================= */}
+        {/* ===================================================
+            HEADER
+        =================================================== */}
 
-        <Box className="page-header">
+        <Box className="app-page-header">
 
-          <Box className="page-header-left">
+          {/* LEFT */}
+
+          <Box className="app-page-header-left">
 
             {isMobile && (
 
               <IconButton
-                className="mobile-menu-button"
+                className="app-mobile-menu-button"
                 onClick={() =>
                   setMobileOpen(true)
                 }
                 aria-label="Open navigation menu"
               >
+
                 <MenuRoundedIcon />
+
               </IconButton>
 
             )}
 
 
             <Typography
-              className="page-title"
+              className="app-page-title"
             >
               {pageTitle}
             </Typography>
@@ -195,7 +222,9 @@ const MainLayout = () => {
           </Box>
 
 
-          <Box className="page-header-profile">
+          {/* PROFILE */}
+
+          <Box className="app-page-header-profile">
 
             <ProfileDropdown />
 
@@ -204,11 +233,11 @@ const MainLayout = () => {
         </Box>
 
 
-        {/* =========================
-            PAGE
-        ========================= */}
+        {/* ===================================================
+            PAGE CONTENT
+        =================================================== */}
 
-        <Box className="page-content">
+        <Box className="app-page-content">
 
           <Outlet />
 
@@ -219,5 +248,6 @@ const MainLayout = () => {
     </Box>
   );
 };
+
 
 export default MainLayout;

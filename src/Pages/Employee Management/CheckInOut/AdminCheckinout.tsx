@@ -10,6 +10,7 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Stack,
 } from "@mui/material";
 
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
@@ -243,9 +244,70 @@ const AdminCheckinout = () => {
         </Typography>
       )}
 
+      {/* ============ MOBILE / TABLET: card list (below md) ============ */}
+      <Stack spacing={1.5} sx={{ display: { xs: "flex", md: "none" }, mb: 4 }}>
+        {dailyLoading ? (
+          <Paper sx={{ p: 3, textAlign: "center", color: "#6B7280", borderRadius: "14px", border: "1px solid #E5E7EB" }}>
+            Loading...
+          </Paper>
+        ) : dailyRecords.length === 0 ? (
+          <Paper sx={{ p: 3, textAlign: "center", color: "#6B7280", borderRadius: "14px", border: "1px solid #E5E7EB" }}>
+            No attendance records found for this date.
+          </Paper>
+        ) : (
+          dailyRecords.map((record, index) => {
+            const status = attendanceStatus(record);
+
+            return (
+              <Paper
+                key={record._id ?? `${record.employeeId}-${index}`}
+                sx={{ p: 2, borderRadius: "14px", border: "1px solid #E5E7EB" }}
+              >
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography sx={{ fontWeight: 700, color: "#1B6B33", fontSize: 15 }}>
+                      {record.employeeId || "-"}
+                    </Typography>
+                    <Typography sx={{ fontSize: 12.5, color: "#6B7280", mt: 0.25, wordBreak: "break-word" }}>
+                      {record.email || "-"}
+                    </Typography>
+                  </Box>
+                  <span className={`admin-checkinout__status-pill ${statusPillClass(status)}`}>
+                    {status}
+                  </span>
+                </Box>
+
+                <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1 }}>
+                  <Box sx={{ backgroundColor: "#F8FAFC", borderRadius: "6px", p: "8px 10px" }}>
+                    <Typography sx={{ fontSize: 11, color: "#6B7280" }}>Check In</Typography>
+                    <Typography sx={{ fontSize: 13, fontWeight: 700, color: "#1B6B33", mt: 0.25 }}>
+                      {formatDateTime(record.checkInTime)}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ backgroundColor: "#F8FAFC", borderRadius: "6px", p: "8px 10px" }}>
+                    <Typography sx={{ fontSize: 11, color: "#6B7280" }}>Check Out</Typography>
+                    <Typography sx={{ fontSize: 13, fontWeight: 700, color: "#1B6B33", mt: 0.25 }}>
+                      {formatDateTime(record.checkOutTime)}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ backgroundColor: "#F8FAFC", borderRadius: "6px", p: "8px 10px" }}>
+                    <Typography sx={{ fontSize: 11, color: "#6B7280" }}>Working Hours</Typography>
+                    <Typography sx={{ fontSize: 13, fontWeight: 700, color: "#1B6B33", mt: 0.25 }}>
+                      {formatDuration(record.totalWorkingSeconds)}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Paper>
+            );
+          })
+        )}
+      </Stack>
+
+      {/* ============ DESKTOP: table (md and up) ============ */}
       <TableContainer
         component={Paper}
         sx={{
+          display: { xs: "none", md: "block" },
           borderRadius: "14px",
           border: "1px solid #E5E7EB",
           boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
@@ -336,9 +398,76 @@ const AdminCheckinout = () => {
         </Typography>
       )}
 
+      {/* ============ MOBILE / TABLET: card list (below md) ============ */}
+      <Stack spacing={1.5} sx={{ display: { xs: "flex", md: "none" } }}>
+        {historyLoading ? (
+          <Paper sx={{ p: 3, textAlign: "center", color: "#6B7280", borderRadius: "14px", border: "1px solid #E5E7EB" }}>
+            Loading...
+          </Paper>
+        ) : historyRecords.length === 0 ? (
+          <Paper sx={{ p: 3, textAlign: "center", color: "#6B7280", borderRadius: "14px", border: "1px solid #E5E7EB" }}>
+            No attendance history found.
+          </Paper>
+        ) : (
+          historyRecords.map((record, index) => {
+            const status = attendanceStatus(record);
+
+            return (
+              <Paper
+                key={record._id ?? `${record.employeeId}-${record.day}-${index}`}
+                sx={{ p: 2, borderRadius: "14px", border: "1px solid #E5E7EB" }}
+              >
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography sx={{ fontWeight: 700, color: "#1B6B33", fontSize: 15 }}>
+                      {record.employeeId || "-"}
+                    </Typography>
+                    <Typography sx={{ fontSize: 12.5, color: "#6B7280", mt: 0.25, wordBreak: "break-word" }}>
+                      {record.email || "-"}
+                    </Typography>
+                  </Box>
+                  <span className={`admin-checkinout__status-pill ${statusPillClass(status)}`}>
+                    {status}
+                  </span>
+                </Box>
+
+                <Box sx={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 1 }}>
+                  <Box sx={{ backgroundColor: "#F8FAFC", borderRadius: "6px", p: "8px 10px" }}>
+                    <Typography sx={{ fontSize: 11, color: "#6B7280" }}>Date</Typography>
+                    <Typography sx={{ fontSize: 13, fontWeight: 700, color: "#1B6B33", mt: 0.25 }}>
+                      {formatDay(record.day)}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ backgroundColor: "#F8FAFC", borderRadius: "6px", p: "8px 10px" }}>
+                    <Typography sx={{ fontSize: 11, color: "#6B7280" }}>Working Hours</Typography>
+                    <Typography sx={{ fontSize: 13, fontWeight: 700, color: "#1B6B33", mt: 0.25 }}>
+                      {formatDuration(record.totalWorkingSeconds)}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ backgroundColor: "#F8FAFC", borderRadius: "6px", p: "8px 10px" }}>
+                    <Typography sx={{ fontSize: 11, color: "#6B7280" }}>Check In</Typography>
+                    <Typography sx={{ fontSize: 13, fontWeight: 700, color: "#1B6B33", mt: 0.25 }}>
+                      {formatDateTime(record.checkInTime)}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ backgroundColor: "#F8FAFC", borderRadius: "6px", p: "8px 10px" }}>
+                    <Typography sx={{ fontSize: 11, color: "#6B7280" }}>Check Out</Typography>
+                    <Typography sx={{ fontSize: 13, fontWeight: 700, color: "#1B6B33", mt: 0.25 }}>
+                      {formatDateTime(record.checkOutTime)}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Paper>
+            );
+          })
+        )}
+      </Stack>
+
+      {/* ============ DESKTOP: table (md and up) ============ */}
       <TableContainer
         component={Paper}
         sx={{
+          display: { xs: "none", md: "block" },
           borderRadius: "14px",
           border: "1px solid #E5E7EB",
           boxShadow: "0 1px 4px rgba(0,0,0,0.05)",

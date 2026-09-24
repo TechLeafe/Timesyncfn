@@ -1,139 +1,849 @@
-.admin-dashboard {
-  display: flex;
-  min-height: 100vh;
-  background: var(--bg-main);
-}
+/* =========================================================
+   SHARED DASHBOARD
+   ADMIN + HR + EMPLOYEE
+========================================================= */
 
 .admin-dashboard__main {
+  width: 100%;
   min-width: 0;
+
   display: flex;
   flex-direction: column;
-  gap: 18px;
+
+  gap: clamp(14px, 2vw, 20px);
+
+  box-sizing: border-box;
 }
 
+
+/* =========================================================
+   STAT CARDS
+========================================================= */
+
 .admin-dashboard__stats {
+  width: 100%;
+  min-width: 0;
+
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
+
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(210px, 1fr)
+    );
+
   gap: 16px;
 }
 
+
 .admin-dashboard__stats > * {
-  grid-column: span 4;
+  width: 100%;
+  min-width: 0;
+
+  box-sizing: border-box;
 }
+
+
+/* =========================================================
+   CHARTS
+========================================================= */
 
 .admin-dashboard__charts {
-  display: flex;
-  flex-wrap: wrap;
+  width: 100%;
+  min-width: 0;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
   gap: 18px;
+
+  align-items: stretch;
 }
 
-@media (max-width: 900px) {
-  .admin-dashboard {
-    flex-direction: column;
-  }
 
-  .admin-dashboard__main {
-    padding: 16px;
-  }
+.admin-dashboard__charts > * {
+  width: 100%;
+  min-width: 0;
 
-  .admin-dashboard__stats > * {
-    grid-column: span 6;
-  }
+  box-sizing: border-box;
 }
 
-/* Today's check-ins table */
+
+/* =========================================================
+   TODAY'S CHECK-INS CARD
+========================================================= */
 
 .admin-dashboard__table-card {
   width: 100%;
+  min-width: 0;
+
+  box-sizing: border-box;
+
   background: #ffffff;
-  border: 1px solid #E5E7EB;
+
+  border:
+    1px solid #e5e7eb;
+
   border-radius: 14px;
+
   overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+
+  box-shadow:
+    0 1px 4px
+    rgba(0, 0, 0, 0.05);
 }
+
+
+/* =========================================================
+   TABLE TITLE
+========================================================= */
 
 .admin-dashboard__table-title {
-  padding: 16px 20px;
-  background: #E8F5E9;
-  color: #1B6B33;
-  font-weight: 700;
+  padding:
+    16px 20px;
+
+  background: #e8f5e9;
+
+  color: #1b6b33;
+
   font-size: 15px;
+  font-weight: 700;
+
+  line-height: 1.4;
 }
 
+
+/* =========================================================
+   TABLE WRAPPER
+========================================================= */
+
 .admin-dashboard__table-wrapper {
-  padding: 8px 20px 18px;
+  width: 100%;
+  min-width: 0;
+
+  padding:
+    8px 20px 18px;
+
+  box-sizing: border-box;
+
   overflow-x: auto;
+
+  -webkit-overflow-scrolling:
+    touch;
+
+  scrollbar-width: thin;
 }
+
+
+/* =========================================================
+   TABLE
+========================================================= */
 
 .admin-dashboard__table {
   width: 100%;
+
+  min-width: 700px;
+
   border-collapse: collapse;
 }
 
+
+/* =========================================================
+   TABLE CELLS
+========================================================= */
+
 .admin-dashboard__table th,
 .admin-dashboard__table td {
-  padding: 14px 12px;
+  padding:
+    14px 12px;
+
   text-align: left;
-  border-bottom: 1px solid #F3F4F6;
+
+  vertical-align: middle;
+
+  border-bottom:
+    1px solid #f3f4f6;
+
+  color: #101828;
+
   font-size: 14px;
+
   white-space: nowrap;
 }
 
+
 .admin-dashboard__table th {
-  color: #6B7280;
-  font-weight: 600;
+  color: #6b7280;
+
   font-size: 13px;
+  font-weight: 600;
 }
 
-.admin-dashboard__table tbody tr:last-child td {
+
+/* =========================================================
+   TABLE LAST ROW
+========================================================= */
+
+.admin-dashboard__table
+tbody
+tr:last-child
+td {
   border-bottom: none;
 }
 
-.admin-dashboard__table tbody tr:hover {
-  background: #FAFAFA;
+
+/* =========================================================
+   TABLE HOVER
+========================================================= */
+
+.admin-dashboard__table
+tbody
+tr:hover {
+  background: #fafafa;
 }
+
+
+/* =========================================================
+   STATUS
+========================================================= */
 
 .admin-dashboard__status-pill {
-  display: inline-block;
-  padding: 4px 12px;
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  min-height: 25px;
+
+  padding:
+    4px 12px;
+
+  box-sizing: border-box;
+
   border-radius: 999px;
+
   font-size: 12px;
   font-weight: 700;
+
+  white-space: nowrap;
 }
+
+
+/* CHECKED OUT */
 
 .admin-dashboard__status-pill--present {
-  background: #E8F5E9;
-  color: #1B6B33;
+  background: #e8f5e9;
+
+  color: #1b6b33;
 }
+
+
+/* ABSENT */
 
 .admin-dashboard__status-pill--absent {
-  background: #FFEBEE;
-  color: #D42B2B;
+  background: #ffebee;
+
+  color: #d42b2b;
 }
+
+
+/* CHECKED IN */
 
 .admin-dashboard__status-pill--leave {
-  background: #F3E5F5;
-  color: #6A1B9A;
+  background: #f3e5f5;
+
+  color: #6a1b9a;
 }
+
+
+/* NOT CHECKED IN */
 
 .admin-dashboard__status-pill--pending {
-  background: #FFF8E1;
-  color: #B45309;
+  background: #fff8e1;
+
+  color: #b45309;
 }
+
+
+/* =========================================================
+   EMPTY TABLE
+========================================================= */
 
 .admin-dashboard__empty-row {
-  text-align: center !important;
-  color: #6B7280;
-  padding: 28px 0 !important;
-  white-space: normal !important;
+  padding:
+    28px 16px !important;
+
+  color:
+    #6b7280 !important;
+
+  text-align:
+    center !important;
+
+  white-space:
+    normal !important;
+
+  line-height: 1.5;
 }
 
-@media (max-width: 600px) {
-  .admin-dashboard__stats > * {
-    grid-column: span 12;
+
+/* =========================================================
+   LARGE DESKTOP
+   1400+
+========================================================= */
+
+@media (min-width: 1400px) {
+
+  .admin-dashboard__stats {
+    grid-template-columns:
+      repeat(
+        5,
+        minmax(0, 1fr)
+      );
   }
 
-  .admin-dashboard__table {
-    min-width: 640px;
+}
+
+
+/* =========================================================
+   LAPTOP
+   901 - 1399
+========================================================= */
+
+@media
+  (min-width: 901px)
+  and
+  (max-width: 1399px) {
+
+  .admin-dashboard__stats {
+    grid-template-columns:
+      repeat(
+        3,
+        minmax(0, 1fr)
+      );
   }
+
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+
+  .admin-dashboard__main {
+    gap: 16px;
+  }
+
+
+  /* STAT CARDS */
+
+  .admin-dashboard__stats {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+
+    gap: 14px;
+  }
+
+
+  /* CHARTS */
+
+  .admin-dashboard__charts {
+    grid-template-columns:
+      minmax(0, 1fr);
+
+    gap: 16px;
+  }
+
+
+  /* TABLE */
+
+  .admin-dashboard__table-wrapper {
+    padding:
+      6px 16px 16px;
+  }
+
+
+  .admin-dashboard__table-title {
+    padding:
+      14px 16px;
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+  /* =======================================================
+     MAIN
+  ======================================================= */
+
+  .admin-dashboard__main {
+    width: 100%;
+    min-width: 0;
+
+    gap: 14px;
+  }
+
+
+  /* =======================================================
+     STAT CARDS
+  ======================================================= */
+
+  .admin-dashboard__stats {
+    grid-template-columns:
+      minmax(0, 1fr);
+
+    gap: 12px;
+  }
+
+
+  /* =======================================================
+     CHARTS
+  ======================================================= */
+
+  .admin-dashboard__charts {
+    grid-template-columns:
+      minmax(0, 1fr);
+
+    gap: 14px;
+  }
+
+
+  /* =======================================================
+     TODAY'S CHECK-INS CARD
+  ======================================================= */
+
+  .admin-dashboard__table-card {
+    width: 100%;
+    min-width: 0;
+
+    border: none;
+
+    border-radius: 0;
+
+    background:
+      transparent;
+
+    box-shadow:
+      none;
+
+    overflow: visible;
+  }
+
+
+  /* =======================================================
+     TABLE TITLE
+  ======================================================= */
+
+  .admin-dashboard__table-title {
+    padding:
+      14px 16px;
+
+    background:
+      #e8f5e9;
+
+    color:
+      #1b6b33;
+
+    border:
+      1px solid #e5e7eb;
+
+    border-radius:
+      12px;
+
+    font-size: 15px;
+
+    font-weight: 700;
+  }
+
+
+  /* =======================================================
+     TABLE WRAPPER
+  ======================================================= */
+
+  .admin-dashboard__table-wrapper {
+    width: 100%;
+    min-width: 0;
+
+    padding:
+      12px 0 0;
+
+    overflow:
+      visible;
+
+    box-sizing:
+      border-box;
+  }
+
+
+  /* =======================================================
+     TABLE
+  ======================================================= */
+
+  .admin-dashboard__table {
+    width: 100%;
+
+    min-width: 0;
+
+    display: block;
+
+    border-collapse:
+      separate;
+  }
+
+
+  /* Hide desktop headers */
+
+  .admin-dashboard__table
+  thead {
+    display: none;
+  }
+
+
+  /* =======================================================
+     EMPLOYEE CARD LIST
+  ======================================================= */
+
+  .admin-dashboard__table
+  tbody {
+    width: 100%;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 12px;
+  }
+
+
+  /* =======================================================
+     EACH EMPLOYEE CARD
+  ======================================================= */
+
+  .admin-dashboard__table
+  tbody
+  tr {
+    width: 100%;
+
+    display: block;
+
+    padding:
+      6px 16px;
+
+    box-sizing:
+      border-box;
+
+    background:
+      #ffffff;
+
+    border:
+      1px solid #e5e7eb;
+
+    border-radius:
+      12px;
+
+    box-shadow:
+      0 2px 8px
+      rgba(
+        16,
+        24,
+        40,
+        0.05
+      );
+  }
+
+
+  .admin-dashboard__table
+  tbody
+  tr:hover {
+    background:
+      #ffffff;
+  }
+
+
+  /* =======================================================
+     EACH FIELD
+  ======================================================= */
+
+  .admin-dashboard__table
+  tbody
+  td {
+    width: 100%;
+    min-width: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content:
+      space-between;
+
+    gap: 16px;
+
+    padding:
+      12px 0;
+
+    box-sizing:
+      border-box;
+
+    border-bottom:
+      1px solid #f0f1f3;
+
+    color:
+      #101828;
+
+    font-size: 13px;
+
+    line-height: 1.45;
+
+    white-space:
+      normal;
+
+    text-align:
+      right;
+
+    overflow-wrap:
+      anywhere;
+
+    word-break:
+      break-word;
+  }
+
+
+  /* =======================================================
+     FIELD LABEL
+  ======================================================= */
+
+  .admin-dashboard__table
+  tbody
+  td::before {
+    content:
+      attr(data-label);
+
+    flex:
+      0 0 38%;
+
+    min-width: 0;
+
+    color:
+      #667085;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    text-align: left;
+  }
+
+
+  /* Last field */
+
+  .admin-dashboard__table
+  tbody
+  td:last-child {
+    border-bottom: none;
+  }
+
+
+  /* =======================================================
+     EMAIL
+  ======================================================= */
+
+  .admin-dashboard__table
+  tbody
+  td:nth-child(2) {
+    overflow-wrap:
+      anywhere;
+
+    word-break:
+      break-word;
+  }
+
+
+  /* =======================================================
+     STATUS
+  ======================================================= */
+
+  .admin-dashboard__status-pill {
+    flex-shrink: 0;
+
+    max-width: 100%;
+  }
+
+
+  /* =======================================================
+     EMPTY TABLE
+  ======================================================= */
+
+  .admin-dashboard__empty-table-row {
+    padding: 0 !important;
+  }
+
+
+  .admin-dashboard__empty-row {
+    width: 100% !important;
+
+    display:
+      block !important;
+
+    padding:
+      26px 14px !important;
+
+    box-sizing:
+      border-box;
+
+    border-bottom:
+      none !important;
+
+    text-align:
+      center !important;
+
+    color:
+      #667085 !important;
+  }
+
+
+  .admin-dashboard__empty-row::before {
+    display:
+      none !important;
+  }
+
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 420px) {
+
+  .admin-dashboard__main {
+    gap: 12px;
+  }
+
+
+  .admin-dashboard__stats {
+    gap: 10px;
+  }
+
+
+  .admin-dashboard__charts {
+    gap: 12px;
+  }
+
+
+  .admin-dashboard__table-title {
+    padding:
+      12px 14px;
+  }
+
+
+  .admin-dashboard__table
+  tbody
+  tr {
+    padding:
+      5px 14px;
+  }
+
+
+  .admin-dashboard__table
+  tbody
+  td {
+    gap: 10px;
+
+    padding:
+      11px 0;
+  }
+
+
+  .admin-dashboard__table
+  tbody
+  td::before {
+    flex-basis:
+      40%;
+  }
+
+}
+
+
+/* =========================================================
+   VERY SMALL MOBILE
+========================================================= */
+
+@media (max-width: 360px) {
+
+  .admin-dashboard__table
+  tbody
+  tr {
+    padding:
+      4px 12px;
+  }
+
+
+  .admin-dashboard__table
+  tbody
+  td {
+    font-size:
+      12.5px;
+  }
+
+
+  .admin-dashboard__table
+  tbody
+  td::before {
+    font-size:
+      11.5px;
+
+    flex-basis:
+      42%;
+  }
+
+}
+/* =========================================================
+   EMPLOYEE DASHBOARD
+   Employee dashboard has only 3 stat cards
+========================================================= */
+
+/* DESKTOP */
+
+.admin-dashboard__stats.employee-dashboard__stats {
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+}
+
+
+/* TABLET */
+
+@media (max-width: 900px) {
+
+  .admin-dashboard__stats.employee-dashboard__stats {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+}
+
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+
+  .admin-dashboard__stats.employee-dashboard__stats {
+    grid-template-columns:
+      minmax(0, 1fr);
+  }
+
 }

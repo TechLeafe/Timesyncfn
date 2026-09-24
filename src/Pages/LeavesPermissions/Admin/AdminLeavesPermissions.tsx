@@ -330,37 +330,54 @@ function AdminLeavesPermissions() {
             </Typography>
           </Box>
         ) : sortedRequests.length ? (
-          <Box className="admin-leaves-permissions__table-wrapper">
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Leave Type</TableCell>
-                  <TableCell>Request Date</TableCell>
-                  <TableCell>From</TableCell>
-                  <TableCell>To</TableCell>
-                  <TableCell>Duration</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell align="right">Actions</TableCell>
-                </TableRow>
-              </TableHead>
+          <>
+            <Box className="admin-leaves-permissions__card-list">
+              {sortedRequests.map((request) => (
+                <AdminRequestCard
+                  key={request.id}
+                  request={request}
+                  onView={() =>
+                    navigate(
+                      `/admin-leaves-permissions/employee-Details/${request.id}`,
+                      { state: { request } },
+                    )
+                  }
+                />
+              ))}
+            </Box>
 
-              <TableBody>
-                {sortedRequests.map((request) => (
-                  <AdminRequestRow
-                    key={request.id}
-                    request={request}
-                    onView={() =>
-                      navigate(
-                        `/admin-leaves-permissions/employee-Details/${request.id}`,
-                        { state: { request } },
-                      )
-                    }
-                  />
-                ))}
-              </TableBody>
-            </Table>
-          </Box>
+            <Box className="admin-leaves-permissions__table-wrapper">
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Name</TableCell>
+                    <TableCell>Leave Type</TableCell>
+                    <TableCell>Request Date</TableCell>
+                    <TableCell>From</TableCell>
+                    <TableCell>To</TableCell>
+                    <TableCell>Duration</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell align="right">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+
+                <TableBody>
+                  {sortedRequests.map((request) => (
+                    <AdminRequestRow
+                      key={request.id}
+                      request={request}
+                      onView={() =>
+                        navigate(
+                          `/admin-leaves-permissions/employee-Details/${request.id}`,
+                          { state: { request } },
+                        )
+                      }
+                    />
+                  ))}
+                </TableBody>
+              </Table>
+            </Box>
+          </>
         ) : (
           <Box className="admin-leaves-permissions__empty-state">
             <Typography className="admin-leaves-permissions__empty-text">
@@ -409,6 +426,82 @@ function StatusChip({ status }: { status: RequestStatus }) {
       size="small"
       className={`admin-leaves-permissions__status-chip admin-leaves-permissions__status-chip--${status.toLowerCase()}`}
     />
+  );
+}
+
+function AdminRequestCard({
+  request,
+  onView,
+}: {
+  request: LeaveRequest;
+  onView: () => void;
+}) {
+  const leaveTypeLabel = request.leaveType ?? "-";
+
+  const fromDate =
+    request.type === "leave" ? request.startDate : request.date;
+  const toDate = request.type === "leave" ? request.endDate : request.date;
+
+  const duration = `${request.totalDays} day(s)`;
+
+  return (
+    <Paper elevation={0} className="admin-leaves-permissions__request-card">
+      <Box className="admin-leaves-permissions__request-card-header">
+        <Box className="admin-leaves-permissions__request-card-heading">
+          <Typography className="admin-leaves-permissions__employee-id">
+            {request.employeeName}
+          </Typography>
+          <Typography className="admin-leaves-permissions__request-card-type">
+            {leaveTypeLabel}
+          </Typography>
+        </Box>
+
+        <Stack
+          direction="row"
+          spacing={0.5}
+          className="admin-leaves-permissions__request-card-actions"
+          sx={{ alignItems: "center" }}
+        >
+          <StatusChip status={request.status} />
+          <IconButton
+            aria-label="View leave details"
+            title="View leave details"
+            className="admin-leaves-permissions__view-button"
+            size="small"
+            onClick={onView}
+          >
+            <VisibilityOutlinedIcon fontSize="small" />
+          </IconButton>
+        </Stack>
+      </Box>
+
+      <Box className="admin-leaves-permissions__request-card-grid">
+        <Box className="admin-leaves-permissions__request-card-field">
+          <Typography className="admin-leaves-permissions__request-card-label">Request Date</Typography>
+          <Typography className="admin-leaves-permissions__request-card-value">
+            {formatDate(request.createdAt.slice(0, 10))}
+          </Typography>
+        </Box>
+        <Box className="admin-leaves-permissions__request-card-field">
+          <Typography className="admin-leaves-permissions__request-card-label">From</Typography>
+          <Typography className="admin-leaves-permissions__request-card-value">
+            {formatDate(fromDate)}
+          </Typography>
+        </Box>
+        <Box className="admin-leaves-permissions__request-card-field">
+          <Typography className="admin-leaves-permissions__request-card-label">To</Typography>
+          <Typography className="admin-leaves-permissions__request-card-value">
+            {formatDate(toDate)}
+          </Typography>
+        </Box>
+        <Box className="admin-leaves-permissions__request-card-field">
+          <Typography className="admin-leaves-permissions__request-card-label">Duration</Typography>
+          <Typography className="admin-leaves-permissions__request-card-value">
+            {duration}
+          </Typography>
+        </Box>
+      </Box>
+    </Paper>
   );
 }
 

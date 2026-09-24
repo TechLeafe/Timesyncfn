@@ -27,7 +27,7 @@ import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import api from "../../api/axiosInstance";
-import { useCurrentUser } from "../../context/UserContext";
+import { HR, ADMIN } from "../../data/permissions";
 import "./LeavePolicies.css";
 
 type LeavePolicy = {
@@ -83,8 +83,19 @@ export const getBusinessYear = (date = new Date()) => {
 };
 
 const LeavePolicies = () => {
-	const { currentUser } = useCurrentUser();
-	const canManage = currentUser.role === "HR Manager" || currentUser.role === "Admin";
+	// Same real auth source as the rest of the app (Sidebar, Check In/Out, dashboards) —
+	// not the mock UserContext, which always returned a hardcoded HR Manager user
+	// regardless of who was actually logged in.
+	const storedUser = localStorage.getItem("loggedInUser");
+	let userType: number | null = null;
+	if (storedUser) {
+		try {
+			userType = Number(JSON.parse(storedUser).userType);
+		} catch {
+			userType = null;
+		}
+	}
+	const canManage = userType === HR || userType === ADMIN;
 
 	const [policies, setPolicies] = useState<LeavePolicy[]>([]);
 	const [selectedPolicy, setSelectedPolicy] = useState<LeavePolicy | null>(null);
@@ -280,7 +291,7 @@ const LeavePolicies = () => {
 					fullWidth
 				/>
 			</DialogContent>
-			<DialogActions>
+			<DialogActions sx={{ flexWrap: "wrap", gap: 1 }}>
 				<Button className="leave-policies__outlined-button" variant="outlined" onClick={() => setDialogOpen(false)}>
 					Cancel
 				</Button>
@@ -318,11 +329,11 @@ const LeavePolicies = () => {
 						<Typography className="leave-policies__title">{selectedPolicy.policyName}</Typography>
 					</Box>
 					{canManage && (
-						<Stack direction="row" spacing={1}>
-							<Button className="leave-policies__outlined-button" variant="outlined" startIcon={<EditOutlinedIcon />} onClick={() => openEdit(selectedPolicy)}>
+						<Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ width: { xs: "100%", sm: "auto" } }}>
+							<Button className="leave-policies__outlined-button" variant="outlined" startIcon={<EditOutlinedIcon />} onClick={() => openEdit(selectedPolicy)} sx={{ width: { xs: "100%", sm: "auto" } }}>
 								Edit
 							</Button>
-							<Button className="leave-policies__outlined-button" variant="outlined" startIcon={<DeleteOutlineRoundedIcon />} onClick={() => void deletePolicy(selectedPolicy)}>
+							<Button className="leave-policies__outlined-button" variant="outlined" startIcon={<DeleteOutlineRoundedIcon />} onClick={() => void deletePolicy(selectedPolicy)} sx={{ width: { xs: "100%", sm: "auto" } }}>
 								Delete
 							</Button>
 						</Stack>
@@ -365,13 +376,58 @@ const LeavePolicies = () => {
 					</Typography>
 				</Box>
 				{canManage && (
-					<Button variant="contained" startIcon={<AddRoundedIcon />} onClick={openCreate} disabled={loading || policies.length > 0}>
+					<Button variant="contained" startIcon={<AddRoundedIcon />} onClick={openCreate} disabled={loading || policies.length > 0} sx={{ width: { xs: "100%", sm: "auto" } }}>
 						Create Policy
 					</Button>
 				)}
 			</Box>
 
-			<Card className="leave-policies__table-card">
+			{/* ============ MOBILE / TABLET: card list (below md) ============ */}
+			<Stack spacing={1.5} className="leave-policies__card-list" sx={{ display: { xs: "flex", md: "none" } }}>
+				{loading ? (
+					<Card className="leave-policies__policy-card">
+						<Typography sx={{ textAlign: "center", color: "#6b756d" }}>Loading leave policies...</Typography>
+					</Card>
+				) : policies.length > 0 ? (
+					policies.map((policy) => (
+						<Card key={policy._id} className="leave-policies__policy-card">
+							<Box className="leave-policies__policy-card-header">
+								<Typography className="leave-policies__policy-name">{policy.policyName}</Typography>
+								<Tooltip title="View policy">
+									<IconButton onClick={() => viewPolicy(policy)}>
+										<VisibilityOutlinedIcon />
+									</IconButton>
+								</Tooltip>
+							</Box>
+							<Box className="leave-policies__policy-card-grid">
+								<Box className="leave-policies__policy-card-field">
+									<Typography className="leave-policies__policy-card-label">CL</Typography>
+									<Typography className="leave-policies__policy-card-value">{policy.casualLeave} days</Typography>
+								</Box>
+								<Box className="leave-policies__policy-card-field">
+									<Typography className="leave-policies__policy-card-label">SL</Typography>
+									<Typography className="leave-policies__policy-card-value">{policy.sickLeave} days</Typography>
+								</Box>
+								<Box className="leave-policies__policy-card-field">
+									<Typography className="leave-policies__policy-card-label">Comp Off</Typography>
+									<Typography className="leave-policies__policy-card-value">{policy.compensatoryOff} days</Typography>
+								</Box>
+								<Box className="leave-policies__policy-card-field">
+									<Typography className="leave-policies__policy-card-label">Permissions</Typography>
+									<Typography className="leave-policies__policy-card-value">{policy.permissionsPerMonth} /month</Typography>
+								</Box>
+							</Box>
+						</Card>
+					))
+				) : (
+					<Card className="leave-policies__policy-card">
+						<Typography sx={{ textAlign: "center", color: "#6b756d" }}>No leave policies found.</Typography>
+					</Card>
+				)}
+			</Stack>
+
+			{/* ============ DESKTOP: table (md and up) ============ */}
+			<Card className="leave-policies__table-card" sx={{ display: { xs: "none", md: "block" } }}>
 				<Typography className="leave-policies__section-title">Company policies</Typography>
 				<TableContainer>
 					<Table>
