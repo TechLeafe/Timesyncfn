@@ -1,232 +1,294 @@
-
-/* ================================
-   SIDEBAR
-================================ */
+/* =========================================================
+   SIDEBAR ROOT
+========================================================= */
 
 .sidebar-drawer {
-  width: 240px;
+  width: 270px;
   flex-shrink: 0;
 }
 
 .sidebar-drawer .MuiDrawer-paper {
-  width: 240px;
+  width: 270px;
+  height: 100vh;
+
   box-sizing: border-box;
 
+  background: #ffffff;
+
   border-right: 1px solid #e5e7eb;
-  background-color: #ffffff;
+
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   CONTAINER
+========================================================= */
+
+.sidebar-container {
+  width: 100%;
+  height: 100%;
 
   display: flex;
   flex-direction: column;
 
-  overflow-x: hidden;
+  min-height: 0;
 }
 
 
-/* ================================
+/* =========================================================
    LOGO
-================================ */
+========================================================= */
 
 .sidebar-logo {
+  width: 100%;
+  min-height: 88px;
+
   display: flex;
   align-items: center;
+  justify-content: center;
 
-  height: 64px;
-
-  padding: 16px 20px;
-
-  border-bottom: 1px solid #f3f4f6;
+  padding: 12px 20px;
 
   box-sizing: border-box;
+
+  border-bottom: 1px solid #e5e7eb;
+
+  flex-shrink: 0;
 }
 
 .sidebar-logo img {
-  width: 148px;
-  height: auto;
-
   display: block;
+
+  width: auto;
+  max-width: 210px;
+  max-height: 62px;
 
   object-fit: contain;
 }
 
 
-/* ================================
+/* =========================================================
    NAVIGATION
-================================ */
+========================================================= */
 
 .sidebar-nav {
   flex: 1;
 
-  padding: 16px 12px 8px !important;
+  min-height: 0;
+
+  padding: 18px 12px !important;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  scrollbar-width: thin;
 }
 
 
-/* ================================
+/* =========================================================
    NAV ITEM
-================================ */
+========================================================= */
 
 .sidebar-nav-item {
-  min-height: 44px !important;
+  width: 100%;
+
+  min-height: 48px;
 
   margin-bottom: 6px !important;
-  padding: 8px 12px !important;
+
+  padding: 10px 14px !important;
 
   border-radius: 10px !important;
 
-  color: #4b5563 !important;
-  background-color: transparent !important;
+  color: #475467 !important;
 
   transition:
-    background-color 0.15s ease,
-    color 0.15s ease !important;
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
+
 
 .sidebar-nav-item:hover {
-  background-color: #f9fafb !important;
-  color: #111827 !important;
+  background: #f4f7f5 !important;
+
+  color: #16743a !important;
 }
 
 
-/* ================================
-   ACTIVE NAV ITEM
-================================ */
+/* =========================================================
+   ACTIVE ITEM
+========================================================= */
 
-.sidebar-nav-item.Mui-selected,
-.sidebar-nav-item-active {
-  background-color: #e8f5e9 !important;
-  color: #1b6b33 !important;
+.sidebar-nav-item-active,
+.sidebar-nav-item.Mui-selected {
+  background: #e6f4e9 !important;
+
+  color: #0f7138 !important;
 }
 
-.sidebar-nav-item.Mui-selected:hover,
-.sidebar-nav-item-active:hover {
-  background-color: #e8f5e9 !important;
-  color: #1b6b33 !important;
+.sidebar-nav-item-active:hover,
+.sidebar-nav-item.Mui-selected:hover {
+  background: #dff0e3 !important;
 }
 
 
-/* ================================
-   NAV ICON
-================================ */
+/* =========================================================
+   ICON
+========================================================= */
 
 .sidebar-nav-icon {
-  min-width: 34px !important;
+  min-width: 42px !important;
 
-  color: #6b7280 !important;
+  color: #667085 !important;
 
-  transition: color 0.15s ease;
+  display: flex !important;
+
+  align-items: center;
 }
 
 .sidebar-nav-icon svg {
-  font-size: 20px;
+  font-size: 24px;
 }
 
-.sidebar-nav-item:hover .sidebar-nav-icon {
-  color: #111827 !important;
+.sidebar-nav-item-active
+.sidebar-nav-icon,
+.sidebar-nav-item.Mui-selected
+.sidebar-nav-icon {
+  color: #16743a !important;
 }
 
-.sidebar-nav-item.Mui-selected .sidebar-nav-icon,
-.sidebar-nav-item-active .sidebar-nav-icon {
-  color: #1b6b33 !important;
+
+/* =========================================================
+   TEXT
+========================================================= */
+
+.sidebar-nav-text {
+  min-width: 0;
 }
 
+.sidebar-nav-text
+.MuiListItemText-primary {
+  color: inherit;
 
-/* ================================
-   NAV TEXT
-================================ */
+  font-size: 15px;
 
-.sidebar-nav-text .MuiListItemText-primary {
-  font-family: var(--font-family);
-  font-size: 14px;
   font-weight: 500;
 
-  line-height: 1.3;
+  white-space: nowrap;
 
-  letter-spacing: -0.01em;
+  overflow: hidden;
 
-  -webkit-font-smoothing: antialiased;
+  text-overflow: ellipsis;
 }
 
-.sidebar-nav-item.Mui-selected
-  .sidebar-nav-text
-  .MuiListItemText-primary,
 .sidebar-nav-item-active
-  .sidebar-nav-text
-  .MuiListItemText-primary {
-  color: #1b6b33;
+.sidebar-nav-text
+.MuiListItemText-primary {
   font-weight: 600;
 }
 
 
-/* ================================
-   BOTTOM AREA
-================================ */
+/* =========================================================
+   BOTTOM / LOGOUT
+========================================================= */
 
 .sidebar-bottom {
-  margin-top: auto;
+  width: 100%;
 
-  padding: 0 12px 16px;
+  flex-shrink: 0;
+
+  background: #ffffff;
 }
-
-
-/* ================================
-   DIVIDER
-================================ */
 
 .sidebar-divider {
-  margin-bottom: 12px !important;
-
-  border-color: #f3f4f6 !important;
+  border-color: #eaecf0 !important;
 }
 
-
-/* ================================
-   LOGOUT BUTTON
-================================ */
-
 .sidebar-logout {
-  min-height: 42px !important;
+  min-height: 56px !important;
 
-  padding: 8px 12px !important;
+  margin: 10px 12px 14px !important;
+
+  width: calc(100% - 24px) !important;
+
+  padding: 10px 14px !important;
+
+  box-sizing: border-box;
 
   border-radius: 10px !important;
 
-  color: #4b5563 !important;
-
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease !important;
+  color: #b42318 !important;
 }
 
 .sidebar-logout:hover {
-  background-color: #fef2f2 !important;
-  color: #d42b2b !important;
+  background: #fef3f2 !important;
 }
 
-
-/* ================================
-   LOGOUT ICON
-================================ */
-
 .sidebar-logout-icon {
-  min-width: 34px !important;
+  min-width: 42px !important;
 
-  color: inherit !important;
+  color: #b42318 !important;
 }
 
 .sidebar-logout-icon svg {
-  font-size: 20px;
+  font-size: 23px;
+}
+
+.sidebar-logout-text
+.MuiListItemText-primary {
+  font-size: 15px;
+  font-weight: 600;
 }
 
 
-/* ================================
-   LOGOUT TEXT
-================================ */
+/* =========================================================
+   TABLET / MOBILE DRAWER
+========================================================= */
 
-.sidebar-logout-text .MuiListItemText-primary {
-  font-family: var(--font-family);
-  font-size: 14px;
-  font-weight: 500;
+@media (max-width: 899.98px) {
 
-  color: inherit;
+  .sidebar-drawer {
+    width: 0;
+    flex-shrink: 0;
+  }
 
-  -webkit-font-smoothing: antialiased;
+  .sidebar-drawer
+  .MuiDrawer-paper {
+    width: min(82vw, 300px);
+
+    max-width: 300px;
+  }
+
+  .sidebar-logo {
+    min-height: 78px;
+  }
+
+  .sidebar-logo img {
+    max-width: 190px;
+    max-height: 56px;
+  }
+
+  .sidebar-nav {
+    padding: 14px 10px !important;
+  }
+
+  .sidebar-nav-item {
+    min-height: 46px;
+
+    padding: 9px 12px !important;
+  }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 420px) {
+
+  .sidebar-drawer
+  .MuiDrawer-paper {
+    width: min(86vw, 285px);
+  }
 }
