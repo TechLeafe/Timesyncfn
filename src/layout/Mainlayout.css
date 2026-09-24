@@ -4,124 +4,14 @@
   background: var(--bg-main, #F4F6F8);
 }
 
-/* ================================
-   LEFT SIDEBAR
-================================ */
-
-.sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-
-  width: 240px;
-  height: 100vh;
-
-  background: #ffffff;
-  border-right: 1px solid #e5e7eb;
-
-  display: flex;
-  flex-direction: column;
-
-  z-index: 1000;
-}
-
-/* Logo / Website Name */
-
-.sidebar-logo {
-  height: 70px;
-
-  display: flex;
-  align-items: center;
-
-  padding: 0 24px;
-
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.sidebar-logo h2 {
-  margin: 0;
-
-  font-size: 20px;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-/* Sidebar Menu */
-
-.sidebar-menu {
-  display: flex;
-  flex-direction: column;
-
-  padding: 20px 12px;
-
-  gap: 5px;
-}
-
-/* Sidebar Links */
-
-.sidebar-link {
-  display: flex;
-  align-items: center;
-
-  gap: 13px;
-
-  width: 100%;
-  padding: 12px 14px;
-
-  box-sizing: border-box;
-
-  border-radius: 8px;
-
-  color: #6b7280;
-  background: transparent;
-
-  text-decoration: none;
-
-  font-size: 14px;
-  font-weight: 500;
-
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
-}
-
-/* Hover */
-
-.sidebar-link:hover {
-  background: #f3f4f6;
-  color: #1f2937;
-}
-
-/* Active Link */
-
-.sidebar-link.active {
-  background: #e8f5e5;
-  color: var(--green);
-}
-
-/* Icon */
-
-.sidebar-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  min-width: 22px;
-}
-
-.sidebar-icon svg {
-  font-size: 20px;
-}
-
-/* Text */
-
-.sidebar-label {
-  white-space: nowrap;
-}
-
 
 /* ================================
    RIGHT SIDE
+
+   No width/margin math needed here for the sidebar: on desktop it's a
+   permanent flex sibling (flex-shrink: 0 on its own drawer), and on
+   tablet/phone it's an off-canvas overlay that doesn't take up layout
+   space at all — .main-content just naturally fills whatever is left.
 ================================ */
 
 .main-content {
@@ -169,61 +59,33 @@
 
 /* ================================
    RESPONSIVE
+
+   Tablet (portrait and landscape, including iPad) and phone both fall
+   under the "lg" breakpoint (1200px) where Sidebar switches to an
+   off-canvas drawer — these rules just tighten spacing at those sizes,
+   since there's no sidebar width to account for anymore.
 ================================ */
 
-@media (max-width: 900px) {
-  .sidebar {
-    width: 210px;
-  }
-
-  .main-content {
-    width: calc(100% - 210px);
-    margin-left: 210px;
+@media (max-width: 1024px) {
+  .page-header {
+    padding: 0 16px;
   }
 
   .page-content {
-    padding: 24px;
+    padding: 16px;
   }
 }
 
-
-@media (max-width: 700px) {
-  .sidebar {
-    width: 70px;
-  }
-
-  .sidebar-logo {
-    justify-content: center;
-    padding: 0;
-  }
-
-  .sidebar-logo h2 {
-    display: none;
-  }
-
-  .sidebar-menu {
-    padding: 20px 8px;
-  }
-
-  .sidebar-link {
-    justify-content: center;
-    padding: 12px;
-  }
-
-  .sidebar-label {
-    display: none;
-  }
-
-  .main-content {
-    width: calc(100% - 70px);
-    margin-left: 70px;
-  }
-
+@media (max-width: 480px) {
   .page-header {
-    padding: 0 20px;
+    padding: 0 12px;
+  }
+
+  .page-title {
+    font-size: 17px !important;
   }
 
   .page-content {
-    padding: 20px;
+    padding: 12px;
   }
 }

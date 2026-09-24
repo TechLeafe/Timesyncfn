@@ -14,6 +14,7 @@ import {
   Paper,
   Radio,
   RadioGroup,
+  Snackbar,
   Stack,
   Table,
   TableBody,
@@ -68,6 +69,8 @@ type ApiEnvelope<T> = {
   message?: string;
   data?: T;
 };
+
+type Toast = { severity: "success" | "error"; text: string };
 
 const initialEmployees: Employee[] = [];
 
@@ -145,18 +148,18 @@ function Employee_Creation() {
   const isCreate = normalizedPath === "/employee-creation/create";
   const isEdit = normalizedPath === "/employee-creation/edit";
   const drawerOpen = isCreate || isEdit;
+
   const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [message, setMessage] = useState("");
-  const [messageSeverity, setMessageSeverity] = useState<"success" | "error">("success");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<Toast | null>(null);
 
   const updateField = (field: keyof typeof emptyForm, value: string) => {
     const nextForm = { ...form, [field]: field === "userType" ? Number(value) as UserType : value };
@@ -174,7 +177,6 @@ function Employee_Creation() {
     } catch (error) {
       if (isTimeoutError(error)) return;
       setMessage(getApiErrorMessage(error, "Unable to load employees."));
-      setMessageSeverity("error");
     } finally {
       setLoading(false);
     }
@@ -219,7 +221,6 @@ function Employee_Creation() {
     } catch (error) {
       if (isTimeoutError(error)) return;
       setMessage(getApiErrorMessage(error, "Unable to load employee details."));
-      setMessageSeverity("error");
     }
   };
 
@@ -232,15 +233,14 @@ function Employee_Creation() {
   };
 
   const saveEmployee = async () => {
-
     const validationErrors = validateForm(form, isEdit);
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length) return;
+
     const selectedEmployeeRecord = selectedEmployee ?? employees.find((employee) => employee.id === editingId);
     const payload = {
-
       ...(editingId && selectedEmployeeRecord?._id ? { _id: selectedEmployeeRecord._id } : {}),
-      ...(editingId ? { employeeId: form.id.trim() } : { employeeId: form.id.trim() }),
+      employeeId: form.id.trim(),
       name: form.name.trim(),
       email: form.email.trim(),
       password: form.password,
@@ -250,33 +250,35 @@ function Employee_Creation() {
       ...(editingId ? { status: selectedEmployeeRecord?.status ?? "Active" } : {}),
     };
 
-    try {
+    let successText = "";
 
-      if (editingId)
-         {
+    try {
+      setSaving(true);
+
+      if (editingId) {
         const response = await api.post("/employees/update", payload);
         getApiData(response.data, "Unable to update employee.");
-        setSuccessMessage("Employee details updated successfully.");
-      }
-
-       else {
+        successText = "Employee details updated successfully.";
+      } else {
         const response = await api.post("/employees/create", payload);
         getApiData<EmployeeApiRecord>(response.data, "Unable to create employee.");
-        setSuccessMessage("Employee created successfully.");
+        successText = "Employee created successfully.";
       }
+
       await loadEmployees();
-    } catch (error) 
-    {
+    } catch (error) {
       if (isTimeoutError(error)) return;
       setMessage(getApiErrorMessage(error, editingId ? "Unable to update employee." : "Unable to create employee."));
-      setMessageSeverity("error");
       return;
+    } finally {
+      setSaving(false);
     }
+
     setEditingId(null);
     setSelectedEmployee(null);
     setForm(emptyForm);
     setErrors({});
-    setSuccessDialogOpen(true);
+    setToast({ severity: "success", text: successText });
     navigate("/employee-creation");
   };
 
@@ -295,48 +297,268 @@ function Employee_Creation() {
     setEmployees((current) => current.filter((employee) => employee.id !== employeeToDelete.id));
     setDeleteDialogOpen(false);
     setEmployeeToDelete(null);
-    setMessage("Employee deleted successfully");
-    setMessageSeverity("success");
+    setToast({ severity: "success", text: "Employee deleted successfully." });
   };
 
   return (
     <Box className="employee-creation-page" sx={{ width: "100%", minWidth: 0, overflowX: "hidden" }}>
-      {message && <Alert severity={messageSeverity} onClose={() => setMessage("")} sx={{ mb: 2 }}>{message}</Alert>}
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 3, justifyContent: "space-between", alignItems: { xs: "stretch", sm: "center" } }}>
-        <Box sx={{ minWidth: 0 }}><Typography variant="h4" sx={{ color: PRIMARY_GREEN, fontWeight: 800, fontSize: { xs: "2rem", sm: "2.125rem" } }}>Employees</Typography><Typography sx={{ color: "#5b7280", mt: 0.5 }}>Manage your employee records in one place.</Typography></Box>
-        <Button variant="contained" size="large" startIcon={<AddRoundedIcon />} onClick={openCreateDrawer} disabled={loading} sx={{ width: { xs: "100%", sm: "auto" }, px: 3, py: 1.35, bgcolor: PRIMARY_GREEN, fontWeight: 800, "&:hover": { bgcolor: "#285c2f" } }}>Create</Button>
+      <Snackbar
+        className="employee-creation-toast"
+        open={!!toast}
+        autoHideDuration={4000}
+        onClose={() => setToast(null)}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        {toast ? (
+          <Alert severity={toast.severity} variant="filled" onClose={() => setToast(null)} sx={{ bgcolor: toast.severity === "success" ? PRIMARY_GREEN : undefined }}>
+            {toast.text}
+          </Alert>
+        ) : undefined}
+      </Snackbar>
+
+      {message && (
+        <Alert severity="error" onClose={() => setMessage("")} sx={{ mb: 2 }}>
+          {message}
+        </Alert>
+      )}
+
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={2}
+        sx={{ mb: 3, justifyContent: "space-between", alignItems: { xs: "stretch", sm: "center" } }}
+      >
+        <Box sx={{ minWidth: 0 }}>
+          <Typography variant="h4" sx={{ color: PRIMARY_GREEN, fontWeight: 800, fontSize: { xs: "1.6rem", sm: "1.9rem", md: "2.125rem" } }}>
+            Employees
+          </Typography>
+          <Typography sx={{ color: "#5b7280", mt: 0.5, fontSize: { xs: 13, sm: 14 } }}>
+            Manage your employee records in one place.
+          </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          size="large"
+          startIcon={<AddRoundedIcon />}
+          onClick={openCreateDrawer}
+          disabled={loading}
+          sx={{ width: { xs: "100%", sm: "auto" }, px: 3, py: 1.35, bgcolor: PRIMARY_GREEN, fontWeight: 800, "&:hover": { bgcolor: "#285c2f" } }}
+        >
+          Create
+        </Button>
       </Stack>
-      <TableContainer component={Paper} sx={{ width: "100%", border: "1px solid #d7f0df", overflowX: "auto" }}>
+
+      {/* ============ MOBILE / TABLET: card list (below md) ============ */}
+      <Stack spacing={1.5} sx={{ display: { xs: "flex", md: "none" } }}>
+        {employees.length === 0 ? (
+          <Paper sx={{ p: 4, textAlign: "center", color: "#78909c", border: "1px solid #d7f0df" }}>
+            No employees found. Tap "Create" to add one.
+          </Paper>
+        ) : (
+          employees.map((employee) => (
+            <Paper key={employee.id} sx={{ p: 2, border: "1px solid #d7f0df" }}>
+              <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontWeight: 800, color: "#15803d", fontSize: 15 }}>{employee.id}</Typography>
+                  <Typography sx={{ fontWeight: 700, fontSize: 16, mt: 0.25, wordBreak: "break-word" }}>{employee.name}</Typography>
+                </Box>
+                <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
+                  <Tooltip title="Edit employee">
+                    <IconButton
+                      aria-label={`Edit ${employee.name}`}
+                      onClick={() => openEditDrawer(employee)}
+                      size="small"
+                      sx={{ color: "#16a34a", bgcolor: "#e8f7ee", "&:hover": { bgcolor: "#d7f0df" } }}
+                    >
+                      <EditOutlinedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Delete employee">
+                    <IconButton
+                      aria-label={`Delete ${employee.name}`}
+                      onClick={() => openDeleteDialog(employee)}
+                      size="small"
+                      sx={{ color: "#d14343", bgcolor: "#fff0f0", "&:hover": { bgcolor: "#ffe0e0" } }}
+                    >
+                      <DeleteOutlineRoundedIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
+              </Stack>
+
+              <Stack spacing={0.5} sx={{ fontSize: 13.5 }}>
+                <Stack direction="row" spacing={1}>
+                  <Typography sx={{ color: "#78909c", minWidth: 78, fontSize: 13 }}>Email</Typography>
+                  <Typography sx={{ wordBreak: "break-word", fontSize: 13.5 }}>{employee.email}</Typography>
+                </Stack>
+                <Stack direction="row" spacing={1}>
+                  <Typography sx={{ color: "#78909c", minWidth: 78, fontSize: 13 }}>Phone</Typography>
+                  <Typography sx={{ fontSize: 13.5 }}>{employee.phone}</Typography>
+                </Stack>
+                <Stack direction="row" spacing={1}>
+                  <Typography sx={{ color: "#78909c", minWidth: 78, fontSize: 13 }}>Designation</Typography>
+                  <Typography sx={{ fontSize: 13.5 }}>{employee.designation}</Typography>
+                </Stack>
+              </Stack>
+
+              <Box sx={{ mt: 1.25 }}>
+                <Box component="span" sx={{ px: 1.5, py: 0.6, borderRadius: 10, bgcolor: "#dff5e9", color: "#167044", fontWeight: 700, fontSize: 12.5 }}>
+                  {employee.status}
+                </Box>
+              </Box>
+            </Paper>
+          ))
+        )}
+      </Stack>
+
+      {/* ============ DESKTOP: table (md and up) ============ */}
+      <TableContainer component={Paper} sx={{ display: { xs: "none", md: "block" }, width: "100%", border: "1px solid #d7f0df", overflowX: "auto" }}>
         <Table sx={{ minWidth: 780 }}>
-          <TableHead sx={{ bgcolor: "#e8f7ee" }}><TableRow>{["Employee ID", "Name", "Email", "Phone", "Designation", "Status", "Action"].map((heading) => <TableCell key={heading} sx={{ color: "#14532d", fontWeight: 800, whiteSpace: "nowrap" }}>{heading}</TableCell>)}</TableRow></TableHead>
-          <TableBody>{employees.length === 0 ? <TableRow><TableCell colSpan={7} align="center" sx={{ py: 5, color: "#78909c" }}>No employees found. Click "Create Employee" to add one.</TableCell></TableRow> : employees.map((employee) => <TableRow key={employee.id} hover>
-            <TableCell sx={{ fontWeight: 700, color: "#15803d" }}>{employee.id}</TableCell><TableCell>{employee.name}</TableCell><TableCell>{employee.email}</TableCell><TableCell>{employee.phone}</TableCell><TableCell>{employee.designation}</TableCell>
-            <TableCell><Box component="span" sx={{ px: 1.5, py: 0.6, borderRadius: 10, bgcolor: "#dff5e9", color: "#167044", fontWeight: 700, fontSize: 13 }}>{employee.status}</Box></TableCell>
-            <TableCell><Stack direction="row" spacing={0.5}><Tooltip title="Edit employee"><IconButton aria-label={`Edit ${employee.name}`} onClick={() => openEditDrawer(employee)} sx={{ color: "#16a34a", bgcolor: "#e8f7ee", "&:hover": { bgcolor: "#d7f0df" } }}><EditOutlinedIcon /></IconButton></Tooltip><Tooltip title="Delete employee"><IconButton aria-label={`Delete ${employee.name}`} onClick={() => openDeleteDialog(employee)} sx={{ color: "#d14343", bgcolor: "#fff0f0", "&:hover": { bgcolor: "#ffe0e0" } }}><DeleteOutlineRoundedIcon /></IconButton></Tooltip></Stack></TableCell>
-          </TableRow>)}</TableBody>
+          <TableHead sx={{ bgcolor: "#e8f7ee" }}>
+            <TableRow>
+              {["Employee ID", "Name", "Email", "Phone", "Designation", "Status", "Action"].map((heading) => (
+                <TableCell key={heading} sx={{ color: "#14532d", fontWeight: 800, whiteSpace: "nowrap" }}>
+                  {heading}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {employees.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} align="center" sx={{ py: 5, color: "#78909c" }}>
+                  No employees found. Click "Create" to add one.
+                </TableCell>
+              </TableRow>
+            ) : (
+              employees.map((employee) => (
+                <TableRow key={employee.id} hover>
+                  <TableCell sx={{ fontWeight: 700, color: "#15803d" }}>{employee.id}</TableCell>
+                  <TableCell>{employee.name}</TableCell>
+                  <TableCell>{employee.email}</TableCell>
+                  <TableCell>{employee.phone}</TableCell>
+                  <TableCell>{employee.designation}</TableCell>
+                  <TableCell>
+                    <Box component="span" sx={{ px: 1.5, py: 0.6, borderRadius: 10, bgcolor: "#dff5e9", color: "#167044", fontWeight: 700, fontSize: 13 }}>
+                      {employee.status}
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Stack direction="row" spacing={0.5}>
+                      <Tooltip title="Edit employee">
+                        <IconButton
+                          aria-label={`Edit ${employee.name}`}
+                          onClick={() => openEditDrawer(employee)}
+                          sx={{ color: "#16a34a", bgcolor: "#e8f7ee", "&:hover": { bgcolor: "#d7f0df" } }}
+                        >
+                          <EditOutlinedIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete employee">
+                        <IconButton
+                          aria-label={`Delete ${employee.name}`}
+                          onClick={() => openDeleteDialog(employee)}
+                          sx={{ color: "#d14343", bgcolor: "#fff0f0", "&:hover": { bgcolor: "#ffe0e0" } }}
+                        >
+                          <DeleteOutlineRoundedIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </Stack>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
         </Table>
       </TableContainer>
 
-      <Drawer anchor="right" open={drawerOpen} onClose={closeDrawer}>
-        <Box sx={{ width: { xs: "100vw", sm: 500 }, maxWidth: "100%", minHeight: "100vh", boxSizing: "border-box", overflowY: "auto", display: "flex", flexDirection: "column", p: { xs: 1.5, sm: 3 } }}>
-          <Typography variant="h5" sx={{ color: PRIMARY_GREEN, fontWeight: 800, fontSize: { xs: "1.5rem", sm: "1.75rem" }, mb: 1.5 }}>{isEdit ? "Edit Employee" : "Create Employee"}</Typography>
-          {messageSeverity === "error" && message && <Alert severity="error" onClose={() => setMessage("")} sx={{ mb: 2 }}>{message}</Alert>}
-          <Stack spacing={4}>
+      <Drawer
+        anchor="right"
+        open={drawerOpen}
+        className="employee-creation-drawer"
+        onClose={(_event, reason) => {
+          // Backdrop click / Escape must NOT close the form — only the
+          // Cancel button (or a successful save) should.
+          if (reason === "backdropClick" || reason === "escapeKeyDown") return;
+          closeDrawer();
+        }}
+      >
+        <Box
+          sx={{
+            width: { xs: "100vw", sm: 480, md: 520 },
+            maxWidth: "100%",
+            minHeight: "100vh",
+            boxSizing: "border-box",
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+            p: { xs: 2, sm: 3, md: 4 },
+          }}
+        >
+          <Typography variant="h5" sx={{ color: PRIMARY_GREEN, fontWeight: 800, fontSize: { xs: "1.4rem", sm: "1.6rem", md: "1.75rem" }, mb: 1.5 }}>
+            {isEdit ? "Edit Employee" : "Create Employee"}
+          </Typography>
+
+          {message && (
+            <Alert severity="error" onClose={() => setMessage("")} sx={{ mb: 2 }}>
+              {message}
+            </Alert>
+          )}
+
+          <Stack spacing={{ xs: 2.5, sm: 3.5 }}>
             <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 1.5 }} sx={{ alignItems: { sm: "center" } }}>
-              <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>Employee ID</Typography>
-              <TextField fullWidth size="small" value={form.id} onChange={(event) => updateField("id", event.target.value)} error={Boolean(errors.id)} helperText={errors.id} required sx={formFieldSx} />
+              <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>
+                Employee ID
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                value={form.id}
+                onChange={(event) => updateField("id", event.target.value)}
+                error={Boolean(errors.id)}
+                helperText={errors.id}
+                required
+                sx={formFieldSx}
+              />
             </Stack>
+
             <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 1.5 }} sx={{ alignItems: { sm: "center" } }}>
-              <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>Name</Typography>
-              <TextField fullWidth size="small" value={form.name} onChange={(event) => updateField("name", event.target.value)} error={Boolean(errors.name)} helperText={errors.name} required sx={formFieldSx} />
+              <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>
+                Name
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                value={form.name}
+                onChange={(event) => updateField("name", event.target.value)}
+                error={Boolean(errors.name)}
+                helperText={errors.name}
+                required
+                sx={formFieldSx}
+              />
             </Stack>
+
             <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 1.5 }} sx={{ alignItems: { sm: "center" } }}>
-              <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>Email</Typography>
-              <TextField fullWidth size="small" type="email" value={form.email} onChange={(event) => updateField("email", event.target.value)} error={Boolean(errors.email)} helperText={errors.email} required sx={formFieldSx} />
+              <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>
+                Email
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                type="email"
+                value={form.email}
+                onChange={(event) => updateField("email", event.target.value)}
+                error={Boolean(errors.email)}
+                helperText={errors.email}
+                required
+                sx={formFieldSx}
+              />
             </Stack>
+
             {isCreate && (
               <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 1.5 }} sx={{ alignItems: { sm: "center" } }}>
-                <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>Password</Typography>
+                <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>
+                  Password
+                </Typography>
                 <TextField
                   fullWidth
                   size="small"
@@ -351,16 +573,44 @@ function Employee_Creation() {
                 />
               </Stack>
             )}
+
             <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 1.5 }} sx={{ alignItems: { sm: "center" } }}>
-              <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>Phone</Typography>
-              <TextField fullWidth size="small" value={form.phone} onChange={(event) => updateField("phone", event.target.value.replace(/\D/g, "").slice(0, 10))} error={Boolean(errors.phone)} helperText={errors.phone} placeholder="10-digit mobile number" required sx={formFieldSx} />
+              <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>
+                Phone
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                value={form.phone}
+                onChange={(event) => updateField("phone", event.target.value.replace(/\D/g, "").slice(0, 10))}
+                error={Boolean(errors.phone)}
+                helperText={errors.phone}
+                placeholder="10-digit mobile number"
+                required
+                sx={formFieldSx}
+              />
             </Stack>
+
             <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 1.5 }} sx={{ alignItems: { sm: "center" } }}>
-              <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>Designation</Typography>
-              <TextField fullWidth size="small" value={form.designation} onChange={(event) => updateField("designation", event.target.value)} error={Boolean(errors.designation)} helperText={errors.designation} required sx={formFieldSx} />
+              <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>
+                Designation
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                value={form.designation}
+                onChange={(event) => updateField("designation", event.target.value)}
+                error={Boolean(errors.designation)}
+                helperText={errors.designation}
+                required
+                sx={formFieldSx}
+              />
             </Stack>
+
             <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 1.5 }} sx={{ alignItems: { sm: "center" } }}>
-              <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>Role</Typography>
+              <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>
+                Role
+              </Typography>
               <RadioGroup
                 row
                 value={String(form.userType)}
@@ -373,24 +623,44 @@ function Employee_Creation() {
               </RadioGroup>
             </Stack>
 
-            <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end", mt: 2 }}>
-              <Button size="small" variant="outlined" onClick={closeDrawer} sx={{ color: PRIMARY_GREEN, borderColor: PRIMARY_GREEN, fontWeight: 700 }}>Cancel</Button>
-              <Button size="small" variant="contained" onClick={saveEmployee} sx={{ bgcolor: PRIMARY_GREEN, fontWeight: 700, "&:hover": { bgcolor: "#285c2f" } }}>Save</Button>
+            <Stack direction={{ xs: "column-reverse", sm: "row" }} spacing={1} sx={{ justifyContent: "flex-end", mt: 2 }}>
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={closeDrawer}
+                sx={{ color: PRIMARY_GREEN, borderColor: PRIMARY_GREEN, fontWeight: 700, width: { xs: "100%", sm: "auto" } }}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="small"
+                variant="contained"
+                onClick={saveEmployee}
+                disabled={saving}
+                sx={{ bgcolor: PRIMARY_GREEN, fontWeight: 700, width: { xs: "100%", sm: "auto" }, "&:hover": { bgcolor: "#285c2f" } }}
+              >
+                {saving ? "Saving..." : "Save"}
+              </Button>
             </Stack>
           </Stack>
         </Box>
       </Drawer>
 
-      <Dialog open={successDialogOpen} onClose={() => setSuccessDialogOpen(false)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ color: PRIMARY_GREEN, fontWeight: 800 }}>Success</DialogTitle>
-        <DialogContent><Typography>{successMessage}</Typography></DialogContent>
-        <DialogActions><Button onClick={() => setSuccessDialogOpen(false)} variant="contained" autoFocus sx={{ bgcolor: PRIMARY_GREEN, fontWeight: 700, "&:hover": { bgcolor: "#285c2f" } }}>OK</Button></DialogActions>
-      </Dialog>
-
-      <Dialog open={deleteDialogOpen} onClose={cancelDelete} maxWidth="xs" fullWidth>
+      <Dialog open={deleteDialogOpen} onClose={cancelDelete} maxWidth="xs" fullWidth className="employee-creation-dialog">
         <DialogTitle sx={{ fontWeight: 800, color: "#14532d" }}>Delete Employee</DialogTitle>
-        <DialogContent><Typography sx={{ color: "#5b7280" }}>Are you sure you want to delete <strong>{employeeToDelete?.name}</strong>?</Typography></DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}><Button onClick={cancelDelete} variant="outlined" sx={{ color: "#14532d", borderColor: "#bbe6c8", fontWeight: 700 }}>Cancel</Button><Button onClick={confirmDelete} variant="contained" sx={{ bgcolor: "#d14343", fontWeight: 700, "&:hover": { bgcolor: "#b83232" } }}>Sure</Button></DialogActions>
+        <DialogContent>
+          <Typography sx={{ color: "#5b7280" }}>
+            Are you sure you want to delete <strong>{employeeToDelete?.name}</strong>?
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2, flexWrap: "wrap", gap: 1 }}>
+          <Button onClick={cancelDelete} variant="outlined" sx={{ color: "#14532d", borderColor: "#bbe6c8", fontWeight: 700 }}>
+            Cancel
+          </Button>
+          <Button onClick={confirmDelete} variant="contained" sx={{ bgcolor: "#d14343", fontWeight: 700, "&:hover": { bgcolor: "#b83232" } }}>
+            Sure
+          </Button>
+        </DialogActions>
       </Dialog>
     </Box>
   );

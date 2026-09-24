@@ -13,6 +13,8 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 
 import SpaceDashboardRoundedIcon from "@mui/icons-material/SpaceDashboardRounded";
@@ -23,10 +25,6 @@ import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlin
 import EventNoteOutlinedIcon from "@mui/icons-material/EventNoteOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import PersonAddAltOutlinedIcon from "@mui/icons-material/PersonAddAltOutlined";
-import ManageAccountsOutlinedIcon from "@mui/icons-material/ManageAccountsOutlined";
-
-/* NEW - DAILY TASK ICON */
-import TaskAltOutlinedIcon from "@mui/icons-material/TaskAltOutlined";
 
 import {
   HR,
@@ -54,7 +52,6 @@ interface NavItem {
 ========================================================= */
 
 const navItems: NavItem[] = [
-
   /* =========================
      HR DASHBOARD
   ========================= */
@@ -65,7 +62,6 @@ const navItems: NavItem[] = [
     path: "/hrdashboard",
     roles: [HR],
   },
-
 
   /* =========================
      ADMIN DASHBOARD
@@ -78,7 +74,6 @@ const navItems: NavItem[] = [
     roles: [ADMIN],
   },
 
-
   /* =========================
      EMPLOYEE DASHBOARD
   ========================= */
@@ -90,20 +85,6 @@ const navItems: NavItem[] = [
     roles: [EMPLOYEE],
   },
 
-
-  /* =========================
-     DAILY TASK
-     ADMIN ONLY
-  ========================= */
-
-  {
-    label: "Daily Task",
-    icon: <TaskAltOutlinedIcon />,
-    path: "/daily-task",
-    roles: [ADMIN],
-  },
-
-
   /* =========================
      EMPLOYEE CREATION
      HR + ADMIN ONLY
@@ -113,20 +94,6 @@ const navItems: NavItem[] = [
     label: "Employee Creation",
     icon: <PersonAddAltOutlinedIcon />,
     path: "/employee-creation",
-    roles: [HR, ADMIN],
-  },
-
-
-  /* =========================
-     EMPLOYEE MANAGEMENT
-     (admin view of everyone's check-in/out)
-     HR + ADMIN ONLY
-  ========================= */
-
-  {
-    label: "Employee Management",
-    icon: <ManageAccountsOutlinedIcon />,
-    path: "/employee-management",
     roles: [HR, ADMIN],
   },
 
@@ -142,7 +109,6 @@ const navItems: NavItem[] = [
     roles: [HR, ADMIN, EMPLOYEE],
   },
 
-
   /* =========================
      COMPANY CALENDAR
      ALL ROLES
@@ -155,7 +121,6 @@ const navItems: NavItem[] = [
     roles: [HR, ADMIN, EMPLOYEE],
   },
 
-
   /* =========================
      CHECK IN / OUT
      ALL ROLES
@@ -167,20 +132,17 @@ const navItems: NavItem[] = [
     path: "/checkinout",
     roles: [HR, ADMIN, EMPLOYEE],
   },
-
-
-  /* =========================
-     LEAVE POLICIES
-     ALL ROLES
-  ========================= */
-
   {
     label: "Leave Policies",
     icon: <EventAvailableOutlinedIcon />,
     path: "/leave-policies",
     roles: [HR, ADMIN, EMPLOYEE],
   },
-
+  // {
+  //   label: "Leaves and Permissions",
+  //   icon:  <EventAvailableOutlinedIcon sx={{ fontSize: 20 }} />,
+  //   path:  "/leaves-permissions",
+  // },
 
   /* =========================
      HOLIDAYS
@@ -194,7 +156,6 @@ const navItems: NavItem[] = [
     roles: [HR, ADMIN],
   },
 
-
   /* =========================
      LEAVE REQUESTS
      HR + ADMIN ONLY
@@ -206,7 +167,6 @@ const navItems: NavItem[] = [
     path: "/admin-leaves-permissions",
     roles: [HR, ADMIN],
   },
-
 
   /* =========================
      LEAVES AND PERMISSIONS
@@ -224,13 +184,27 @@ const navItems: NavItem[] = [
 
 /* =========================================================
    SIDEBAR COMPONENT
+
+   Real desktops (>= 1200px, MUI's "lg") keep the permanent
+   sidebar as before. Anything narrower — phones AND tablets,
+   portrait or landscape (iPad landscape is ~1024–1180px,
+   comfortably under 1200) — gets an off-canvas drawer instead
+   of a shrinking column, opened via a hamburger button that
+   lives in MainLayout's header.
 ========================================================= */
 
-function Sidebar() {
+interface SidebarProps {
+  mobileOpen: boolean;
+  onClose: () => void;
+}
 
+function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   const { pathname } = useLocation();
 
   const navigate = useNavigate();
+
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
 
 
   /* =========================================================
@@ -244,15 +218,11 @@ function Sidebar() {
 
   if (storedUser) {
     try {
-
       const user = JSON.parse(storedUser);
 
       userType = Number(user.userType);
-
     } catch {
-
       userType = null;
-
     }
   }
 
@@ -274,26 +244,30 @@ function Sidebar() {
   ========================================================= */
 
   const handleLogout = () => {
-
     /*
-      Clear localStorage:
+      Clear all browser storage used by this app.
+
+      This removes:
       - token
       - loggedInUser
       - employeeLoginSession
-      - other stored values
+      - any other localStorage values
     */
 
     localStorage.clear();
 
     /*
-      Clear sessionStorage
+      Clear sessionStorage also
     */
 
     sessionStorage.clear();
 
     /*
-      Go to login and remove previous
-      authenticated page from history
+      Reload the application fresh.
+
+      replace() is better than navigate("/login")
+      for logout because the current authenticated
+      page is replaced in browser history.
     */
 
     window.location.replace("/login");
@@ -306,10 +280,12 @@ function Sidebar() {
 
   return (
     <Drawer
-      variant="permanent"
+      variant={isDesktop ? "permanent" : "temporary"}
+      open={isDesktop ? true : mobileOpen}
+      onClose={onClose}
       className="sidebar-drawer"
+      ModalProps={{ keepMounted: true }}
     >
-
       {/* =========================
           LOGO
       ========================= */}
@@ -327,22 +303,9 @@ function Sidebar() {
       ========================= */}
 
       <List className="sidebar-nav">
-
         {visibleNavItems.map((item) => {
-
-          /*
-            Example:
-
-            /daily-task
-            /daily-task/add
-            /daily-task/123
-
-            All will keep Daily Task active.
-          */
-
           const isActive =
-            pathname === item.path ||
-            pathname.startsWith(`${item.path}/`);
+            pathname === item.path;
 
           return (
             <ListItemButton
@@ -353,11 +316,11 @@ function Sidebar() {
                   ? "sidebar-nav-item-active"
                   : ""
               }`}
-              onClick={() =>
-                navigate(item.path)
-              }
+              onClick={() => {
+                navigate(item.path);
+                if (!isDesktop) onClose();
+              }}
             >
-
               <ListItemIcon className="sidebar-nav-icon">
                 {item.icon}
               </ListItemIcon>
@@ -366,11 +329,9 @@ function Sidebar() {
                 primary={item.label}
                 className="sidebar-nav-text"
               />
-
             </ListItemButton>
           );
         })}
-
       </List>
 
 
@@ -379,14 +340,12 @@ function Sidebar() {
       ========================= */}
 
       <Box className="sidebar-bottom">
-
         <Divider className="sidebar-divider" />
 
         <ListItemButton
           className="sidebar-logout"
           onClick={handleLogout}
         >
-
           <ListItemIcon className="sidebar-logout-icon">
             <LogoutOutlinedIcon />
           </ListItemIcon>
@@ -395,11 +354,8 @@ function Sidebar() {
             primary="Log out"
             className="sidebar-logout-text"
           />
-
         </ListItemButton>
-
       </Box>
-
     </Drawer>
   );
 }

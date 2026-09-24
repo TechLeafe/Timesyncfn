@@ -21,6 +21,14 @@
   overflow-x: hidden;
 }
 
+/* On very narrow phones, cap the off-canvas drawer to a share of the
+   viewport instead of a fixed 240px, so it never crowds the whole screen. */
+@media (max-width: 320px) {
+  .sidebar-drawer .MuiDrawer-paper {
+    width: 85vw;
+  }
+}
+
 
 /* ================================
    LOGO

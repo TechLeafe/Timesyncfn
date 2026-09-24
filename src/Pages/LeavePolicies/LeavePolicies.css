@@ -135,12 +135,23 @@
 	background-color: #b3261e !important;
 }
 
-@media (max-width: 700px) {
+.leave-policies__policy-card { padding: 16px; border: 1px solid #e1e8e2; box-shadow: none !important; }
+.leave-policies__policy-card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.leave-policies__policy-card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.leave-policies__policy-card-field { background: #f4f8f4; border-radius: 6px; padding: 10px 12px; }
+.leave-policies__policy-card-label { color: #6b756d; font-size: 12px !important; }
+.leave-policies__policy-card-value { color: #245c2c; font-weight: 700 !important; font-size: 15px !important; margin-top: 2px !important; }
+
+@media (max-width: 899px) {
 	.leave-policies { padding: 18px; }
-	.leave-policies__header, .leave-policies__detail-header { flex-direction: column; }
+	.leave-policies__header, .leave-policies__detail-header { flex-direction: column; align-items: stretch !important; }
 	.leave-policies__stat-grid { grid-template-columns: repeat(2, 1fr); }
 	.leave-policies__table-card { overflow-x: auto; }
 	.leave-policies__form-grid { grid-template-columns: 1fr; }
 	.leave-policies__line { align-items: flex-start; flex-direction: column; gap: 5px; }
 	.leave-policies__line-value { text-align: left; }
+}
+
+@media (max-width: 400px) {
+	.leave-policies__policy-card-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
 }

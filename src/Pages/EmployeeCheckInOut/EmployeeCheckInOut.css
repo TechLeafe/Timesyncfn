@@ -8,6 +8,8 @@
   grid-template-columns: 4fr 6fr;
   gap: 18px;
   width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
   height: 100%;
 }
 
@@ -421,6 +423,43 @@
   line-height: 1.2 !important;
 
   word-break: break-word;
+}
+
+/* =========================================
+   LARGE TABLET / SMALL LAPTOP
+
+   Covers landscape on devices like Surface Pro 10 (~1368px)
+   and iPad Pro 13" (~1376px), and iPad Pro 13" portrait
+   (~1032px) — this band sat between the mobile stack (<=900px)
+   and the full desktop grid with no tuning at all, so the fixed
+   520px profile-card height and edge-to-edge container left a
+   large amount of visibly empty space next to the shorter
+   natural-height timer/details column.
+========================================= */
+
+@media (min-width: 901px) and (max-width: 1440px) {
+  .employee-attendance-container {
+    max-width: 980px;
+    gap: 20px;
+  }
+
+  .employee-profile-card {
+    min-height: 440px;
+  }
+
+  .employee-profile-content {
+    min-height: 440px;
+    padding: 26px 28px !important;
+  }
+
+  .employee-name {
+    font-size: 26px !important;
+  }
+
+  .employee-image-wrapper {
+    width: 128px;
+    height: 128px;
+  }
 }
 
 /* =========================================

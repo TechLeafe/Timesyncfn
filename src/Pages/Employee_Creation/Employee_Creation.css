@@ -1,12 +1,19 @@
-.employee-creation-page {
-  --employee-primary-green: #35753B;
+:root {
+	--employee-primary-green: #35753B;
 }
 
-.employee-creation-page .MuiFormHelperText-root.Mui-error {
-  margin-left: 0;
-  margin-right: 0;
+.employee-creation-drawer .MuiFormHelperText-root.Mui-error {
+	margin-left: 0;
+	margin-right: 0;
 }
 
-.employee-creation-page .MuiDialog-paper {
-  border-top: 4px solid var(--employee-primary-green);
+.employee-creation-dialog .MuiDialog-paper {
+	border-top: 4px solid var(--employee-primary-green);
+}
+
+@media (max-width: 480px) {
+	.employee-creation-toast .MuiSnackbar-root {
+		left: 8px !important;
+		right: 8px !important;
+	}
 }
