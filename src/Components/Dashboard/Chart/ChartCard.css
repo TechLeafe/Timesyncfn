@@ -1,34 +1,383 @@
+/* =========================================================
+   CHART CARD
+========================================================= */
 
 .chart-card {
-  flex: 1;
-  min-width: 320px;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
-  padding: 20px 22px 8px;
+  width: 100%;
+  max-width: 100%;
+
+  min-width: 0;
+
+  box-sizing: border-box;
+
+  background:
+    var(
+      --card-bg,
+      #ffffff
+    );
+
+  border:
+    1px solid
+    var(
+      --card-border,
+      #e5e7eb
+    );
+
+  border-radius:
+    var(
+      --radius-lg,
+      14px
+    );
+
+  box-shadow:
+    0 1px 4px
+    rgba(0, 0, 0, 0.05);
+
+  padding:
+    20px 22px 16px;
+
   display: flex;
+
   flex-direction: column;
+
+  overflow: hidden;
 }
+
+
+/* =========================================================
+   TITLE
+========================================================= */
 
 .chart-card__title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 4px;
+  margin-bottom:
+    4px !important;
+
+  color:
+    var(
+      --text-primary,
+      #111827
+    ) !important;
+
+  font-size:
+    16px !important;
+
+  font-weight:
+    600 !important;
+
+  line-height:
+    1.4 !important;
+
+  overflow-wrap:
+    anywhere;
 }
+
+
+/* =========================================================
+   SUBTITLE
+========================================================= */
 
 .chart-card__subtitle {
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-  margin-bottom: 12px;
+  margin-bottom:
+    12px !important;
+
+  color:
+    var(
+      --text-secondary,
+      #6b7280
+    ) !important;
+
+  font-size:
+    13px !important;
+
+  line-height:
+    1.5 !important;
+
+  overflow-wrap:
+    anywhere;
 }
+
+
+/* =========================================================
+   BODY
+========================================================= */
 
 .chart-card__body {
+  width: 100%;
+  min-width: 0;
+
   flex: 1;
+
   display: flex;
+
   align-items: center;
   justify-content: center;
-  min-height: 260px;
+
+  box-sizing: border-box;
 }
 
+
+/* =========================================================
+   PIE
+========================================================= */
+
+.chart-card__body--pie {
+  min-height: 220px;
+}
+
+
+.chart-card__pie-layout {
+  width: 100%;
+  min-width: 0;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto;
+
+  align-items: center;
+
+  gap: 16px;
+}
+
+
+.chart-card__pie-chart {
+  width: 100%;
+  min-width: 0;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+}
+
+
+.chart-card__pie-chart svg {
+  max-width: 100%;
+}
+
+
+/* =========================================================
+   LEGEND
+========================================================= */
+
+.chart-card__legend {
+  min-width: 135px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 12px;
+}
+
+
+.chart-card__legend-item {
+  min-width: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+}
+
+
+.chart-card__legend-dot {
+  width: 12px;
+  height: 12px;
+
+  min-width: 12px;
+
+  border-radius: 50%;
+
+  flex-shrink: 0;
+}
+
+
+.chart-card__legend-text {
+  color:
+    #111827 !important;
+
+  font-size:
+    13px !important;
+
+  font-weight:
+    500 !important;
+
+  line-height:
+    1.35 !important;
+
+  overflow-wrap:
+    anywhere;
+}
+
+
+/* =========================================================
+   BAR CHART
+========================================================= */
+
+.chart-card__bar-chart {
+  width: 100%;
+  min-width: 0;
+
+  overflow: hidden;
+}
+
+
+.chart-card__bar-chart svg {
+  max-width: 100%;
+}
+
+
+/* =========================================================
+   EMPTY CHART
+========================================================= */
+
+.chart-card__empty {
+  width: 100%;
+
+  min-height: 140px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+
+  padding: 20px;
+
+  text-align: center;
+}
+
+
+.chart-card__empty p {
+  margin: 0 !important;
+
+  color:
+    #667085 !important;
+
+  font-size:
+    14px !important;
+
+  font-weight:
+    500 !important;
+
+  line-height:
+    1.5 !important;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+
+  .chart-card {
+    padding:
+      18px 20px 16px;
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+  .chart-card {
+    padding: 16px;
+
+    border-radius: 12px;
+  }
+
+
+  .chart-card__title {
+    font-size:
+      15px !important;
+  }
+
+
+  .chart-card__subtitle {
+    margin-bottom:
+      8px !important;
+
+    font-size:
+      13px !important;
+  }
+
+
+  .chart-card__pie-layout {
+    grid-template-columns:
+      minmax(0, 1fr);
+
+    gap: 8px;
+  }
+
+
+  .chart-card__pie-chart {
+    max-width: 270px;
+
+    margin:
+      0 auto;
+  }
+
+
+  .chart-card__legend {
+    width: 100%;
+
+    min-width: 0;
+
+    display: grid;
+
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+
+    gap:
+      10px 12px;
+  }
+
+
+  .chart-card__empty {
+    min-height: 100px;
+
+    padding:
+      12px 8px;
+  }
+
+}
+
+
+/* =========================================================
+   VERY SMALL MOBILE
+========================================================= */
+
+@media (max-width: 380px) {
+
+  .chart-card {
+    padding: 14px;
+  }
+
+
+  .chart-card__pie-chart {
+    max-width: 235px;
+  }
+
+
+  .chart-card__legend {
+    grid-template-columns:
+      minmax(0, 1fr);
+
+    gap: 8px;
+  }
+
+}

@@ -87,13 +87,6 @@ const pageTitles:
 
 /* =========================================================
    MAIN LAYOUT
-
-   isMobile is computed once here — the single source of truth
-   for the breakpoint — and passed down to Sidebar, so the
-   hamburger button and the drawer's own open/close behavior
-   can never disagree about which mode the app is in. The
-   breakpoint (899.98px) matches Mainlayout.css's own
-   "TABLET + MOBILE" media query exactly.
 ========================================================= */
 
 const MainLayout = () => {
@@ -101,51 +94,137 @@ const MainLayout = () => {
   const { pathname } =
     useLocation();
 
-  const pageTitle = pageTitles[pathname];
 
-  const isMobile = useMediaQuery("(max-width:899.98px)");
+  /* =========================================================
+     PAGE TITLE
+  ========================================================= */
 
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const getPageTitle = () => {
 
-  /* Always close the off-canvas sidebar on navigation. */
+    if (
+      pathname === "/daily-task" ||
+      pathname.startsWith(
+        "/daily-task/"
+      )
+    ) {
+      return "Daily Tasks";
+    }
+
+    return (
+      pageTitles[pathname] ||
+      ""
+    );
+  };
+
+
+  const pageTitle =
+    getPageTitle();
+
+
+  /* =========================================================
+     RESPONSIVE SIDEBAR
+  ========================================================= */
+
+  const isMobile =
+    useMediaQuery(
+      "(max-width:899.98px)"
+    );
+
+
+  const [
+    mobileOpen,
+    setMobileOpen,
+  ] =
+    useState(false);
+
+
+  /* =========================================================
+     CLOSE DRAWER AFTER NAVIGATION
+  ========================================================= */
+
   useEffect(() => {
+
     setMobileOpen(false);
+
   }, [pathname]);
 
+
+  /* =========================================================
+     UI
+  ========================================================= */
+
   return (
-    <Box className="main-layout">
+
+    <Box className="app-main-layout">
 
       <ScrollRestoration />
 
+
+      {/* =====================================================
+          SIDEBAR
+      ===================================================== */}
+
       <Sidebar
-        mobileOpen={mobileOpen}
-        isMobile={isMobile}
-        onClose={() => setMobileOpen(false)}
+        mobileOpen={
+          mobileOpen
+        }
+        isMobile={
+          isMobile
+        }
+        onClose={() =>
+          setMobileOpen(false)
+        }
       />
 
-      <Box component="main" className="main-content">
 
-        <Box className="page-header">
+      {/* =====================================================
+          MAIN CONTENT
+      ===================================================== */}
 
-          <Box className="page-header-left">
+      <Box
+        component="main"
+        className="app-main-content"
+      >
+
+        {/* ===================================================
+            HEADER
+        =================================================== */}
+
+        <Box className="app-page-header">
+
+          {/* LEFT */}
+
+          <Box className="app-page-header-left">
 
             {isMobile && (
+
               <IconButton
-                className="mobile-menu-button"
-                onClick={() => setMobileOpen(true)}
+                className="app-mobile-menu-button"
+                onClick={() =>
+                  setMobileOpen(true)
+                }
                 aria-label="Open navigation menu"
               >
+
                 <MenuRoundedIcon />
+
               </IconButton>
+
             )}
 
-            <Typography className="page-title">
+
+            <Typography
+              className="app-page-title"
+            >
               {pageTitle}
             </Typography>
 
           </Box>
 
-          <Box className="page-header-profile">
+
+          {/* PROFILE */}
+
+          <Box className="app-page-header-profile">
 
             <ProfileDropdown />
 
@@ -154,11 +233,11 @@ const MainLayout = () => {
         </Box>
 
 
-        {/* =========================
-            PAGE
-        ========================= */}
+        {/* ===================================================
+            PAGE CONTENT
+        =================================================== */}
 
-        <Box className="page-content">
+        <Box className="app-page-content">
 
           <Outlet />
 
@@ -169,5 +248,6 @@ const MainLayout = () => {
     </Box>
   );
 };
+
 
 export default MainLayout;

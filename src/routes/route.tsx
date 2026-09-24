@@ -8,7 +8,7 @@ import CompanyCalendar from "../Pages/Companycalendar";
 import Attendance from "../Pages/Attendance";
 import Admin from "../Pages/Dashboard/AdminDashboard";
 import EmployeeDashboard from "../Pages/Dashboard/EmployeeDashboard";
-//import HRDashboard from "../Pages/Dashboard/HRDashboard";
+import HRDashboard from "../Pages/Dashboard/HRDashboard";
 import { Login } from "../Pages/Login/Login";
 
 import Employee_Creation from "../Pages/Employee_Creation/Employee_Creation";
@@ -110,10 +110,10 @@ export const route = createBrowserRouter([
                 path: "admindashboard",
                 element: <Admin />
             },
-            // {
-            //     path: "hrdashboard",
-            //     element: <HRDashboard />
-            // },
+            {
+                path: "hrdashboard",
+                element: <HRDashboard />
+            },
             {
                 path: "calendar",
                 element: <CompanyCalendar />,

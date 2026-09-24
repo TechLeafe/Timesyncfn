@@ -236,7 +236,7 @@ const EmployeeDashboard = () => {
 
   return (
       <Box component="main" className="admin-dashboard__main">
-        <Box className="admin-dashboard__stats">
+        <Box className="admin-dashboard__stats employee-dashbaord_status">
           {STATS.map((stat) => (
             <StatCard key={stat.label} {...stat} />
           ))}
