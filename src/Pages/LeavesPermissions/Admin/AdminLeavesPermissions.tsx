@@ -308,6 +308,11 @@ function AdminLeavesPermissions() {
               setStatusFilter(event.target.value as "All" | RequestStatus)
             }
             className="admin-leaves-permissions__status-filter"
+            MenuProps={{
+              classes: {
+                paper: "admin-leaves-permissions__status-menu",
+              },
+            }}
             sx={{ minWidth: 160}}
             aria-label="Filter leave requests by status"
           >

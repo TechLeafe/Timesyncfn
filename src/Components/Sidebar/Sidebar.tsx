@@ -214,7 +214,7 @@ const navItems: NavItem[] = [
   ========================= */
 
   {
-    label: "Leaves and Permissions",
+    label: "Leaves Apply",
     icon: <EventAvailableOutlinedIcon />,
     path: "/employee-leaves-permissions",
     roles: [EMPLOYEE],

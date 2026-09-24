@@ -38,6 +38,9 @@
   --holiday-bg:     var(--brand-red-light);
   --holiday-text:   var(--brand-red);
   --holiday-border: #FFCDD2;
+
+  /* company calendar */
+  --company-calendar-purple: #e089ee;
 }
 
 * {
@@ -49,10 +52,10 @@ body,
 #root {
   height: 100%;
   margin: 0;
+  font-family: var(--font-family);
 }
 
 body {
-  font-family: var(--font-family);
   font-size: 14px;
   color: var(--text-primary);
   background-color: var(--bg-main);

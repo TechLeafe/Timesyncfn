@@ -180,6 +180,15 @@
   border-width: 2px;
 }
 
+.admin-leaves-permissions__status-menu .MuiMenuItem-root.Mui-selected {
+  background-color: var(--brand-green-dark) !important;
+  color: var(--card-bg) !important;
+}
+
+.admin-leaves-permissions__status-menu .MuiMenuItem-root.Mui-selected:hover {
+  background-color: var(--brand-green-mid) !important;
+}
+
 .admin-leaves-permissions__table-wrapper {
   overflow-x: auto;
 }

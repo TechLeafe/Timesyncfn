@@ -1,0 +1,286 @@
+.attendance-page {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
+}
+
+.attendance-page *,
+.attendance-page *::before,
+.attendance-page *::after {
+  box-sizing: border-box;
+}
+
+.attendance-page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  min-width: 0;
+}
+
+.attendance-header-icon {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 12px;
+  background-color: #E8F5E9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--brand-green-dark);
+  flex-shrink: 0;
+}
+
+.attendance-header-icon-svg {
+  font-size: 24px !important;
+  color: var(--brand-green-dark);
+}
+
+.attendance-header-content {
+  min-width: 0;
+}
+
+.attendance-title {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  color: var(--brand-green-dark) !important;
+  line-height: 1.3 !important;
+}
+
+.attendance-subtitle {
+  font-size: 13px !important;
+  color: var(--brand-green-dark) !important;
+  line-height: 1.5 !important;
+}
+
+.attendance-role-info {
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  border-radius: 9px;
+  width: 100%;
+}
+
+.attendance-role-info-employee {
+  background-color: #F0FDF4;
+  border: 1px solid #DCFCE7;
+}
+
+.attendance-role-info-admin {
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+}
+
+.attendance-role-text {
+  font-size: 12.5px !important;
+  line-height: 1.5 !important;
+}
+
+.attendance-role-text-employee {
+  color: #166534 !important;
+}
+
+.attendance-role-text-admin {
+  color: #475569 !important;
+}
+
+.attendance-main-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 20px;
+  align-items: start;
+  width: 100%;
+}
+
+.attendance-calendar {
+  min-width: 0;
+  width: 100%;
+}
+
+.attendance-right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+  width: 100%;
+}
+
+.attendance-card {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  background-color: var(-card-bg);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.attendance-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--bg-main);
+  min-width: 0;
+}
+
+.attendance-card-title {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: var(--text-primary) !important;
+  line-height: 1.4 !important;
+}
+
+.attendance-card-content {
+  padding: 16px;
+  width: 100%;
+}
+
+.attendance-summary-content {
+  overflow: hidden;
+}
+
+.attendance-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  gap: 8px;
+  width: 100%;
+}
+
+.attendance-summary-item {
+  min-width: 0;
+  text-align: center;
+  padding: 10px 4px;
+  border-radius: 10px;
+  background-color: var(--summary-bg);
+  border: 1px solid var(--summary-border);
+}
+
+.attendance-summary-count,
+.attendance-summary-label {
+  color: var(--summary-text) !important;
+}
+
+.attendance-summary-count {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  line-height: 1.1 !important;
+}
+
+.attendance-summary-label {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  margin-top: 3px !important;
+  letter-spacing: -0.01em !important;
+  line-height: 1.3 !important;
+}
+
+/* Tablet */
+@media (max-width: 1100px) {
+  .attendance-main-layout {
+    grid-template-columns: minmax(0, 1fr) 290px;
+    gap: 16px;
+  }
+
+  .attendance-right-panel {
+    gap: 16px;
+  }
+
+  .attendance-card-content {
+    padding: 14px;
+  }
+}
+
+/* Stack the calendar and right panel on smaller screens */
+@media (max-width: 900px) {
+  .attendance-main-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .attendance-right-panel {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 16px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .attendance-page-header {
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .attendance-header-icon {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 10px;
+  }
+
+  .attendance-header-icon-svg {
+    font-size: 22px !important;
+  }
+
+  .attendance-title {
+    font-size: 17px !important;
+  }
+
+  .attendance-subtitle {
+    font-size: 12px !important;
+  }
+
+  .attendance-role-info {
+    margin-bottom: 12px;
+    padding: 8px 10px;
+  }
+
+  .attendance-role-text {
+    font-size: 12px !important;
+  }
+
+  .attendance-main-layout {
+    gap: 16px;
+  }
+
+  .attendance-right-panel {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .attendance-card-header {
+    padding: 11px 13px;
+  }
+
+  .attendance-card-content {
+    padding: 13px;
+  }
+
+  .attendance-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Very small screens */
+@media (max-width: 380px) {
+  .attendance-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .attendance-summary-item {
+    padding: 9px 3px;
+  }
+
+  .attendance-summary-count {
+    font-size: 17px !important;
+  }
+
+  .attendance-summary-label {
+    font-size: 10px !important;
+  }
+}
