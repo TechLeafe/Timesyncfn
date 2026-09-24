@@ -27,7 +27,7 @@ import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import api from "../../api/axiosInstance";
-import { useCurrentUser } from "../../context/UserContext";
+import { HR, ADMIN } from "../../data/permissions";
 import "./LeavePolicies.css";
 
 type LeavePolicy = {
@@ -83,8 +83,19 @@ export const getBusinessYear = (date = new Date()) => {
 };
 
 const LeavePolicies = () => {
-	const { currentUser } = useCurrentUser();
-	const canManage = currentUser.role === "HR Manager" || currentUser.role === "Admin";
+	// Same real auth source as the rest of the app (Sidebar, Check In/Out, dashboards) —
+	// not the mock UserContext, which always returned a hardcoded HR Manager user
+	// regardless of who was actually logged in.
+	const storedUser = localStorage.getItem("loggedInUser");
+	let userType: number | null = null;
+	if (storedUser) {
+		try {
+			userType = Number(JSON.parse(storedUser).userType);
+		} catch {
+			userType = null;
+		}
+	}
+	const canManage = userType === HR || userType === ADMIN;
 
 	const [policies, setPolicies] = useState<LeavePolicy[]>([]);
 	const [selectedPolicy, setSelectedPolicy] = useState<LeavePolicy | null>(null);

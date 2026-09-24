@@ -13,18 +13,37 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
-  useMediaQuery,
-  useTheme,
 } from "@mui/material";
 
-import SpaceDashboardRoundedIcon from "@mui/icons-material/SpaceDashboardRounded";
-import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
-import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
-import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
-import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlined";
-import EventNoteOutlinedIcon from "@mui/icons-material/EventNoteOutlined";
-import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
-import PersonAddAltOutlinedIcon from "@mui/icons-material/PersonAddAltOutlined";
+import SpaceDashboardRoundedIcon
+  from "@mui/icons-material/SpaceDashboardRounded";
+
+import AccessTimeOutlinedIcon
+  from "@mui/icons-material/AccessTimeOutlined";
+
+import FactCheckOutlinedIcon
+  from "@mui/icons-material/FactCheckOutlined";
+
+import CalendarMonthOutlinedIcon
+  from "@mui/icons-material/CalendarMonthOutlined";
+
+import EventAvailableOutlinedIcon
+  from "@mui/icons-material/EventAvailableOutlined";
+
+import EventNoteOutlinedIcon
+  from "@mui/icons-material/EventNoteOutlined";
+
+import LogoutOutlinedIcon
+  from "@mui/icons-material/LogoutOutlined";
+
+import PersonAddAltOutlinedIcon
+  from "@mui/icons-material/PersonAddAltOutlined";
+
+import ManageAccountsOutlinedIcon
+  from "@mui/icons-material/ManageAccountsOutlined";
+
+import TaskAltOutlinedIcon
+  from "@mui/icons-material/TaskAltOutlined";
 
 import {
   HR,
@@ -33,6 +52,22 @@ import {
 } from "../../data/permissions";
 
 import "./Sidebar.css";
+
+
+/* =========================================================
+   PROPS
+
+   isMobile is computed once in MainLayout (single source of
+   truth for the breakpoint) and passed down here, rather than
+   Sidebar computing its own — keeps the sidebar and the header's
+   hamburger button always in agreement about which mode they're in.
+========================================================= */
+
+interface SidebarProps {
+  mobileOpen: boolean;
+  isMobile: boolean;
+  onClose: () => void;
+}
 
 
 /* =========================================================
@@ -52,6 +87,7 @@ interface NavItem {
 ========================================================= */
 
 const navItems: NavItem[] = [
+
   /* =========================
      HR DASHBOARD
   ========================= */
@@ -62,6 +98,7 @@ const navItems: NavItem[] = [
     path: "/hrdashboard",
     roles: [HR],
   },
+
 
   /* =========================
      ADMIN DASHBOARD
@@ -74,6 +111,7 @@ const navItems: NavItem[] = [
     roles: [ADMIN],
   },
 
+
   /* =========================
      EMPLOYEE DASHBOARD
   ========================= */
@@ -85,6 +123,20 @@ const navItems: NavItem[] = [
     roles: [EMPLOYEE],
   },
 
+
+  /* =========================
+     DAILY TASK
+     ADMIN ONLY
+  ========================= */
+
+  {
+    label: "Daily Task",
+    icon: <TaskAltOutlinedIcon />,
+    path: "/daily-task",
+    roles: [ADMIN],
+  },
+
+
   /* =========================
      EMPLOYEE CREATION
      HR + ADMIN ONLY
@@ -94,6 +146,20 @@ const navItems: NavItem[] = [
     label: "Employee Creation",
     icon: <PersonAddAltOutlinedIcon />,
     path: "/employee-creation",
+    roles: [HR, ADMIN],
+  },
+
+
+  /* =========================
+     EMPLOYEE MANAGEMENT
+     (admin view of everyone's check-in/out)
+     HR + ADMIN ONLY
+  ========================= */
+
+  {
+    label: "Employee Management",
+    icon: <ManageAccountsOutlinedIcon />,
+    path: "/employee-management",
     roles: [HR, ADMIN],
   },
 
@@ -109,6 +175,7 @@ const navItems: NavItem[] = [
     roles: [HR, ADMIN, EMPLOYEE],
   },
 
+
   /* =========================
      COMPANY CALENDAR
      ALL ROLES
@@ -121,6 +188,7 @@ const navItems: NavItem[] = [
     roles: [HR, ADMIN, EMPLOYEE],
   },
 
+
   /* =========================
      CHECK IN / OUT
      ALL ROLES
@@ -132,17 +200,20 @@ const navItems: NavItem[] = [
     path: "/checkinout",
     roles: [HR, ADMIN, EMPLOYEE],
   },
+
+
+  /* =========================
+     LEAVE POLICIES
+     ALL ROLES
+  ========================= */
+
   {
     label: "Leave Policies",
     icon: <EventAvailableOutlinedIcon />,
     path: "/leave-policies",
     roles: [HR, ADMIN, EMPLOYEE],
   },
-  // {
-  //   label: "Leaves and Permissions",
-  //   icon:  <EventAvailableOutlinedIcon sx={{ fontSize: 20 }} />,
-  //   path:  "/leaves-permissions",
-  // },
+
 
   /* =========================
      HOLIDAYS
@@ -156,6 +227,7 @@ const navItems: NavItem[] = [
     roles: [HR, ADMIN],
   },
 
+
   /* =========================
      LEAVE REQUESTS
      HR + ADMIN ONLY
@@ -167,6 +239,7 @@ const navItems: NavItem[] = [
     path: "/admin-leaves-permissions",
     roles: [HR, ADMIN],
   },
+
 
   /* =========================
      LEAVES AND PERMISSIONS
@@ -184,31 +257,17 @@ const navItems: NavItem[] = [
 
 /* =========================================================
    SIDEBAR COMPONENT
-
-   Real desktops (>= 1200px, MUI's "lg") keep the permanent
-   sidebar as before. Anything narrower — phones AND tablets,
-   portrait or landscape (iPad landscape is ~1024–1180px,
-   comfortably under 1200) — gets an off-canvas drawer instead
-   of a shrinking column, opened via a hamburger button that
-   lives in MainLayout's header.
 ========================================================= */
 
-interface SidebarProps {
-  mobileOpen: boolean;
-  onClose: () => void;
-}
+function Sidebar({ mobileOpen, isMobile, onClose }: SidebarProps) {
 
-function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   const { pathname } = useLocation();
 
   const navigate = useNavigate();
 
-  const theme = useTheme();
-  const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
-
 
   /* =========================================================
-     GET LOGGED IN USER
+     GET USER ROLE
   ========================================================= */
 
   const storedUser =
@@ -218,9 +277,11 @@ function Sidebar({ mobileOpen, onClose }: SidebarProps) {
 
   if (storedUser) {
     try {
+
       const user = JSON.parse(storedUser);
 
       userType = Number(user.userType);
+
     } catch {
       userType = null;
     }
@@ -228,7 +289,7 @@ function Sidebar({ mobileOpen, onClose }: SidebarProps) {
 
 
   /* =========================================================
-     FILTER MENU BASED ON ROLE
+     FILTER NAVIGATION
   ========================================================= */
 
   const visibleNavItems =
@@ -240,34 +301,49 @@ function Sidebar({ mobileOpen, onClose }: SidebarProps) {
 
 
   /* =========================================================
+     NAVIGATION
+
+     On mobile/tablet (off-canvas drawer), picking a page should
+     also close the drawer — on desktop (permanent drawer) there's
+     nothing to close.
+  ========================================================= */
+
+  const handleNavigate = (
+    path: string
+  ) => {
+    navigate(path);
+
+    if (isMobile) {
+      onClose();
+    }
+  };
+
+
+  /* =========================================================
      LOGOUT
   ========================================================= */
 
   const handleLogout = () => {
-    /*
-      Clear all browser storage used by this app.
 
-      This removes:
+    /*
+      Clear localStorage:
       - token
       - loggedInUser
       - employeeLoginSession
-      - any other localStorage values
+      - other stored values
     */
 
     localStorage.clear();
 
     /*
-      Clear sessionStorage also
+      Clear sessionStorage
     */
 
     sessionStorage.clear();
 
     /*
-      Reload the application fresh.
-
-      replace() is better than navigate("/login")
-      for logout because the current authenticated
-      page is replaced in browser history.
+      Go to login and remove previous
+      authenticated page from history
     */
 
     window.location.replace("/login");
@@ -275,39 +351,57 @@ function Sidebar({ mobileOpen, onClose }: SidebarProps) {
 
 
   /* =========================================================
-     UI
+     SIDEBAR CONTENT
+
+     Desktop: permanent column, always open.
+     Mobile/tablet: temporary off-canvas drawer, controlled by
+     mobileOpen/onClose from MainLayout's hamburger button.
   ========================================================= */
 
   return (
     <Drawer
-      variant={isDesktop ? "permanent" : "temporary"}
-      open={isDesktop ? true : mobileOpen}
+      variant={isMobile ? "temporary" : "permanent"}
+      open={isMobile ? mobileOpen : true}
       onClose={onClose}
       className="sidebar-drawer"
-      ModalProps={{ keepMounted: true }}
+      ModalProps={isMobile ? { keepMounted: true } : undefined}
     >
+
       {/* =========================
           LOGO
       ========================= */}
 
       <Box className="sidebar-logo">
+
         <img
           src="/techleafelogo.png"
           alt="Tech Leafe Technologies"
         />
+
       </Box>
 
 
-      {/* =========================
-          NAVIGATION
-      ========================= */}
+      {/* NAVIGATION */}
 
       <List className="sidebar-nav">
         {visibleNavItems.map((item) => {
+
+          /*
+            Example:
+
+            /daily-task
+            /daily-task/add
+            /daily-task/123
+
+            All will keep Daily Task active.
+          */
+
           const isActive =
-            pathname === item.path;
+            pathname === item.path ||
+            pathname.startsWith(`${item.path}/`);
 
           return (
+
             <ListItemButton
               key={`${item.label}-${item.path}`}
               selected={isActive}
@@ -316,11 +410,11 @@ function Sidebar({ mobileOpen, onClose }: SidebarProps) {
                   ? "sidebar-nav-item-active"
                   : ""
               }`}
-              onClick={() => {
-                navigate(item.path);
-                if (!isDesktop) onClose();
-              }}
+              onClick={() =>
+                handleNavigate(item.path)
+              }
             >
+
               <ListItemIcon className="sidebar-nav-icon">
                 {item.icon}
               </ListItemIcon>
@@ -330,22 +424,23 @@ function Sidebar({ mobileOpen, onClose }: SidebarProps) {
                 className="sidebar-nav-text"
               />
             </ListItemButton>
+
           );
         })}
       </List>
 
 
-      {/* =========================
-          LOGOUT
-      ========================= */}
+      {/* LOGOUT */}
 
       <Box className="sidebar-bottom">
+
         <Divider className="sidebar-divider" />
 
         <ListItemButton
           className="sidebar-logout"
           onClick={handleLogout}
         >
+
           <ListItemIcon className="sidebar-logout-icon">
             <LogoutOutlinedIcon />
           </ListItemIcon>
@@ -356,6 +451,7 @@ function Sidebar({ mobileOpen, onClose }: SidebarProps) {
           />
         </ListItemButton>
       </Box>
+
     </Drawer>
   );
 }

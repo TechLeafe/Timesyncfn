@@ -507,7 +507,7 @@ function Employee_Creation() {
           <Stack spacing={{ xs: 2.5, sm: 3.5 }}>
             <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 1.5 }} sx={{ alignItems: { sm: "center" } }}>
               <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>
-                Employee ID
+                Employee ID *
               </Typography>
               <TextField
                 fullWidth
@@ -523,7 +523,7 @@ function Employee_Creation() {
 
             <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 1.5 }} sx={{ alignItems: { sm: "center" } }}>
               <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>
-                Name
+                Name *
               </Typography>
               <TextField
                 fullWidth
@@ -539,7 +539,7 @@ function Employee_Creation() {
 
             <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 1.5 }} sx={{ alignItems: { sm: "center" } }}>
               <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>
-                Email
+                Email *
               </Typography>
               <TextField
                 fullWidth
@@ -557,7 +557,7 @@ function Employee_Creation() {
             {isCreate && (
               <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 1.5 }} sx={{ alignItems: { sm: "center" } }}>
                 <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>
-                  Password
+                  Password *
                 </Typography>
                 <TextField
                   fullWidth
@@ -576,7 +576,7 @@ function Employee_Creation() {
 
             <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 1.5 }} sx={{ alignItems: { sm: "center" } }}>
               <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>
-                Phone
+                Phone *
               </Typography>
               <TextField
                 fullWidth
@@ -593,7 +593,7 @@ function Employee_Creation() {
 
             <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 1.5 }} sx={{ alignItems: { sm: "center" } }}>
               <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>
-                Designation
+                Designation *
               </Typography>
               <TextField
                 fullWidth

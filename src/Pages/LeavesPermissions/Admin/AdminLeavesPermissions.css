@@ -184,6 +184,65 @@
   overflow-x: auto;
 }
 
+.admin-leaves-permissions__card-list {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.admin-leaves-permissions__request-card {
+  border: 1px solid #DDE9DF !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  padding: 14px 16px;
+}
+
+.admin-leaves-permissions__request-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.admin-leaves-permissions__request-card-type {
+  color: #66756A;
+  font-family: var(--font-family);
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.admin-leaves-permissions__request-card-actions {
+  flex-shrink: 0;
+}
+
+.admin-leaves-permissions__request-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.admin-leaves-permissions__request-card-field {
+  background-color: #F4F8F4;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+
+.admin-leaves-permissions__request-card-label {
+  color: #66756A;
+  font-family: var(--font-family);
+  font-size: 11px;
+}
+
+.admin-leaves-permissions__request-card-value {
+  color: #1B6B33;
+  font-family: var(--font-family);
+  font-weight: 700;
+  font-size: 13px;
+  margin-top: 2px;
+}
+
 .admin-leaves-permissions__table-cell {
   font-family: var(--font-family) !important;
 }
@@ -257,6 +316,14 @@
     flex-direction: column;
     align-items: stretch;
   }
+
+  .admin-leaves-permissions__table-wrapper {
+    display: none;
+  }
+
+  .admin-leaves-permissions__card-list {
+    display: flex;
+  }
 }
 
 @media (max-width: 599px) {
@@ -274,6 +341,10 @@
 
   .admin-leaves-permissions__filters {
     padding: 16px !important;
+  }
+
+  .admin-leaves-permissions__request-card-grid {
+    grid-template-columns: 1fr;
   }
 }
 

@@ -1,91 +1,246 @@
+/* =========================================================
+   MAIN LAYOUT
+========================================================= */
+
 .main-layout {
-  min-height: 100vh;
-  display: flex;
-  background: var(--bg-main, #F4F6F8);
-}
-
-
-/* ================================
-   RIGHT SIDE
-
-   No width/margin math needed here for the sidebar: on desktop it's a
-   permanent flex sibling (flex-shrink: 0 on its own drawer), and on
-   tablet/phone it's an off-canvas overlay that doesn't take up layout
-   space at all — .main-content just naturally fills whatever is left.
-================================ */
-
-.main-content {
-  flex: 1;
+  width: 100%;
   min-width: 0;
   min-height: 100vh;
-  box-sizing: border-box;
+  min-height: 100dvh;
+
+  display: flex;
+
+  background:
+    var(--bg-main, #f4f6f8);
+
+  overflow-x: hidden;
 }
 
 
-/* ================================
-   TOP PAGE HEADER
-================================ */
+/* =========================================================
+   MAIN CONTENT
+========================================================= */
+
+.main-content {
+  flex: 1 1 auto;
+
+  width: calc(100% - 270px);
+
+  min-width: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  box-sizing: border-box;
+
+  background:
+    var(--bg-main, #f4f6f8);
+}
+
+
+/* =========================================================
+   TOP HEADER
+========================================================= */
 
 .page-header {
+  width: 100%;
+
+  min-width: 0;
+
   height: 64px;
-  display: flex;
-  align-items: center;
+
+  display: flex !important;
+
+  align-items: center !important;
+
+  justify-content:
+    space-between !important;
+
+  gap: 16px;
+
   padding: 0 24px;
+
+  box-sizing: border-box;
+
   background: #ffffff;
-  border-bottom: 1px solid #E5E7EB;
+
+  border-bottom:
+    1px solid #e5e7eb;
+
   position: sticky;
+
   top: 0;
+
   z-index: 900;
 }
 
-.page-title {
-  margin: 0 !important;
-  color: #111827;
-  font-size: 20px !important;
-  font-weight: 700 !important;
+
+/* =========================================================
+   LEFT SIDE OF HEADER
+========================================================= */
+
+.page-header-left {
+  min-width: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
 }
 
 
-/* ================================
+/* =========================================================
+   TITLE
+========================================================= */
+
+.page-title {
+  min-width: 0;
+
+  margin: 0 !important;
+
+  color: #111827;
+
+  font-size: 20px !important;
+
+  font-weight: 700 !important;
+
+  line-height: 1.2 !important;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   MOBILE MENU BUTTON
+========================================================= */
+
+.mobile-menu-button {
+  flex-shrink: 0;
+
+  color: #344054 !important;
+}
+
+
+/* =========================================================
+   PROFILE
+========================================================= */
+
+.page-header-profile {
+  min-width: 0;
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: flex-end;
+}
+
+
+/* =========================================================
    PAGE CONTENT
-================================ */
+========================================================= */
 
 .page-content {
-  min-height: calc(100vh - 64px);
+  width: 100%;
+
+  min-width: 0;
+
+  min-height:
+    calc(100vh - 64px);
+
   padding: 20px;
+
   box-sizing: border-box;
+
+  overflow-x: hidden;
 }
 
 
-/* ================================
-   RESPONSIVE
+/* =========================================================
+   TABLET + MOBILE
+========================================================= */
 
-   Tablet (portrait and landscape, including iPad) and phone both fall
-   under the "lg" breakpoint (1200px) where Sidebar switches to an
-   off-canvas drawer — these rules just tighten spacing at those sizes,
-   since there's no sidebar width to account for anymore.
-================================ */
+@media (max-width: 899.98px) {
 
-@media (max-width: 1024px) {
+  .main-content {
+    width: 100%;
+
+    flex: 1 1 100%;
+  }
+
   .page-header {
-    padding: 0 16px;
+    height: 62px;
+
+    padding: 0 18px;
   }
 
   .page-content {
+    min-height:
+      calc(100vh - 62px);
+
     padding: 16px;
   }
 }
 
-@media (max-width: 480px) {
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
   .page-header {
+    height: 60px;
+
+    gap: 8px;
+
     padding: 0 12px;
+  }
+
+  .page-header-left {
+    gap: 6px;
   }
 
   .page-title {
     font-size: 17px !important;
   }
 
+  .mobile-menu-button {
+    width: 40px;
+    height: 40px;
+  }
+
   .page-content {
+    min-height:
+      calc(100vh - 60px);
+
     padding: 12px;
+  }
+}
+
+
+/* =========================================================
+   VERY SMALL MOBILE
+========================================================= */
+
+@media (max-width: 380px) {
+
+  .page-header {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .page-title {
+    font-size: 16px !important;
+  }
+
+  .page-content {
+    padding: 10px;
   }
 }

@@ -173,18 +173,22 @@ function DailyTask() {
   return (
     <div className="daily-task-page">
 
-      {/* HEADER */}
+      {/* PAGE HEADER */}
 
       <div className="daily-task-header">
 
-        <div>
-          <h1>Daily Tasks</h1>
+        <div className="daily-task-heading">
+
+          <h1>
+            Tasks
+          </h1>
 
           <p>
-            Create, manage and track
-            daily employee tasks.
+            Create, manage and track daily employee tasks.
           </p>
+
         </div>
+
 
         <button
           type="button"
@@ -195,7 +199,13 @@ function DailyTask() {
             )
           }
         >
-          + Add Task
+          <span className="add-task-plus">
+            +
+          </span>
+
+          <span>
+            Add Task
+          </span>
         </button>
 
       </div>
@@ -243,7 +253,7 @@ function DailyTask() {
 
               {loading ? (
 
-                <tr>
+                <tr className="task-message-row">
                   <td
                     colSpan={5}
                     className="task-table-message"
@@ -254,7 +264,7 @@ function DailyTask() {
 
               ) : tasks.length === 0 ? (
 
-                <tr>
+                <tr className="task-message-row">
                   <td
                     colSpan={5}
                     className="task-table-message"
@@ -269,18 +279,14 @@ function DailyTask() {
 
                   <tr key={task._id}>
 
-                    {/* TITLE */}
-
-                    <td>
+                    <td data-label="Title">
                       <div className="task-title-cell">
                         {task.title}
                       </div>
                     </td>
 
 
-                    {/* PRIORITY */}
-
-                    <td>
+                    <td data-label="Priority">
                       <span
                         className={
                           getPriorityClass(
@@ -293,18 +299,14 @@ function DailyTask() {
                     </td>
 
 
-                    {/* CREATED DATE */}
-
-                    <td>
+                    <td data-label="Created On">
                       {formatDate(
                         task.createdAt
                       )}
                     </td>
 
 
-                    {/* STATUS */}
-
-                    <td>
+                    <td data-label="Status">
                       <span
                         className={
                           getStatusClass(
@@ -312,14 +314,13 @@ function DailyTask() {
                           )
                         }
                       >
-                        {task.status || "Pending"}
+                        {task.status ||
+                          "Pending"}
                       </span>
                     </td>
 
 
-                    {/* VIEW */}
-
-                    <td>
+                    <td data-label="Action">
                       <button
                         type="button"
                         className="view-task-button"
@@ -334,6 +335,7 @@ function DailyTask() {
                     </td>
 
                   </tr>
+
                 ))
               )}
 

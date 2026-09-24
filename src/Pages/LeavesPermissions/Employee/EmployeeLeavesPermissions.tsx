@@ -1236,51 +1236,63 @@ function RequestTable({
           </Typography>
         </Box>
       ) : requests.length ? (
-        <Box className="requests-table-wrap">
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>
-                  Name
-                </TableCell>
+        <>
+          <Box className="requests-card-list">
+            {requests.map((request) => (
+              <RequestCard
+                key={request.id}
+                request={request}
+                onView={onView}
+              />
+            ))}
+          </Box>
 
-                <TableCell>
-                  Leave Type
-                </TableCell>
+          <Box className="requests-table-wrap">
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>
+                    Name
+                  </TableCell>
 
-                <TableCell>
-                  From
-                </TableCell>
+                  <TableCell>
+                    Leave Type
+                  </TableCell>
 
-                <TableCell>
-                  To
-                </TableCell>
+                  <TableCell>
+                    From
+                  </TableCell>
 
-                <TableCell>
-                  Duration
-                </TableCell>
+                  <TableCell>
+                    To
+                  </TableCell>
 
-                <TableCell>
-                  Status
-                </TableCell>
+                  <TableCell>
+                    Duration
+                  </TableCell>
 
-                <TableCell align="right">
-                  Action
-                </TableCell>
-              </TableRow>
-            </TableHead>
+                  <TableCell>
+                    Status
+                  </TableCell>
 
-            <TableBody>
-              {requests.map((request) => (
-                <RequestRow
-                  key={request.id}
-                  request={request}
-                  onView={onView}
-                />
-              ))}
-            </TableBody>
-          </Table>
-        </Box>
+                  <TableCell align="right">
+                    Action
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+
+              <TableBody>
+                {requests.map((request) => (
+                  <RequestRow
+                    key={request.id}
+                    request={request}
+                    onView={onView}
+                  />
+                ))}
+              </TableBody>
+            </Table>
+          </Box>
+        </>
       ) : (
         <Box className="empty-requests">
           <Typography className="empty-requests-text">
@@ -1288,6 +1300,74 @@ function RequestTable({
           </Typography>
         </Box>
       )}
+    </Paper>
+  );
+}
+
+// Render one request as a stacked card (mobile / tablet)
+function RequestCard({
+  request,
+  onView,
+}: {
+  request: LeaveRequest;
+  onView: (id: string) => void;
+}) {
+  return (
+    <Paper className="request-card" elevation={0}>
+      <Box className="request-card-header">
+        <Box className="request-card-heading">
+          <Typography className="request-card-name">
+            {request.employeeName}
+          </Typography>
+          <Typography className="request-card-type">
+            {request.leaveType}
+          </Typography>
+        </Box>
+
+        <Stack
+          direction="row"
+          spacing={0.5}
+          className="request-card-actions"
+          sx={{ alignItems: "center" }}
+        >
+          <Chip
+            label={request.status}
+            size="small"
+            className={`status-chip status-${request.status.toLowerCase()}`}
+          />
+
+          <IconButton
+            aria-label="View leave details"
+            size="small"
+            onClick={() => onView(request.id)}
+          >
+            <VisibilityOutlinedIcon fontSize="small" />
+          </IconButton>
+        </Stack>
+      </Box>
+
+      <Box className="request-card-grid">
+        <Box className="request-card-field">
+          <Typography className="request-card-label">From</Typography>
+          <Typography className="request-card-value">
+            {formatDate(request.startDate ?? request.date)}
+          </Typography>
+        </Box>
+
+        <Box className="request-card-field">
+          <Typography className="request-card-label">To</Typography>
+          <Typography className="request-card-value">
+            {formatDate(request.endDate ?? request.date)}
+          </Typography>
+        </Box>
+
+        <Box className="request-card-field">
+          <Typography className="request-card-label">Duration</Typography>
+          <Typography className="request-card-value">
+            {request.leaveType === "PERMISSION" ? "-" : `${request.totalDays} day(s)`}
+          </Typography>
+        </Box>
+      </Box>
     </Paper>
   );
 }
