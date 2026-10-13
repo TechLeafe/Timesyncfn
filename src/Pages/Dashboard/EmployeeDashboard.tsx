@@ -196,14 +196,14 @@ const computeWorkingHours = (
     (record) => record.day === todayStr
   );
 
-  const liveTodaySeconds = safeNumber(
+  const savedTodaySeconds = safeNumber(
+    todayRecord?.totalWorkingSeconds
+  );
+  const todaySeconds = safeNumber(
     attendance.currentWorkingSeconds ??
+      todayRecord?.totalWorkingSeconds ??
       attendance.totalWorkingSeconds ??
       0
-  );
-
-  const todaySeconds = safeNumber(
-    todayRecord?.totalWorkingSeconds ?? liveTodaySeconds
   );
 
   const monthRecords = history.filter(
@@ -223,7 +223,7 @@ const computeWorkingHours = (
   );
 
   const thisMonth = todayAlreadyCounted
-    ? monthSeconds
+    ? monthSeconds + todaySeconds - savedTodaySeconds
     : monthSeconds + todaySeconds;
 
   const daysWorked =

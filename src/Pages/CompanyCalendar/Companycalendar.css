@@ -76,7 +76,10 @@
 .cc-legend-color--present { background: #169a2c; }
 .cc-legend-color--absent { background: #303030; }
 .cc-legend-color--leave { background: #3b58da; }
+.cc-legend-color--pl { background: #d47a08; }
 .cc-legend-color--lp { background: #8143bd; }
+.cc-legend-color--pending { background: #68798a; }
+.cc-legend-color--rejected { background: #a43a40; }
 
 .cc-selection-card { background: white; border: 1px solid #e1e9e5; border-radius: 12px; overflow: hidden; }
 .cc-selection-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 13px 16px; border-bottom: 1px solid #eef0ed; }
@@ -423,6 +426,8 @@
 /* Marked-day border + date number colour */
 .company-calendar-page .cc-day-mark-p  { border-color: #1b7a14; }
 .company-calendar-page .cc-day-mark-p  .cc-day-number { color: #3a8a00; font-weight: 800; }
+.company-calendar-page .cc-day-mark-pl { border-color: #bd6b08; }
+.company-calendar-page .cc-day-mark-pl .cc-day-number { color: #bd6b08; font-weight: 800; }
 .company-calendar-page .cc-day-mark-a  { border-color: #3a3a3a; }
 .company-calendar-page .cc-day-mark-l  { border-color: #3659e5; }
 .company-calendar-page .cc-day-mark-lp { border-color: #8b48cc; }

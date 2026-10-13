@@ -24,7 +24,6 @@ import BusinessCenterOutlinedIcon from "@mui/icons-material/BusinessCenterOutlin
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
-import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlineRounded";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 
@@ -58,13 +57,23 @@ interface AttendanceRecord {
   email?: string;
   checkInTime?: string | null;
   checkOutTime?: string | null;
+  totalWorkingSeconds?: number | null;
+  activeCheckInTime?: string | null;
+  sessions?: {
+    checkInTime?: string | null;
+    checkOutTime?: string | null;
+  }[];
 }
 
 interface AttendanceResponse {
   data?: {
     checkInTime?: string | null;
+    totalWorkingSeconds?: number | null;
+    activeCheckInTime?: string | null;
   };
   checkInTime?: string | null;
+  totalWorkingSeconds?: number | null;
+  activeCheckInTime?: string | null;
 }
 
 type AttendanceStatus =
@@ -183,10 +192,16 @@ const EmployeeCheckInOut = () => {
   const [checkInTime, setCheckInTime] =
     useState<Date | null>(null);
 
+  const [activeCheckInTime, setActiveCheckInTime] =
+    useState<Date | null>(null);
+
   const [checkOutTime, setCheckOutTime] =
     useState<Date | null>(null);
 
   const [elapsedSeconds, setElapsedSeconds] =
+    useState(0);
+
+  const [accumulatedSeconds, setAccumulatedSeconds] =
     useState(0);
 
   const [loading, setLoading] = useState(true);
@@ -280,9 +295,29 @@ const EmployeeCheckInOut = () => {
         outTime && !Number.isNaN(outTime.getTime())
           ? outTime
           : null;
+      const activeSession = record?.sessions?.find(
+        (session) => !session.checkOutTime
+      );
+      const activeInValue = record?.activeCheckInTime
+        || activeSession?.checkInTime
+        || (!validOut ? record?.checkInTime : null);
+      const activeInTime = activeInValue
+        ? new Date(activeInValue)
+        : null;
 
       setCheckInTime(validIn);
+      setActiveCheckInTime(
+        activeInTime && !Number.isNaN(activeInTime.getTime())
+          ? activeInTime
+          : null
+      );
       setCheckOutTime(validOut);
+      setAccumulatedSeconds(
+        Math.max(0, record?.totalWorkingSeconds ?? 0)
+      );
+      setElapsedSeconds(
+        Math.max(0, record?.totalWorkingSeconds ?? 0)
+      );
 
       if (validOut) {
         setStatus("checked-out");
@@ -305,7 +340,10 @@ const EmployeeCheckInOut = () => {
 
       setStatus("unknown");
       setCheckInTime(null);
+      setActiveCheckInTime(null);
       setCheckOutTime(null);
+      setAccumulatedSeconds(0);
+      setElapsedSeconds(0);
       return false;
     } finally {
       setLoading(false);
@@ -356,13 +394,14 @@ const EmployeeCheckInOut = () => {
   /* ================= LIVE TIMER ================= */
 
   useEffect(() => {
-    if (!isCheckedIn || !checkInTime) {
+    if (!isCheckedIn || !activeCheckInTime) {
       return;
     }
 
     const updateTimer = () => {
       const seconds = Math.floor(
-        (Date.now() - checkInTime.getTime()) / 1000
+        accumulatedSeconds +
+          (Date.now() - activeCheckInTime.getTime()) / 1000
       );
 
       setElapsedSeconds(Math.max(0, seconds));
@@ -376,7 +415,7 @@ const EmployeeCheckInOut = () => {
     );
 
     return () => window.clearInterval(interval);
-  }, [isCheckedIn, checkInTime]);
+  }, [isCheckedIn, activeCheckInTime, accumulatedSeconds]);
 
   /* ================= CHECK IN ================= */
 
@@ -384,7 +423,8 @@ const EmployeeCheckInOut = () => {
     if (
       submitting ||
       loading ||
-      status !== "not-checked-in"
+      (status !== "not-checked-in" &&
+        status !== "checked-out")
     ) {
       return;
     }
@@ -399,18 +439,33 @@ const EmployeeCheckInOut = () => {
 
       const payload =
         response.data?.data ?? response.data;
+      const previousSeconds = Math.max(
+        0,
+        payload?.totalWorkingSeconds ?? 0
+      );
 
       const returnedTime = payload?.checkInTime
         ? new Date(payload.checkInTime)
         : new Date();
-
-      const time = Number.isNaN(returnedTime.getTime())
-        ? new Date()
+      const returnedActiveTime = payload?.activeCheckInTime
+        ? new Date(payload.activeCheckInTime)
         : returnedTime;
 
-      setCheckInTime(time);
+      const activeTime = Number.isNaN(returnedActiveTime.getTime())
+        ? new Date()
+        : returnedActiveTime;
+      const firstCheckInTime =
+        checkInTime && !Number.isNaN(checkInTime.getTime())
+          ? checkInTime
+          : Number.isNaN(returnedTime.getTime())
+            ? activeTime
+            : returnedTime;
+
+      setCheckInTime(firstCheckInTime);
+      setActiveCheckInTime(activeTime);
       setCheckOutTime(null);
-      setElapsedSeconds(0);
+      setAccumulatedSeconds(previousSeconds);
+      setElapsedSeconds(previousSeconds);
       setStatus("checked-in");
 
       setToast({
@@ -448,11 +503,26 @@ const EmployeeCheckInOut = () => {
     setError("");
 
     try {
-      await api.post("/attendance/check-out");
+      const response = await api.post<AttendanceResponse>(
+        "/attendance/check-out"
+      );
+      const payload =
+        response.data?.data ?? response.data;
+      const totalSeconds = Math.max(
+        0,
+        payload?.totalWorkingSeconds ??
+          accumulatedSeconds +
+            (activeCheckInTime
+              ? Math.floor(
+                  (Date.now() - activeCheckInTime.getTime()) / 1000
+                )
+              : 0)
+      );
 
       setCheckOutTime(new Date());
-      setCheckInTime(null);
-      setElapsedSeconds(0);
+      setActiveCheckInTime(null);
+      setAccumulatedSeconds(totalSeconds);
+      setElapsedSeconds(totalSeconds);
       setStatus("checked-out");
 
       setToast({
@@ -638,49 +708,35 @@ const EmployeeCheckInOut = () => {
             </Box>
 
             <Box className="attendance-actions">
-              {isCheckedOut ? (
-                <Button
-                  fullWidth
-                  variant="contained"
-                  disabled
-                  startIcon={
-                    <CheckCircleOutlineRoundedIcon />
-                  }
-                  className="check-in-button"
-                >
-                  Attendance Completed
-                </Button>
-              ) : (
-                <Button
-                  fullWidth
-                  variant="contained"
-                  className="check-in-button"
-                  disabled={actionDisabled}
-                  onClick={
-                    isCheckedIn
-                      ? handleCheckOut
-                      : handleCheckIn
-                  }
-                  startIcon={
-                    submitting ? (
-                      <CircularProgress
-                        size={17}
-                        color="inherit"
-                      />
-                    ) : isCheckedIn ? (
-                      <LogoutRoundedIcon />
-                    ) : (
-                      <LoginRoundedIcon />
-                    )
-                  }
-                >
-                  {submitting
-                    ? "Processing..."
-                    : isCheckedIn
-                      ? "Check Out"
-                      : "Check In"}
-                </Button>
-              )}
+              <Button
+                fullWidth
+                variant="contained"
+                className="check-in-button"
+                disabled={actionDisabled}
+                onClick={
+                  isCheckedIn
+                    ? handleCheckOut
+                    : handleCheckIn
+                }
+                startIcon={
+                  submitting ? (
+                    <CircularProgress
+                      size={17}
+                      color="inherit"
+                    />
+                  ) : isCheckedIn ? (
+                    <LogoutRoundedIcon />
+                  ) : (
+                    <LoginRoundedIcon />
+                  )
+                }
+              >
+                {submitting
+                  ? "Processing..."
+                  : isCheckedIn
+                    ? "Check Out"
+                    : "Check In"}
+              </Button>
             </Box>
 
             <Box className="employee-location">
@@ -704,7 +760,7 @@ const EmployeeCheckInOut = () => {
                 <Box className="timer-heading">
                   <AccessTimeOutlinedIcon />
                   <Typography>
-                    Current Working Session
+                    Total Working Time Today
                   </Typography>
                 </Box>
 
@@ -728,7 +784,7 @@ const EmployeeCheckInOut = () => {
                   {isCheckedIn
                     ? "Session in progress"
                     : isCheckedOut
-                      ? "Day completed"
+                      ? "Session completed"
                       : "Ready to start?"}
                 </Typography>
 
@@ -736,7 +792,7 @@ const EmployeeCheckInOut = () => {
                   {isCheckedIn
                     ? "Your session timer is running."
                     : isCheckedOut
-                      ? "You have checked out for today."
+                      ? "Check in again to start another session."
                       : "Check in to start tracking time."}
                 </Typography>
               </Box>

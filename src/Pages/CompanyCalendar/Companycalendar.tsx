@@ -7,7 +7,7 @@ import api from "../../api/axiosInstance";
 
 import "./CompanyCalendar.css";
 
-type AttendanceMark = "P" | "A" | "L" | "LP";
+type AttendanceMark = "P" | "PL" | "A" | "L" | "LP" | "PD" | "RJ";
 
 type Holiday = {
   _id?: string;
@@ -19,15 +19,26 @@ type Holiday = {
 };
 
 type AttendanceRecord = Record<string, unknown>;
+type ApprovedLeave = Record<string, unknown> & {
+  user_id?: string;
+  fromDate?: string | null;
+  toDate?: string | null;
+  leaveType?: string;
+  compOffDate?: string | null;
+  totalHours?: number | null;
+};
 type ApiResponse<T> = { success?: boolean; message?: string; data?: T };
 type LoggedInUser = { userId?: string; employeeId?: string; email?: string };
 
 const DAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const MARK_NAMES: Record<AttendanceMark, string> = {
   P: "Present",
+  PL: "Present Late",
   A: "Absent",
   L: "Leave",
   LP: "Loss of Pay",
+  PD: "Pending",
+  RJ: "Rejected",
 };
 
 function dateKey(date: Date): string {
@@ -93,7 +104,21 @@ function getRecordDate(record: AttendanceRecord): string {
   ]));
 }
 
-function getAttendanceMark(record: AttendanceRecord): AttendanceMark | null {
+function getAttendanceMark(
+  record: AttendanceRecord,
+  approvedPermissionHours: number
+): AttendanceMark | null {
+  const approvalStatus = readField(record, ["approvalStatus"]).toLowerCase();
+  const attendanceStatus = readField(record, ["attendanceStatus", "attendance_status"])
+    .toLowerCase();
+  if (approvalStatus === "pending") return "PD";
+  if (approvalStatus === "rejected") return "RJ";
+  if (approvalStatus === "approved") {
+    if (attendanceStatus === "present late") return "PL";
+    if (attendanceStatus === "absent") return "A";
+    if (attendanceStatus === "present") return "P";
+  }
+
   const status = readField(record, ["attendanceStatus", "attendance_status", "status", "remark"])
     .toLowerCase().replace(/[-_]/g, " ");
   const leaveType = readField(record, ["leaveType", "leave_type"]).toLowerCase();
@@ -104,11 +129,44 @@ function getAttendanceMark(record: AttendanceRecord): AttendanceMark | null {
     "checkOutTime", "check_out_time", "checkOut", "check_out", "outTime", "clockOutTime",
   ]);
 
-  // The attendance endpoint must confirm each mark. A missing day is never auto-Absent.
   if (["loss of pay", "lop", "lp", "unpaid leave"].includes(status) ||
       ["loss of pay", "lop", "lp", "unpaid leave"].includes(leaveType)) return "LP";
-  // A real check-in is sufficient, even when check-out has not happened yet.
-  if (checkIn || checkOut) return "P";
+  if (checkIn || checkOut) {
+    const checkInDate = checkIn ? new Date(checkIn) : null;
+    const indiaTimeParts = checkInDate && !Number.isNaN(checkInDate.getTime())
+      ? new Intl.DateTimeFormat("en-GB", {
+          timeZone: "Asia/Kolkata",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hourCycle: "h23",
+        }).formatToParts(checkInDate)
+      : [];
+    const indiaHour = Number(
+      indiaTimeParts.find((part) => part.type === "hour")?.value
+    );
+    const indiaMinute = Number(
+      indiaTimeParts.find((part) => part.type === "minute")?.value
+    );
+    const indiaSecond = Number(
+      indiaTimeParts.find((part) => part.type === "second")?.value
+    );
+    const lateArrival =
+      indiaHour > 11 ||
+      (indiaHour === 11 && (indiaMinute > 0 || indiaSecond > 0));
+    if (lateArrival) return "PL";
+
+    const workingSeconds = Number(
+      record.totalWorkingSeconds ?? record.currentWorkingSeconds ?? 0
+    );
+    const creditedHours =
+      (Number.isFinite(workingSeconds) ? workingSeconds : 0) / 3600 +
+      approvedPermissionHours;
+
+    if (creditedHours >= 9) return "P";
+    if (creditedHours >= 7) return "PL";
+    return "P";
+  }
   if (["leave", "on leave", "approved leave", "paid leave", "casual leave", "sick leave"].includes(status) || leaveType) return "L";
   if (["present", "checked in", "checked out"].includes(status)) return "P";
   if (["absent", "a", "not present"].includes(status)) return "A";
@@ -129,9 +187,12 @@ function errorText(error: unknown, fallback: string): string {
 
 const PEEL_COLORS: Record<AttendanceMark, { back: [string, string, string]; flap: [string, string, string] }> = {
   P:  { back: ["#06600e", "#0e9a1b", "#0a7a15"], flap: ["#74cf80", "#4aa052", "#62bd6c"] },
+  PL: { back: ["#a35400", "#e39418", "#bd6b08"], flap: ["#ffd78c", "#f0b84e", "#f6ca70"] },
   A:  { back: ["#111111", "#3a3a3a", "#222222"], flap: ["#b5b5b5", "#7a7a7a", "#9a9a9a"] },
   L:  { back: ["#1424a2", "#3659e5", "#2a45c4"], flap: ["#a9b6ff", "#6f85f0", "#8d9eff"] },
   LP: { back: ["#4e1495", "#8b48cc", "#6b2fb0"], flap: ["#d3b4f5", "#a574d9", "#bd94ec"] },
+  PD: { back: ["#526273", "#8090a0", "#68798a"], flap: ["#d7dfe6", "#aebbc7", "#c3ced8"] },
+  RJ: { back: ["#8e2e32", "#c35156", "#a43a40"], flap: ["#f2b7b9", "#d98286", "#e69b9e"] },
 };
 
 const FLAP_PATH = "M243 0 L0 195 C40 220 78 240 72 285 Z";
@@ -188,6 +249,9 @@ export default function CompanyCalendar() {
   const [selectedDay, setSelectedDay] = useState(() => dateKey(new Date()));
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [attendance, setAttendance] = useState<Record<string, AttendanceMark>>({});
+  const [approvedLeaveDays, setApprovedLeaveDays] = useState<Record<string, true>>({});
+  const [approvedPermissionHours, setApprovedPermissionHours] = useState<Record<string, number>>({});
+  const [canMarkAbsences, setCanMarkAbsences] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [attendanceWarning, setAttendanceWarning] = useState("");
@@ -197,10 +261,16 @@ export default function CompanyCalendar() {
     setLoading(true);
     setError("");
     setAttendanceWarning("");
-    const [holidayResponse, attendanceResponse] = await Promise.allSettled([
+    const [holidayResponse, attendanceResponse, leaveResponse] = await Promise.allSettled([
       api.post<ApiResponse<Holiday[]>>("/holidays/list", { companyYear: "", holidayType: "" }),
       api.post<ApiResponse<AttendanceRecord[]>>("/attendance/history", { user_id: "", date: "" }),
+      api.post<ApiResponse<ApprovedLeave[]>>("/leave-apply/list", { status: "Approved", businessYear: "" }),
     ]);
+    let holidaysLoaded = false;
+    let attendanceLoaded = false;
+    let leavesLoaded = false;
+    let attendanceRecords: AttendanceRecord[] = [];
+    let permissionHoursByDay: Record<string, number> = {};
 
     if (holidayResponse.status === "fulfilled") {
       const result = holidayResponse.value.data;
@@ -209,6 +279,7 @@ export default function CompanyCalendar() {
         setHolidays([]);
       } else {
         setHolidays(result.data.filter((item) => (item.status || "Active").toLowerCase() === "active"));
+        holidaysLoaded = true;
       }
     } else {
       setError(errorText(holidayResponse.reason, "Unable to load company holidays."));
@@ -225,19 +296,89 @@ export default function CompanyCalendar() {
         setAttendanceWarning("Logged-in employee details are unavailable.");
         setAttendance({});
       } else {
-        const marks: Record<string, AttendanceMark> = {};
-        for (const record of result.data.filter((r) => belongsToUser(r, user))) {
-          const key = getRecordDate(record);
-          const mark = getAttendanceMark(record);
-          if (!key || !mark) continue;
-          if (!marks[key] || (mark === "P" && marks[key] === "A")) marks[key] = mark;
-        }
-        setAttendance(marks);
+        attendanceRecords = result.data.filter((record) =>
+          belongsToUser(record, user)
+        );
+        attendanceLoaded = true;
       }
     } else {
-      setAttendanceWarning(errorText(attendanceResponse.reason, "Attendance records are unavailable."));
+      setAttendanceWarning((current) => [
+        current,
+        errorText(attendanceResponse.reason, "Attendance records are unavailable."),
+      ].filter(Boolean).join(" "));
       setAttendance({});
     }
+
+    if (leaveResponse.status === "fulfilled") {
+      const result = leaveResponse.value.data;
+      if (result.success === false || !Array.isArray(result.data)) {
+        setAttendanceWarning((current) => [
+          current,
+          result.message || "Approved leave records are unavailable; absences cannot be confirmed.",
+        ].filter(Boolean).join(" "));
+        setApprovedLeaveDays({});
+        setApprovedPermissionHours({});
+      } else {
+        const leaveDays: Record<string, true> = {};
+        const permissionHours: Record<string, number> = {};
+        const user = loggedInUser();
+        const ownLeaves = user
+          ? result.data.filter((leave) => belongsToUser(leave, user))
+          : [];
+        for (const leave of ownLeaves) {
+          const leaveType = String(leave.leaveType || "").toLowerCase();
+          if (leaveType === "permission") {
+            const permissionDate = normalizeDate(leave.fromDate);
+            const hours = Number(leave.totalHours || 0);
+            if (permissionDate && Number.isFinite(hours) && hours > 0) {
+              permissionHours[permissionDate] =
+                (permissionHours[permissionDate] || 0) + hours;
+            }
+            continue;
+          }
+
+          const compOffDate = leaveType === "comp_off"
+            ? normalizeDate(leave.compOffDate || leave.fromDate)
+            : "";
+          const startKey = compOffDate || normalizeDate(leave.fromDate);
+          const endKey = compOffDate || normalizeDate(leave.toDate || leave.fromDate);
+          if (!startKey || !endKey) continue;
+
+          const current = new Date(`${startKey}T12:00:00`);
+          const end = new Date(`${endKey}T12:00:00`);
+          while (current <= end) {
+            leaveDays[dateKey(current)] = true;
+            current.setDate(current.getDate() + 1);
+          }
+        }
+        setApprovedLeaveDays(leaveDays);
+        setApprovedPermissionHours(permissionHours);
+        permissionHoursByDay = permissionHours;
+        leavesLoaded = true;
+      }
+    } else {
+      setAttendanceWarning((current) => [
+        current,
+        errorText(leaveResponse.reason, "Approved leave records are unavailable; absences cannot be confirmed."),
+      ].filter(Boolean).join(" "));
+      setApprovedLeaveDays({});
+      setApprovedPermissionHours({});
+    }
+
+    setCanMarkAbsences(
+      holidaysLoaded && attendanceLoaded && leavesLoaded
+    );
+    const marks: Record<string, AttendanceMark> = {};
+    for (const record of attendanceRecords) {
+      const key = getRecordDate(record);
+      if (!key) continue;
+      const mark = getAttendanceMark(
+        record,
+        permissionHoursByDay[key] || 0
+      );
+      if (mark) marks[key] = mark;
+    }
+    setAttendance(marks);
     setLoading(false);
   }, []);
 
@@ -267,7 +408,27 @@ export default function CompanyCalendar() {
   const monthPrefix = `${visibleMonth.getFullYear()}-${String(visibleMonth.getMonth() + 1).padStart(2, "0")}-`;
   const monthHolidays = holidays.filter((item) => normalizeDate(item.holidayDate).startsWith(monthPrefix));
   const selectedHolidays = holidayByDay.get(selectedDay) || [];
-  const selectedMark = attendance[selectedDay];
+  const getMark = (key: string, date: Date): AttendanceMark | undefined => {
+    if (key >= today) return undefined;
+    const recordedMark = attendance[key];
+    if (recordedMark) return recordedMark;
+    if (approvedLeaveDays[key]) return "L";
+
+    const isWeekday = date.getDay() !== 0 && date.getDay() !== 6;
+    if (
+      canMarkAbsences &&
+      key < today &&
+      isWeekday &&
+      !holidayByDay.has(key) &&
+      !approvedLeaveDays[key]
+    ) {
+      return "A";
+    }
+    return undefined;
+  };
+
+  const selectedDate = new Date(`${selectedDay}T12:00:00`);
+  const selectedMark = getMark(selectedDay, selectedDate);
 
   function moveMonth(offset: number) {
     const next = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + offset, 1);
@@ -313,7 +474,9 @@ export default function CompanyCalendar() {
               const weekDay = date.getDay();
               const dayHolidays = holidayByDay.get(key) || [];
               const hasHoliday = inMonth && dayHolidays.length > 0;
-              const mark = inMonth && !hasHoliday && weekDay !== 0 && weekDay !== 6 ? attendance[key] : undefined;
+              const mark = inMonth && key < today && !hasHoliday && weekDay !== 0 && weekDay !== 6
+                ? getMark(key, date)
+                : undefined;
               const description = dayHolidays.length > 0 ? dayHolidays.map((h) => h.holidayName).join(", ") : mark ? MARK_NAMES[mark] : "";
               const classes = [
                 "cc-day", !inMonth && "cc-day-outside", weekDay === 0 && "cc-day-sunday",
@@ -356,7 +519,10 @@ export default function CompanyCalendar() {
             <span><i className="cc-legend-color cc-legend-color--present" />P – Present</span>
             <span><i className="cc-legend-color cc-legend-color--absent" />A – Absent</span>
             <span><i className="cc-legend-color cc-legend-color--leave" />L – Leave</span>
+            <span><i className="cc-legend-color cc-legend-color--pl" />PL – Present Late</span>
             <span><i className="cc-legend-color cc-legend-color--lp" />LP – Loss of Pay</span>
+            <span><i className="cc-legend-color cc-legend-color--pending" />Pending approval</span>
+            <span><i className="cc-legend-color cc-legend-color--rejected" />Rejected</span>
           </div>
         </div>
       </section>
@@ -375,7 +541,15 @@ export default function CompanyCalendar() {
           )) : selectedMark ? (
             <div className="cc-selected-attendance">
               <strong>{MARK_NAMES[selectedMark]}</strong>
-              <span>Attendance status recorded for your employee account.</span>
+              <span>
+                {selectedMark === "PD"
+                  ? "This attendance is waiting for HR/Admin approval."
+                  : selectedMark === "RJ"
+                    ? "HR/Admin rejected this attendance entry."
+                    : selectedMark === "L"
+                      ? "Approved leave is recorded for this date."
+                      : "Attendance status is approved for your employee account."}
+              </span>
             </div>
           ) : (
             <p className="cc-selection-empty">No company holiday or confirmed attendance status for this date.</p>
