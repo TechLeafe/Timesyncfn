@@ -1,437 +1,932 @@
 /* Company Calendar — floating reference-style layout, sized for HRM sidebar */
 
+
+
 .company-calendar-page {
+
   --cc-green: #247d16;
+
   --cc-muted: #74869b;
+
   width: 100%;
+
   max-width: 1440px;
+
   min-width: 0;
+
   margin: 0 auto;
+
   display: flex;
+
   flex-direction: column;
+
   gap: 14px;
+
   color: #1a2c43;
+
   font-family: var(--font-family, Inter, Arial, sans-serif);
+
 }
+
+
 
 .company-calendar-page *, .company-calendar-page *::before, .company-calendar-page *::after { box-sizing: border-box; }
 
+
+
 .cc-page-header { display: flex; align-items: center; gap: 12px; min-width: 0; }
+
 .cc-heading-icon { display: grid; place-items: center; width: 42px; height: 42px; flex: 0 0 42px; background: #e8f7ee; border: 1px solid #d3eadd; border-radius: 12px; color: #087b4d; }
+
 .cc-heading-text { min-width: 0; }
+
 .cc-page-header h1 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -.35px; }
+
 .cc-page-header p { margin: 4px 0 0; color: var(--cc-muted); font-size: 12px; }
+
 .cc-refresh { margin-left: auto; display: inline-flex; align-items: center; gap: 7px; border: 1px solid #d6e7dc; background: #fff; border-radius: 9px; padding: 8px 12px; color: #087b4d; font-size: 12px; font-weight: 700; cursor: pointer; }
+
 .cc-refresh:disabled { opacity: .6; cursor: not-allowed; }
+
 .cc-alert { margin: 0; padding: 10px 12px; background: #fff3f3; color: #a33434; border: 1px solid #f2c8c8; border-radius: 9px; font-size: 12px; }
+
 .cc-alert--warning { color: #916818; background: #fffaf0; border-color: #ead9a3; }
 
+
+
 /* Spacious floating wrapper, compact enough to fit inside portal layout */
+
 .cc-calendar-card { width: 100%; min-width: 0; padding: 17px 17px 15px; background: #e1ecd8; border: 1px solid #d4e4ca; border-radius: 17px; box-shadow: 0 7px 18px rgba(39, 83, 36, .06); }
+
 .cc-calendar-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 14px; }
+
 .cc-month-controls { display: flex; align-items: center; gap: 9px; min-width: 0; }
+
 .cc-month-controls h2 { margin: 0; font-size: clamp(22px, 2.2vw, 33px); font-weight: 850; color: #267c13; letter-spacing: -.6px; white-space: nowrap; }
+
 .cc-month-controls button { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; background: transparent; color: #267c13; border: 0; border-radius: 8px; cursor: pointer; }
+
 .cc-month-controls button:hover { background: #d4e6c9; }
+
 .cc-month-summary { color: #5e834c; font-size: 11px; font-weight: 700; }
 
+
+
 .cc-calendar-body { min-width: 0; padding: 13px; background: #fff; border: 1px solid #e5e9dc; border-radius: 10px; box-shadow: 0 4px 14px rgba(27, 65, 25, .04); }
+
 .cc-weekdays, .cc-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+
 .cc-weekdays { margin-bottom: 8px; }
+
 .cc-weekdays span { display: grid; place-items: center; min-width: 0; height: 39px; padding: 0 3px; background: #eff7ed; border: 1px solid #cee3c9; border-radius: 9px; color: #0b731e; font-size: 13px; font-weight: 800; }
+
 .cc-weekdays .cc-weekday-sunday { background: #ffe2e2; border-color: #ffaaaa; color: #ed1f27; }
+
 .cc-weekdays .cc-weekday-saturday { background: #f7f7b6; border-color: #e4e393; color: #979400; }
 
+
+
 /* Crucial: FIXED heights, not min-height; no aspect-ratio expansion */
+
 .cc-day { position: relative; display: block; width: 100%; min-width: 0; height: 95px; min-height: 0; max-height: 95px; aspect-ratio: auto; padding: 0; text-align: left; font: inherit; color: #161d22; background: #fff; border: 1px solid #b9d7b4; border-radius: 10px; overflow: hidden; cursor: pointer; transition: transform .16s, box-shadow .16s; }
+
 .cc-day:hover { z-index: 1; transform: translateY(-2px); box-shadow: 0 5px 13px rgba(21, 72, 35, .13); }
+
 .cc-day:focus-visible, .cc-month-controls button:focus-visible { outline: 3px solid #4fbd83; outline-offset: 2px; }
+
 .cc-day-number { position: absolute; left: 10px; top: 9px; z-index: 2; font-size: 17px; font-weight: 750; line-height: 1; }
+
 .cc-day-sunday { background: #ffdddd; border-color: #ff9d9d; }
+
 .cc-day-sunday .cc-day-number { color: #ed222c; }
+
 .cc-day-saturday { background: #fafaad; border-color: #e8e78b; }
+
 .cc-day-saturday .cc-day-number { color: #999c07; }
+
 .cc-day-outside:not(.cc-day-sunday):not(.cc-day-saturday) .cc-day-number { color: #36872a; }
+
 .cc-day-outside:not(.cc-day-sunday):not(.cc-day-saturday) { background: #fdfefd; }
+
 .cc-day-holiday { background: #ffd0b2; border-color: #ffb48b; }
+
 .cc-day-holiday .cc-day-number { color: #f46c0b; }
+
 .cc-day-selected { outline: 2px solid #078d4b; outline-offset: -3px; }
+
 .cc-day-today:not(.cc-day-selected) { box-shadow: inset 0 0 0 2px #a86dd0; }
+
 .cc-day-today .cc-day-number { color: #8d32bc; }
+
 .cc-today-dot { position: absolute; right: 7px; top: 7px; width: 6px; height: 6px; border-radius: 50%; background: #922dba; }
 
+
+
 /* Festival art is centered and never stretches the calendar row */
+
 .cc-holiday-content { position: absolute; top: 22px; bottom: 5px; left: 4px; right: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 0; overflow: hidden; text-align: center; }
+
 .cc-holiday-symbol { display: grid; place-items: center; flex: 0 0 auto; width: 35px; height: 35px; }
+
 .cc-holiday-symbol img { display: block; width: 100%; height: 100%; object-fit: contain; }
+
 .cc-missing-icon { display: grid; place-items: center; width: 100%; height: 100%; color: #ed7114; font-size: 22px; }
+
 .cc-holiday-name { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; max-width: 100%; font-size: 10px; line-height: 1.12; font-weight: 800; color: #ed6507; overflow-wrap: anywhere; }
 
+
+
 .cc-legend { display: flex; flex-wrap: wrap; gap: 8px 15px; margin-top: 12px; padding-top: 10px; border-top: 1px solid #e7ebe4; }
+
 .cc-legend > span { display: inline-flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 700; color: #51635a; }
+
 .cc-legend-color { display: inline-block; width: 10px; height: 10px; flex-shrink: 0; border-radius: 3px; }
+
 .cc-legend-color--sunday { background: #ffa0a0; }
+
 .cc-legend-color--saturday { background: #ecec84; }
+
 .cc-legend-color--holiday { background: #ffb88d; }
+
 .cc-legend-color--present { background: #169a2c; }
+
 .cc-legend-color--absent { background: #303030; }
+
 .cc-legend-color--leave { background: #3b58da; }
-.cc-legend-color--pl { background: #d47a08; }
 .cc-legend-color--lp { background: #8143bd; }
 .cc-legend-color--pending { background: #68798a; }
 .cc-legend-color--rejected { background: #a43a40; }
 
+
+
 .cc-selection-card { background: white; border: 1px solid #e1e9e5; border-radius: 12px; overflow: hidden; }
+
 .cc-selection-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 13px 16px; border-bottom: 1px solid #eef0ed; }
+
 .cc-selection-header span:first-child { color: #8996a6; font-size: 10px; font-weight: 800; letter-spacing: 1px; }
+
 .cc-selection-header h3 { margin: 5px 0 0; font-size: 14px; font-weight: 800; }
+
 .cc-today-pill { padding: 6px 10px; border-radius: 7px; background: #f2e8f8; color: #892aaa; font-size: 10px; font-weight: 800; }
+
 .cc-selection-body { padding: 12px 16px; }
+
 .cc-selected-holiday { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
+
 .cc-selected-holiday + .cc-selected-holiday { border-top: 1px solid #eef0ed; }
+
 .cc-selected-holiday .cc-holiday-symbol { width: 40px; height: 40px; }
+
 .cc-selected-holiday strong, .cc-selected-attendance strong { font-size: 13px; color: #19402a; }
+
 .cc-selected-holiday p, .cc-selected-attendance span, .cc-selection-empty { margin: 5px 0 0; font-size: 11px; color: #72839a; line-height: 1.5; }
+
 .cc-selected-attendance { display: flex; flex-direction: column; gap: 3px; }
+
 .cc-selection-empty { margin: 0; }
 
+
+
 @media (max-width: 1100px) {
+
   .cc-day { height: 83px; max-height: 83px; }
+
   .cc-holiday-symbol { width: 29px; height: 29px; }
+
   .cc-holiday-name { font-size: 9px; }
-}
-@media (max-width: 720px) {
-  .cc-calendar-card { padding: 12px; }
-  .cc-calendar-body { padding: 8px; }
-  .cc-weekdays, .cc-grid { gap: 4px; }
-  .cc-weekdays { margin-bottom: 5px; }
-  .cc-weekdays span { height: 31px; font-size: 10px; border-radius: 6px; }
-  .cc-month-controls h2 { font-size: 24px; }
-  .cc-month-summary { width: 100%; font-size: 10px; }
-  .cc-day { height: 64px; max-height: 64px; border-radius: 7px; }
-  .cc-day-number { left: 5px; top: 5px; font-size: 12px; }
-  .cc-holiday-content { top: 17px; bottom: 2px; left: 1px; right: 1px; gap: 1px; }
-  .cc-holiday-symbol { width: 21px; height: 21px; }
-  .cc-holiday-name { font-size: 7px; line-height: 1.06; }
-  .cc-legend { gap: 7px 10px; }
-  .cc-legend > span { font-size: 9px; }
-}
-@media (max-width: 400px) {
-  .cc-page-header h1 { font-size: 17px; }
-  .cc-page-header p { font-size: 10px; }
-  .cc-refresh { padding: 7px; }
-  .cc-refresh span { display: none; }
-  .cc-calendar-card { padding: 7px; }
-  .cc-calendar-body { padding: 4px; }
-  .cc-weekdays, .cc-grid { gap: 3px; }
-  .cc-month-controls { gap: 2px; }
-  .cc-month-controls h2 { font-size: 20px; }
-  .cc-day { height: 54px; max-height: 54px; }
-  .cc-holiday-symbol { width: 16px; height: 16px; }
-  .cc-holiday-name { font-size: 6px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .cc-day { transition: none; }
-  .cc-day:hover { transform: none; }
+
 }
 
+@media (max-width: 720px) {
+
+  .cc-calendar-card { padding: 12px; }
+
+  .cc-calendar-body { padding: 8px; }
+
+  .cc-weekdays, .cc-grid { gap: 4px; }
+
+  .cc-weekdays { margin-bottom: 5px; }
+
+  .cc-weekdays span { height: 31px; font-size: 10px; border-radius: 6px; }
+
+  .cc-month-controls h2 { font-size: 24px; }
+
+  .cc-month-summary { width: 100%; font-size: 10px; }
+
+  .cc-day { height: 64px; max-height: 64px; border-radius: 7px; }
+
+  .cc-day-number { left: 5px; top: 5px; font-size: 12px; }
+
+  .cc-holiday-content { top: 17px; bottom: 2px; left: 1px; right: 1px; gap: 1px; }
+
+  .cc-holiday-symbol { width: 21px; height: 21px; }
+
+  .cc-holiday-name { font-size: 7px; line-height: 1.06; }
+
+  .cc-legend { gap: 7px 10px; }
+
+  .cc-legend > span { font-size: 9px; }
+
+}
+
+@media (max-width: 400px) {
+
+  .cc-page-header h1 { font-size: 17px; }
+
+  .cc-page-header p { font-size: 10px; }
+
+  .cc-refresh { padding: 7px; }
+
+  .cc-refresh span { display: none; }
+
+  .cc-calendar-card { padding: 7px; }
+
+  .cc-calendar-body { padding: 4px; }
+
+  .cc-weekdays, .cc-grid { gap: 3px; }
+
+  .cc-month-controls { gap: 2px; }
+
+  .cc-month-controls h2 { font-size: 20px; }
+
+  .cc-day { height: 54px; max-height: 54px; }
+
+  .cc-holiday-symbol { width: 16px; height: 16px; }
+
+  .cc-holiday-name { font-size: 6px; }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .cc-day { transition: none; }
+
+  .cc-day:hover { transform: none; }
+
+}
+
+
+
 /* =========================================
+
    CALENDAR VIEWPORT FIT
+
    ========================================= */
+
+
 
 .company-calendar-page {
+
   width: 100%;
+
   max-width: none;
+
   min-width: 0;
+
   gap: 10px;
+
 }
+
+
 
 /* Floating green container */
+
 .company-calendar-page .cc-calendar-card {
+
   min-width: 0;
+
   padding: 12px 14px;
+
   border-radius: 14px;
+
 }
+
+
 
 /* Month title */
+
 .company-calendar-page .cc-calendar-header {
+
   margin-bottom: 10px;
+
   gap: 6px 14px;
+
 }
+
+
 
 .company-calendar-page .cc-month-controls h2 {
+
   font-size: clamp(22px, 2.5vw, 30px);
+
 }
+
+
 
 .company-calendar-page .cc-month-controls button {
+
   width: 32px;
+
   height: 32px;
+
 }
+
+
 
 /* White inner calendar surface */
+
 .company-calendar-page .cc-calendar-body {
+
   padding: 10px;
+
   border-radius: 12px;
+
 }
+
+
 
 /* Match column spacing exactly */
+
 .company-calendar-page .cc-weekdays,
+
 .company-calendar-page .cc-grid {
+
   display: grid;
+
   grid-template-columns: repeat(7, minmax(0, 1fr));
+
   gap: 5px;
+
 }
+
+
 
 .company-calendar-page .cc-weekdays {
+
   margin-bottom: 5px;
+
 }
+
+
 
 /* Compact weekday boxes */
+
 .company-calendar-page .cc-weekdays span {
+
   min-height: 0;
+
   height: 32px;
+
   border-radius: 7px;
+
   font-size: 11px;
+
 }
+
+
 
 /* Date cells: override old min-height */
+
 .company-calendar-page .cc-day {
+
   box-sizing: border-box;
+
   width: 100%;
+
   min-height: 0;
+
   max-height: none;
+
   height: clamp(64px, 10vh, 84px);
+
   padding: 6px;
+
   border-radius: 8px;
+
 }
 
+
+
 .company-calendar-page .cc-day-number {
+
   top: 7px;
+
   left: 8px;
+
   font-size: 15px;
+
 }
+
+
 
 /* Festival image and name centered */
+
 .company-calendar-page .cc-holiday-content {
+
   top: 19px;
+
   right: 3px;
+
   bottom: 3px;
+
   left: 3px;
+
   gap: 2px;
+
 }
 
+
+
 .company-calendar-page .cc-holiday-symbol {
+
   width: 31px;
+
   height: 31px;
+
 }
+
+
 
 .company-calendar-page .cc-holiday-symbol img {
+
   width: 100%;
+
   height: 100%;
+
   object-fit: contain;
+
 }
+
+
 
 .company-calendar-page .cc-holiday-name {
+
   font-size: 10px;
+
   line-height: 1.1;
+
 }
+
+
 
 /* Make the legend compact */
+
 .company-calendar-page .cc-legend {
+
   margin-top: 8px;
+
   padding-top: 9px;
+
   gap: 8px 14px;
+
 }
+
+
 
 .company-calendar-page .cc-legend span {
+
   font-size: 10px;
+
 }
+
+
 
 /* Slightly smaller page header */
+
 .company-calendar-page .cc-page-header h1 {
+
   font-size: 19px;
+
 }
+
+
 
 .company-calendar-page .cc-heading-icon {
+
   width: 40px;
+
   height: 40px;
+
 }
+
+
 
 /* Tablet */
+
 @media (max-width: 900px) {
+
   .company-calendar-page .cc-day {
+
     height: 72px;
+
   }
 
+
+
   .company-calendar-page .cc-holiday-symbol {
+
     width: 25px;
+
     height: 25px;
+
   }
+
 }
+
+
 
 /* Mobile: allow page scrolling rather than
+
    squeezing seven columns beyond legibility */
+
 @media (max-width: 600px) {
+
   .company-calendar-page .cc-calendar-card {
+
     padding: 8px 5px;
+
   }
+
+
 
   .company-calendar-page .cc-calendar-body {
+
     padding: 5px;
+
   }
+
+
 
   .company-calendar-page .cc-weekdays,
+
   .company-calendar-page .cc-grid {
+
     gap: 3px;
+
   }
+
+
 
   .company-calendar-page .cc-weekdays span {
+
     height: 26px;
+
     font-size: 9px;
+
   }
+
+
 
   .company-calendar-page .cc-day {
+
     height: 56px;
+
     padding: 3px;
+
   }
+
+
 
   .company-calendar-page .cc-day-number {
+
     top: 4px;
+
     left: 4px;
+
     font-size: 11px;
+
   }
+
+
 
   .company-calendar-page .cc-holiday-content {
+
     top: 15px;
+
   }
 
+
+
   .company-calendar-page .cc-holiday-symbol {
+
     width: 17px;
+
     height: 17px;
+
   }
+
+
 
   .company-calendar-page .cc-holiday-name {
+
     font-size: 7px;
+
   }
+
 }
+
+
 
 /* Inline festival SVG icons (no PNG or external URL required) */
+
 .company-calendar-page .cc-holiday-symbol {
+
   display: inline-flex;
+
   align-items: center;
+
   justify-content: center;
+
 }
+
 .company-calendar-page .cc-holiday-symbol svg {
+
   display: block;
+
   width: 100%;
+
   height: 100%;
+
   overflow: visible;
+
 }
+
 @media (max-width: 600px) {
+
   .company-calendar-page .cc-holiday-symbol {
+
     width: 19px;
+
     height: 19px;
+
   }
+
 }
+
+
 
 /* =========================================
+
    PAGE-PEEL CORNER (SVG)
+
    ========================================= */
 
+
+
 /* ---- Proper calendar sizing: cells keep the reference proportions and
+
         everything inside scales with the cell width (container units) ---- */
+
 .company-calendar-page .cc-grid { gap: 6px; }
 
+
+
 .company-calendar-page .cc-day {
+
   height: auto;
+
   min-height: 0;
+
   max-height: none;
+
   aspect-ratio: 1.3 / 1;
+
   padding: 0;
+
   border-radius: 10px;
+
   container-type: inline-size;
+
 }
+
+
 
 .company-calendar-page .cc-day-number {
+
   top: 6cqw;
+
   left: 8cqw;
+
   font-size: 17px;
+
   font-size: clamp(12px, 13cqw, 26px);
+
   font-weight: 800;
+
 }
+
+
 
 /* Holiday icon + name scale with the cell */
+
 .company-calendar-page .cc-holiday-content {
+
   top: 25%;
+
   right: 4%;
+
   bottom: 5%;
+
   left: 4%;
+
   gap: 1cqw;
+
 }
+
 .company-calendar-page .cc-day .cc-holiday-symbol {
+
   width: clamp(15px, 26cqw, 44px);
+
   height: clamp(15px, 26cqw, 44px);
+
 }
+
 .company-calendar-page .cc-day .cc-holiday-name {
+
   font-size: 10px;
+
   font-size: clamp(6.5px, 7.5cqw, 11.5px);
+
   line-height: 1.1;
+
 }
+
+
 
 /* Selected-date panel keeps a fixed icon size */
+
 .company-calendar-page .cc-selected-holiday .cc-holiday-symbol {
+
   width: 40px;
+
   height: 40px;
+
 }
 
+
+
 @media (max-width: 600px) {
+
   .company-calendar-page .cc-grid { gap: 3px; }
+
   .company-calendar-page .cc-day { aspect-ratio: 1 / 1.05; border-radius: 7px; }
+
   .company-calendar-page .cc-day-number { top: 4px; left: 5px; font-size: 11px; }
+
   .company-calendar-page .cc-holiday-content { top: 30%; }
+
   .company-calendar-page .cc-day .cc-holiday-symbol { width: 15px; height: 15px; }
+
   .company-calendar-page .cc-day .cc-holiday-name { font-size: 6px; }
+
 }
+
+
 
 .company-calendar-page .cc-corner {
+
   position: absolute;
+
   right: 0;
+
   bottom: 0;
+
   width: 33%;
+
   height: 55%;
+
   padding: 0;
+
   filter: none;
+
   pointer-events: none;
+
   z-index: 3;
+
 }
+
+
 
 .company-calendar-page .cc-peel {
+
   position: absolute;
+
   inset: 0;
+
   width: 100%;
+
   height: 100%;
+
   overflow: visible;
+
 }
+
+
 
 .company-calendar-page .cc-corner > span {
+
   position: absolute;
+
   right: 14%;
+
   bottom: 10%;
+
   color: #fff;
+
   font-size: 11px;
+
   font-weight: 700;
+
   line-height: 1;
+
 }
 
+
+
 /* Marked-day border + date number colour */
+
 .company-calendar-page .cc-day-mark-p  { border-color: #1b7a14; }
+
 .company-calendar-page .cc-day-mark-p  .cc-day-number { color: #3a8a00; font-weight: 800; }
-.company-calendar-page .cc-day-mark-pl { border-color: #bd6b08; }
-.company-calendar-page .cc-day-mark-pl .cc-day-number { color: #bd6b08; font-weight: 800; }
 .company-calendar-page .cc-day-mark-a  { border-color: #3a3a3a; }
+
 .company-calendar-page .cc-day-mark-l  { border-color: #3659e5; }
+
 .company-calendar-page .cc-day-mark-lp { border-color: #8b48cc; }
 
+
+
 @media (max-width: 600px) {
+
   .company-calendar-page .cc-corner > span { font-size: 8px; }
+
+}
+
+/* =======================================================
+   FINAL HRMS CALENDAR: fixed desktop viewport and image sizing
+   The calendar itself never develops a separate scrollbar.
+   On genuinely small screens page scrolling remains accessible.
+======================================================= */
+.company-calendar-page {
+  width: 100%; max-width: none; min-width: 0;
+  gap: 9px; overflow: visible;
+}
+.company-calendar-page .cc-calendar-card {
+  padding: 10px 12px; min-width: 0;
+}
+.company-calendar-page .cc-calendar-header { margin-bottom: 7px; }
+.company-calendar-page .cc-calendar-body { padding: 8px; overflow: visible; }
+.company-calendar-page .cc-weekdays,
+.company-calendar-page .cc-grid {
+  display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap: 5px;
+}
+.company-calendar-page .cc-weekdays { margin-bottom: 5px; }
+.company-calendar-page .cc-weekdays span { height: 30px; min-height: 0; font-size: 11px; }
+.company-calendar-page .cc-day {
+  height: clamp(48px, calc((100dvh - 355px) / 6), 78px);
+  min-height: 0; max-height: none; aspect-ratio: auto;
+  padding: 0; border-radius: 8px; container-type: inline-size;
+}
+.company-calendar-page .cc-day-number {
+  left: 7px; top: 5px; font-size: clamp(12px, 1.1vw, 16px);
+}
+.company-calendar-page .cc-holiday-content {
+  top: 20px; bottom: 3px; left: 2px; right: 2px; gap: 1px;
+}
+.company-calendar-page .cc-day .cc-holiday-symbol {
+  width: clamp(17px, 2.1vw, 28px); height: clamp(17px, 2.1vw, 28px);
+  min-width: 0; min-height: 0; flex: 0 0 auto;
+}
+.company-calendar-page .cc-holiday-symbol img {
+  display: block; width: 100%; height: 100%; object-fit: contain;
+}
+.company-calendar-page .cc-day .cc-holiday-name {
+  font-size: clamp(7px, 0.73vw, 10px); line-height: 1.1;
+  -webkit-line-clamp: 2;
+}
+.company-calendar-page .cc-legend { margin-top: 7px; padding-top: 7px; }
+.company-calendar-page .cc-selection-header { padding: 9px 13px; }
+.company-calendar-page .cc-selection-body { padding: 9px 13px; }
+.company-calendar-page .cc-selected-holiday .cc-holiday-symbol { width: 32px; height: 32px; }
+@media (min-width: 901px) and (max-height: 720px) {
+  .company-calendar-page .cc-day {
+    height: clamp(39px, calc((100dvh - 330px)/6), 60px);
+  }
+  .company-calendar-page .cc-day .cc-holiday-symbol { width: 19px; height: 19px; }
+  .company-calendar-page .cc-month-controls h2 { font-size: 22px; }
+}
+@media (max-width: 900px) {
+  .company-calendar-page .cc-day { height: clamp(48px, 8vw, 75px); }
+}
+@media (max-width: 600px) {
+  .company-calendar-page .cc-calendar-card { padding: 8px 5px; }
+  .company-calendar-page .cc-calendar-body { padding: 5px; }
+  .company-calendar-page .cc-weekdays,
+  .company-calendar-page .cc-grid { gap: 3px; }
+  .company-calendar-page .cc-weekdays span { height: 25px; font-size: 9px; }
+  .company-calendar-page .cc-day { height: clamp(43px, 11.5vw, 61px); }
+  .company-calendar-page .cc-day-number { top: 3px; left: 4px; font-size: 11px; }
+  .company-calendar-page .cc-holiday-content { top: 14px; }
+  .company-calendar-page .cc-day .cc-holiday-symbol { width: 16px; height: 16px; }
+  .company-calendar-page .cc-day .cc-holiday-name { font-size: 6px; }
 }
