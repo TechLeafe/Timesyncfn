@@ -5,7 +5,7 @@ import { CalendarDays, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react
 
 import api from "../../api/axiosInstance";
 
-import "./CompanyCalendar.css";
+import "./Companycalendar.css";
 
 type AttendanceMark = "P" | "PL" | "A" | "L" | "LP" | "PD" | "RJ";
 
