@@ -195,33 +195,22 @@ function Employee_Creation() {
     navigate("/employee-creation/create");
   };
 
-  const openEditDrawer = async (employee: Employee) => {
+  const openEditDrawer = (employee: Employee) => {
     setEditingId(employee.id);
     setSelectedEmployee(employee);
-    setForm({ ...emptyForm, ...employee, phone: employee.phone === "-" ? "" : employee.phone.replace(/^\+91/, "") });
+    setForm({
+      ...emptyForm,
+      id: employee.id,
+      name: employee.name,
+      email: employee.email,
+      password: employee.password,
+      phone: employee.phone === "-" ? "" : employee.phone.replace(/^\+91/, ""),
+      designation: employee.designation,
+      userType: employee.userType ?? 3,
+    });
     setMessage("");
     setErrors({});
     navigate("/employee-creation/edit");
-
-    if (!employee.id) return;
-    try {
-      const response = await api.get(`/employees/view/${encodeURIComponent(employee.id)}`);
-      const record = getApiData<EmployeeApiRecord>(response.data, "Unable to load employee details.");
-      if (record) {
-        setForm((current) => ({
-          ...current,
-          id: record.employeeId,
-          name: record.name,
-          email: record.email,
-          password: record.password ?? current.password,
-          phone: record.phone ? record.phone.replace(/^\+91/, "") : "",
-          designation: record.designation,
-        }));
-      }
-    } catch (error) {
-      if (isTimeoutError(error)) return;
-      setMessage(getApiErrorMessage(error, "Unable to load employee details."));
-    }
   };
 
   const closeDrawer = () => {
@@ -292,12 +281,21 @@ function Employee_Creation() {
     setDeleteDialogOpen(false);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!employeeToDelete) return;
-    setEmployees((current) => current.filter((employee) => employee.id !== employeeToDelete.id));
-    setDeleteDialogOpen(false);
-    setEmployeeToDelete(null);
-    setToast({ severity: "success", text: "Employee deleted successfully." });
+
+    try {
+      await api.post("/employees/delete", { _id: employeeToDelete._id });
+      setEmployees((current) => current.filter((employee) => employee.id !== employeeToDelete.id));
+      setDeleteDialogOpen(false);
+      setEmployeeToDelete(null);
+      setToast({ severity: "success", text: "Employee deleted successfully." });
+    } catch (error) {
+      if (isTimeoutError(error)) return;
+      setMessage(getApiErrorMessage(error, "Unable to delete employee."));
+      setDeleteDialogOpen(false);
+      setEmployeeToDelete(null);
+    }
   };
 
   return (
