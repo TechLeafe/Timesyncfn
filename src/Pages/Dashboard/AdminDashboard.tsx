@@ -1,50 +1,32 @@
-import {
-  useEffect,
-  useState,
-} from "react";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
-  Box,
+  AccessTimeRounded,
+  CalendarMonthRounded,
+  PendingActionsRounded,
+  TrendingUpRounded,
+  EventAvailableRounded,
+  AssignmentTurnedInRounded,
+  GroupsRounded,
+  CheckCircleRounded,
+  HourglassTopRounded,
+  CancelRounded,
+  RefreshRounded,
+  AutoGraphRounded,
+} from "@mui/icons-material";
+
+import {
+  Alert,
+  Button,
+  CircularProgress,
 } from "@mui/material";
 
-import TaskAltRoundedIcon
-  from "@mui/icons-material/TaskAltRounded";
-
-import EventBusyRoundedIcon
-  from "@mui/icons-material/EventBusyRounded";
-
-import BeachAccessRoundedIcon
-  from "@mui/icons-material/BeachAccessRounded";
-
-import GroupsRoundedIcon
-  from "@mui/icons-material/GroupsRounded";
-
-import Diversity3RoundedIcon
-  from "@mui/icons-material/Diversity3Rounded";
-
-
-import StatCard
-  from "../../Components/Dashboard/StatCard/StatCard";
-
-import ProjectsPieChart
-  from "../../Components/Dashboard/Chart/ProjectsPieChart";
-
-import TeamAllocationChart
-  from "../../Components/Dashboard/Chart/TeamAllocationChart";
-
-import type {
-  StatCardProps,
-} from "../../Components/Dashboard/StatCard/StatCard";
-
-import api
-  from "../../api/axiosInstance";
+import api from "../../api/axiosInstance";
 
 import "./Dashboard.css";
-
-
-/* =========================================================
-   TYPES
-========================================================= */
+import "./EmployeeDashboard.css";
+import "./AdminDashboard.css";
 
 interface EmployeeStatistics {
   totalEmployees: number;
@@ -52,14 +34,21 @@ interface EmployeeStatistics {
   inactiveEmployees: number;
 }
 
-
+// interface AttendanceStatistics {
+//   present: number;
+//   absent: number;
+//   onLeave: number;
+//   notCheckedIn: number;
+// }
 interface AttendanceStatistics {
-  present: number;
-  absent: number;
-  onLeave: number;
+  presentToday: number;
+  checkedIn: number;
+  checkedOut: number;
   notCheckedIn: number;
+  currentlyWorking: number;
+  absent?: number;
+  onLeave?: number;
 }
-
 
 interface LeaveStatistics {
   pending: number;
@@ -67,838 +56,756 @@ interface LeaveStatistics {
   rejected: number;
 }
 
-
 interface AdminDashboardData {
-  employeeStatistics:
-    EmployeeStatistics;
-
-  attendanceStatistics:
-    AttendanceStatistics;
-
-  leaveStatistics:
-    LeaveStatistics;
+  employeeStatistics: EmployeeStatistics;
+  attendanceStatistics: AttendanceStatistics;
+  leaveStatistics: LeaveStatistics;
 }
-
-
-/* =========================================================
-   DAILY ATTENDANCE
-========================================================= */
 
 interface DailyAttendanceRecord {
   _id?: string;
-
   user_id: string;
-
   employeeId: string;
-
   email: string;
-
-  checkInTime:
-    string | null;
-
-  checkOutTime:
-    string | null;
-
-  totalWorkingSeconds:
-    number | null;
+  checkInTime: string | null;
+  checkOutTime: string | null;
+  totalWorkingSeconds: number | null;
 }
 
-
-type ApiResponse<T> = {
+interface ApiResponse<T> {
   success?: boolean;
   message?: string;
   data?: T;
+}
+
+const getUserName = () => {
+  try {
+    const raw = localStorage.getItem("loggedInUser");
+    if (!raw) return "Admin";
+
+    const user = JSON.parse(raw) as {
+      name?: string;
+      fullName?: string;
+    };
+
+    return user.name || user.fullName || "Admin";
+  } catch {
+    return "Admin";
+  }
 };
 
-
-/* =========================================================
-   EMPTY DATA
-========================================================= */
-
-const EMPTY_DATA:
-  AdminDashboardData = {
-
-  employeeStatistics: {
-    totalEmployees: 0,
-    activeEmployees: 0,
-    inactiveEmployees: 0,
-  },
-
-  attendanceStatistics: {
-    present: 0,
-    absent: 0,
-    onLeave: 0,
-    notCheckedIn: 0,
-  },
-
-  leaveStatistics: {
-    pending: 0,
-    approved: 0,
-    rejected: 0,
-  },
-};
-
-
-/* =========================================================
-   FORMAT TIME
-========================================================= */
-
-const formatTime = (
-  isoString?: string | null
+const getErrorMessage = (
+  error: unknown,
+  fallback: string
 ) => {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "response" in error
+  ) {
+    const response = (
+      error as {
+        response?: {
+          data?: { message?: string };
+        };
+      }
+    ).response;
 
-  if (!isoString) {
-    return "—";
+    if (response?.data?.message) {
+      return response.data.message;
+    }
   }
 
-  return new Date(
-    isoString
-  ).toLocaleTimeString(
-    "en-US",
-    {
-      hour: "2-digit",
-      minute: "2-digit",
-    }
-  );
+  return error instanceof Error
+    ? error.message
+    : fallback;
 };
 
+const formatTime = (value: string | null) => {
+  if (!value) return "--";
 
-/* =========================================================
-   ATTENDANCE STATUS
-========================================================= */
+  const date = new Date(value);
 
-const attendanceStatus = (
-  record:
-    DailyAttendanceRecord
-) => {
+  return Number.isNaN(date.getTime())
+    ? "--"
+    : date.toLocaleTimeString("en-IN", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+};
 
+const formatDuration = (seconds: number | null) => {
   if (
-    record.checkInTime &&
-    record.checkOutTime
+    seconds === null ||
+    !Number.isFinite(seconds)
   ) {
+    return "--";
+  }
+
+  const safe = Math.max(0, seconds);
+  const hours = Math.floor(safe / 3600);
+  const minutes = Math.floor((safe % 3600) / 60);
+
+  return `${hours}h ${minutes}m`;
+};
+
+const getStatus = (record: DailyAttendanceRecord) => {
+  if (record.checkInTime && record.checkOutTime) {
     return "Checked Out";
   }
 
-  if (record.checkInTime) {
-    return "Checked In";
-  }
+  if (record.checkInTime) return "Checked In";
 
   return "Not Checked In";
 };
 
-
-/* =========================================================
-   STATUS CLASS
-========================================================= */
-
-const statusPillClass = (
-  status: string
-) => {
-
-  if (
-    status === "Checked Out"
-  ) {
-    return (
-      "admin-dashboard__status-pill--present"
-    );
-  }
-
-  if (
-    status === "Checked In"
-  ) {
-    return (
-      "admin-dashboard__status-pill--leave"
-    );
-  }
-
-  return (
-    "admin-dashboard__status-pill--pending"
-  );
-};
-
-
-/* =========================================================
-   ADMIN DASHBOARD
-========================================================= */
-
-const AdminDashboard = () => {
-
-  const [
-    data,
-    setData,
-  ] =
-    useState<AdminDashboardData>(
-      EMPTY_DATA
-    );
-
-
-  const [
-    todaysAttendance,
-    setTodaysAttendance,
-  ] =
-    useState<
-      DailyAttendanceRecord[]
-    >([]);
-
-
-  /* =========================================================
-     LOAD DASHBOARD
-  ========================================================= */
-
-  useEffect(() => {
-
-    const loadAll =
-      async () => {
-
-        /*
-          Dashboard and daily attendance
-          are loaded together.
-        */
-
-        const [
-          dashboardResult,
-          dailyResult,
-        ] =
-          await Promise.allSettled([
-            api.post<
-              ApiResponse<
-                AdminDashboardData
-              >
-            >(
-              "/dashboard/admin",
-              {
-                date: "",
-              }
-            ),
-
-            api.post<
-              ApiResponse<
-                DailyAttendanceRecord[]
-              >
-            >(
-              "/attendance/daily",
-              {
-                user_id: "",
-                date: "",
-              }
-            ),
-          ]);
-
-
-        /* =====================================================
-           DASHBOARD DATA
-        ===================================================== */
-
-        let employeeStatistics =
-          EMPTY_DATA
-            .employeeStatistics;
-
-        let leaveStatistics =
-          EMPTY_DATA
-            .leaveStatistics;
-
-        let dashboardAbsent = 0;
-
-        let dashboardOnLeave = 0;
-
-
-        if (
-          dashboardResult.status ===
-          "fulfilled"
-        ) {
-
-          console.log(
-            "Admin dashboard response:",
-            dashboardResult
-              .value
-              .data
-          );
-
-
-          const payload =
-            dashboardResult
-              .value
-              .data
-              .data;
-
-
-          if (payload) {
-
-            employeeStatistics =
-              payload
-                .employeeStatistics ??
-              EMPTY_DATA
-                .employeeStatistics;
-
-
-            leaveStatistics =
-              payload
-                .leaveStatistics ??
-              EMPTY_DATA
-                .leaveStatistics;
-
-
-            dashboardAbsent =
-              payload
-                .attendanceStatistics
-                ?.absent ?? 0;
-
-
-            dashboardOnLeave =
-              payload
-                .attendanceStatistics
-                ?.onLeave ?? 0;
-          }
-
-        } else {
-
-          console.error(
-            "Admin dashboard error:",
-            dashboardResult.reason
-          );
-
-        }
-
-
-        /* =====================================================
-           DAILY ATTENDANCE
-        ===================================================== */
-
-        let records:
-          DailyAttendanceRecord[] =
-          [];
-
-
-        if (
-          dailyResult.status ===
-          "fulfilled"
-        ) {
-
-          console.log(
-            "Today's check-ins:",
-            dailyResult
-              .value
-              .data
-          );
-
-
-          const dailyData =
-            dailyResult
-              .value
-              .data
-              .data;
-
-
-          records =
-            Array.isArray(
-              dailyData
-            )
-              ? dailyData
-              : [];
-
-        } else {
-
-          console.error(
-            "Daily attendance error:",
-            dailyResult.reason
-          );
-
-        }
-
-
-        setTodaysAttendance(
-          records
-        );
-
-
-        /* =====================================================
-           COMPUTE PRESENT
-        ===================================================== */
-
-        const present =
-          records.filter(
-            (record) =>
-              record.checkInTime
-          ).length;
-
-
-        const notCheckedIn =
-          Math.max(
-            0,
-            employeeStatistics
-              .totalEmployees -
-              present
-          );
-
-
-        /* =====================================================
-           UPDATE DASHBOARD
-        ===================================================== */
-
-        setData({
-
-          employeeStatistics,
-
-          leaveStatistics,
-
-          attendanceStatistics: {
-            present,
-
-            notCheckedIn,
-
-            absent:
-              dashboardAbsent,
-
-            onLeave:
-              dashboardOnLeave,
-          },
-
-        });
-      };
-
-
-    void loadAll();
-
+function AdminDashboard() {
+  const [dashboard, setDashboard] =
+    useState<AdminDashboardData | null>(null);
+
+  const [attendanceRecords, setAttendanceRecords] =
+    useState<DailyAttendanceRecord[] | null>(null);
+
+  const [loading, setLoading] = useState(true);
+  const [dashboardError, setDashboardError] = useState("");
+  const [attendanceError, setAttendanceError] = useState("");
+  const [refreshCount, setRefreshCount] = useState(0);
+
+  const [userName] = useState(getUserName);
+  const [now] = useState(() => new Date());
+
+  const refresh = useCallback(() => {
+    setRefreshCount((value) => value + 1);
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
 
-  /* =========================================================
-     DATA
-  ========================================================= */
+    const fetchData = async () => {
+      setLoading(true);
+      setDashboardError("");
+      setAttendanceError("");
 
-  const {
-    employeeStatistics,
-    attendanceStatistics,
-    leaveStatistics,
-  } = data;
+      const [dashboardResult, attendanceResult] =
+        await Promise.allSettled([
+          api.post<ApiResponse<AdminDashboardData>>(
+            "/dashboard/admin",
+            { date: "" }
+          ),
+          api.post<ApiResponse<DailyAttendanceRecord[]>>(
+            "/attendance/daily",
+            { user_id: "", date: "" }
+          ),
+        ]);
+
+      if (cancelled) return;
+
+      if (dashboardResult.status === "fulfilled") {
+        const body = dashboardResult.value.data;
+
+        if (
+          body.success !== false &&
+          body.data?.employeeStatistics &&
+          body.data?.attendanceStatistics &&
+          body.data?.leaveStatistics
+        ) {
+          setDashboard(body.data);
+        } else {
+          setDashboard(null);
+          setDashboardError(
+            body.message || "Unable to load dashboard data."
+          );
+        }
+      } else {
+        setDashboard(null);
+        setDashboardError(
+          getErrorMessage(
+            dashboardResult.reason,
+            "Unable to load dashboard data."
+          )
+        );
+      }
+
+      if (attendanceResult.status === "fulfilled") {
+        const body = attendanceResult.value.data;
+
+        if (
+          body.success !== false &&
+          Array.isArray(body.data)
+        ) {
+          setAttendanceRecords(body.data);
+        } else {
+          setAttendanceRecords(null);
+          setAttendanceError(
+            body.message || "Unable to load attendance."
+          );
+        }
+      } else {
+        setAttendanceRecords(null);
+        setAttendanceError(
+          getErrorMessage(
+            attendanceResult.reason,
+            "Unable to load attendance."
+          )
+        );
+      }
+
+      setLoading(false);
+    };
+
+    void fetchData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshCount]);
+
+  const employeeStats = dashboard?.employeeStatistics;
+  const attendanceStats = dashboard?.attendanceStatistics;
+  const leaveStats = dashboard?.leaveStatistics;
+
+  const checkedInCount = useMemo(
+    () =>
+      attendanceRecords?.filter(
+        (record) => Boolean(record.checkInTime)
+      ).length ?? null,
+    [attendanceRecords]
+  );
+
+  const greeting =
+    now.getHours() < 12
+      ? "GOOD MORNING"
+      : now.getHours() < 17
+        ? "GOOD AFTERNOON"
+        : "GOOD EVENING";
+
+  const todayDate = now.toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+  
+const attendanceItems = [
+  {
+    label: "Present",
+    value: attendanceStats?.presentToday ?? 0,
+    color: "#087f55",
+  },
+  {
+    label: "Absent",
+    value: attendanceStats?.absent ?? 0,
+    color: "#52c75c",
+  },
+  {
+    label: "On Leave",
+    value: attendanceStats?.onLeave ?? 0,
+    color: "#f9b23d",
+  },
+  {
+    label: "Not Checked In",
+    value: attendanceStats?.notCheckedIn ?? 0,
+    color: "#2697e8",
+  },
+];
 
 
-  /* =========================================================
-     STAT CARDS
-  ========================================================= */
+  // const attendanceItems = [
+  //   {
+  //     label: "Present",
+  //     value: attendanceStats?.present ?? 0,
+  //     color: "#087f55",
+  //   },
+  //   {
+  //     label: "Absent",
+  //     value: attendanceStats?.absent ?? 0,
+  //     color: "#52c75c",
+  //   },
+  //   {
+  //     label: "On Leave",
+  //     value: attendanceStats?.onLeave ?? 0,
+  //     color: "#f9b23d",
+  //   },
+  //   {
+  //     label: "Not Checked In",
+  //     value: attendanceStats?.notCheckedIn ?? 0,
+  //     color: "#2697e8",
+  //   },
+  // ];
 
-  const STATS:
-    StatCardProps[] = [
+  const totalAttendance = attendanceItems.reduce(
+    (sum, item) => sum + item.value,
+    0
+  );
 
+  let runningPercent = 0;
+
+  const attendanceSegments = attendanceItems.map((item) => {
+    const start = runningPercent;
+
+    runningPercent +=
+      totalAttendance > 0
+        ? (item.value / totalAttendance) * 100
+        : 0;
+
+    return `${item.color} ${start}% ${runningPercent}%`;
+  });
+
+  const attendanceDonut =
+    totalAttendance > 0
+      ? `conic-gradient(${attendanceSegments.join(", ")})`
+      : "#e9eef3";
+
+  const leaveItems = [
     {
-      label:
-        "Total employees",
-
-      value:
-        employeeStatistics
-          .totalEmployees,
-
-      icon:
-        <GroupsRoundedIcon
-          fontSize="small"
-        />,
-
-      trend:
-        "Company-wide",
-
-      trendDirection:
-        "neutral",
+      label: "Pending",
+      value: leaveStats?.pending ?? 0,
+      color: "#f5a623",
+      icon: <HourglassTopRounded />,
     },
-
-
     {
-      label:
-        "Active employees",
-
-      value:
-        employeeStatistics
-          .activeEmployees,
-
-      icon:
-        <Diversity3RoundedIcon
-          fontSize="small"
-        />,
-
-      trend:
-        `${employeeStatistics.inactiveEmployees} inactive`,
-
-      trendDirection:
-        "neutral",
+      label: "Approved",
+      value: leaveStats?.approved ?? 0,
+      color: "#119b69",
+      icon: <CheckCircleRounded />,
     },
-
-
     {
-      label:
-        "Present today",
-
-      value:
-        attendanceStatistics
-          .present,
-
-      icon:
-        <TaskAltRoundedIcon
-          fontSize="small"
-        />,
-
-      trend:
-        `${attendanceStatistics.notCheckedIn} not checked in`,
-
-      trendDirection:
-        "up",
-    },
-
-
-    {
-      label:
-        "Absent today",
-
-      value:
-        attendanceStatistics
-          .absent,
-
-      icon:
-        <EventBusyRoundedIcon
-          fontSize="small"
-        />,
-
-      trend:
-        `${attendanceStatistics.onLeave} on leave`,
-
-      trendDirection:
-        "down",
-    },
-
-
-    {
-      label:
-        "On leave today",
-
-      value:
-        attendanceStatistics
-          .onLeave,
-
-      icon:
-        <BeachAccessRoundedIcon
-          fontSize="small"
-        />,
-
-      trend:
-        `${leaveStatistics.pending} pending requests`,
-
-      trendDirection:
-        "neutral",
+      label: "Rejected",
+      value: leaveStats?.rejected ?? 0,
+      color: "#e15b64",
+      icon: <CancelRounded />,
     },
   ];
 
-
-  /* =========================================================
-     ATTENDANCE CHART
-  ========================================================= */
-
-  const ATTENDANCE_DISTRIBUTION = [
-
-    {
-      label: "Present",
-      value:
-        attendanceStatistics
-          .present,
-    },
-
-    {
-      label: "Absent",
-      value:
-        attendanceStatistics
-          .absent,
-    },
-
-    {
-      label: "On leave",
-      value:
-        attendanceStatistics
-          .onLeave,
-    },
-
-    {
-      label:
-        "Not checked in",
-
-      value:
-        attendanceStatistics
-          .notCheckedIn,
-    },
-
-  ];
-
-
-  /* =========================================================
-     LEAVE CHART
-  ========================================================= */
-
-  const LEAVE_REQUESTS_BY_STATUS = [
-
-    {
-      project: "Pending",
-      members:
-        leaveStatistics
-          .pending,
-    },
-
-    {
-      project: "Approved",
-      members:
-        leaveStatistics
-          .approved,
-    },
-
-    {
-      project: "Rejected",
-      members:
-        leaveStatistics
-          .rejected,
-    },
-
-  ];
-
-
-  /* =========================================================
-     UI
-  ========================================================= */
+  const totalLeaveRequests = leaveItems.reduce(
+    (sum, item) => sum + item.value,
+    0
+  );
 
   return (
+    <main className="emp-premium-dashboard admin-employee-match">
 
-    <Box
-      component="main"
-      className="admin-dashboard__main"
-    >
+      {/* WELCOME BANNER */}
 
-      {/* =====================================================
-          STAT CARDS
-      ===================================================== */}
+      <section className="emp-welcome">
+        <div className="emp-welcome-content">
+          <span className="emp-welcome-tag">
+            {greeting}
+          </span>
 
-      <Box
-        className="admin-dashboard__stats"
-      >
+          <h2>Welcome back, {userName}!</h2>
 
-        {STATS.map(
-          (stat) => (
+          <p>
+            Monitor your workforce, manage attendance,
+            and stay updated with your workspace.
+          </p>
+        </div>
 
-            <StatCard
-              key={stat.label}
-              {...stat}
-            />
-
-          )
-        )}
-
-      </Box>
-
-
-      {/* =====================================================
-          CHARTS
-      ===================================================== */}
-
-      <Box
-        className="admin-dashboard__charts"
-      >
-
-        <ProjectsPieChart
-          title={
-            "Today's attendance breakdown"
-          }
-          subtitle={
-            "Present vs absent vs on leave vs not checked in"
-          }
-          data={
-            ATTENDANCE_DISTRIBUTION
-          }
-        />
-
-
-        <TeamAllocationChart
-          title={
-            "Leave requests by status"
-          }
-          subtitle={
-            "Pending vs approved vs rejected requests"
-          }
-          data={
-            LEAVE_REQUESTS_BY_STATUS
-          }
-        />
-
-      </Box>
-
-
-      {/* =====================================================
-          TODAY'S CHECK-INS
-      ===================================================== */}
-
-      <Box
-        className="admin-dashboard__table-card"
-      >
-
-        <Box
-          className="admin-dashboard__table-title"
+        <div
+          className="emp-welcome-decoration"
+          aria-hidden="true"
         >
-          Today's Check-ins
-        </Box>
+          <EventAvailableRounded />
+        </div>
 
+        <div className="emp-welcome-date">
+          <div className="emp-welcome-date-row">
+            <CalendarMonthRounded />
+            <span>{todayDate}</span>
+          </div>
 
-        <Box
-          className="admin-dashboard__table-wrapper"
-        >
+          <div className="emp-welcome-date-row">
+            <AccessTimeRounded />
+            <span>
+              {loading
+                ? "Loading attendance..."
+                : checkedInCount === null
+                  ? "Attendance unavailable"
+                  : `${checkedInCount} checked in today`}
+            </span>
+          </div>
+        </div>
+      </section>
 
-          <table
-            className="admin-dashboard__table"
-          >
+      {(dashboardError || attendanceError) && (
+        <div className="admin-match-errors">
+          {dashboardError && (
+            <Alert severity="error">
+              {dashboardError}
+            </Alert>
+          )}
 
+          {attendanceError && (
+            <Alert severity="warning">
+              {attendanceError}
+            </Alert>
+          )}
+        </div>
+      )}
+
+      {/* THREE STAT CARDS — EMPLOYEE STYLE */}
+
+      <section className="emp-stat-grid">
+        <article className="emp-stat-card emp-green">
+          <div className="emp-stat-header">
+            <div className="emp-stat-icon">
+              <GroupsRounded />
+            </div>
+
+            <span className="emp-stat-mini-icon">
+              <TrendingUpRounded />
+            </span>
+          </div>
+
+          <p className="emp-stat-label">
+            Total employees
+          </p>
+
+          <h3>
+            {loading || !employeeStats
+              ? "—"
+              : employeeStats.totalEmployees}
+          </h3>
+
+          <div className="emp-stat-bottom">
+            <span className="emp-stat-dot" />
+            <span>
+              {employeeStats
+                ? `${employeeStats.activeEmployees} active employees`
+                : "Data unavailable"}
+            </span>
+          </div>
+        </article>
+
+        <article className="emp-stat-card emp-blue">
+          <div className="emp-stat-header">
+            <div className="emp-stat-icon">
+              <AutoGraphRounded />
+            </div>
+
+            <span className="emp-stat-mini-icon">
+              <TrendingUpRounded />
+            </span>
+          </div>
+
+          <p className="emp-stat-label">
+            Checked in today
+          </p>
+
+          <h3>
+            {loading || checkedInCount === null
+              ? "—"
+              : checkedInCount}
+          </h3>
+
+          <div className="emp-stat-bottom">
+            <span className="emp-stat-dot" />
+            <span>Recorded employee check-ins</span>
+          </div>
+        </article>
+
+        <article className="emp-stat-card emp-orange">
+          <div className="emp-stat-header">
+            <div className="emp-stat-icon">
+              <PendingActionsRounded />
+            </div>
+
+            <span className="emp-stat-mini-icon">
+              <AssignmentTurnedInRounded />
+            </span>
+          </div>
+
+          <p className="emp-stat-label">
+            Pending leave requests
+          </p>
+
+          <h3>
+            {loading || !leaveStats
+              ? "—"
+              : leaveStats.pending}
+          </h3>
+
+          <div className="emp-stat-bottom">
+            <span className="emp-stat-dot" />
+            <span>
+              {leaveStats
+                ? `${leaveStats.approved} approved · ${leaveStats.rejected} rejected`
+                : "Data unavailable"}
+            </span>
+          </div>
+        </article>
+      </section>
+
+      {/* CHARTS — EMPLOYEE PANEL STYLE */}
+
+      <section className="emp-chart-grid">
+
+        {/* ATTENDANCE DONUT */}
+
+        <article className="emp-panel">
+          <div className="emp-panel-heading">
+            <div>
+              <h3>Today's attendance</h3>
+              <p>
+                Present, absent, on leave and not checked in
+              </p>
+            </div>
+
+            <span className="emp-period">Today</span>
+          </div>
+
+          {loading ? (
+            <div className="emp-no-requests">
+              <CircularProgress size={25} />
+              <p>Loading attendance...</p>
+            </div>
+          ) : !dashboard ? (
+            <div className="emp-no-requests">
+              <p>Attendance data is unavailable.</p>
+            </div>
+          ) : totalAttendance === 0 ? (
+            <div className="emp-no-requests">
+              <div className="emp-empty-icon">
+                <EventAvailableRounded />
+              </div>
+
+              <h4>No attendance statistics yet</h4>
+              <p>
+                Attendance information will appear here.
+              </p>
+            </div>
+          ) : (
+            <div className="emp-leave-chart">
+              <div
+                className="emp-donut"
+                role="img"
+                aria-label={`Total reported attendance categories: ${totalAttendance}`}
+                style={{ background: attendanceDonut }}
+              >
+                <div className="emp-donut-inner">
+                  <span>Today's</span>
+                  <strong>{totalAttendance}</strong>
+                  <small>Records</small>
+                </div>
+              </div>
+
+              <div className="emp-leave-list">
+                {attendanceItems.map((item) => (
+                  <div
+                    key={item.label}
+                    className="emp-leave-item"
+                  >
+                    <span
+                      className="emp-leave-color"
+                      style={{
+                        backgroundColor: item.color,
+                      }}
+                    />
+
+                    <span className="emp-leave-name">
+                      {item.label}
+                    </span>
+
+                    <strong>{item.value}</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </article>
+
+        {/* LEAVE STATUS */}
+
+        <article className="emp-panel">
+          <div className="emp-panel-heading">
+            <div>
+              <h3>Leave requests by status</h3>
+              <p>
+                Pending, approved and rejected requests
+              </p>
+            </div>
+
+            <span className="emp-period">Overview</span>
+          </div>
+
+          {loading ? (
+            <div className="emp-no-requests">
+              <p>Loading leave requests...</p>
+            </div>
+          ) : !dashboard ? (
+            <div className="emp-no-requests">
+              <p>Leave request data is unavailable.</p>
+            </div>
+          ) : totalLeaveRequests === 0 ? (
+            <div className="emp-no-requests">
+              <div className="emp-empty-icon">
+                <AssignmentTurnedInRounded />
+              </div>
+
+              <h4>No leave requests yet</h4>
+
+              <p>
+                Employee leave requests will appear here.
+              </p>
+            </div>
+          ) : (
+            <div className="emp-request-overview">
+              <div className="emp-request-total">
+                <span>Total Requests</span>
+                <strong>{totalLeaveRequests}</strong>
+                <small>
+                  Employee leave application summary
+                </small>
+              </div>
+
+              <div className="emp-request-list">
+                {leaveItems.map((item) => (
+                  <div
+                    key={item.label}
+                    className="emp-request-item"
+                  >
+                    <div className="emp-request-row">
+                      <div>
+                        <span
+                          className="emp-request-symbol"
+                          style={{ color: item.color }}
+                        >
+                          {item.icon}
+                        </span>
+
+                        <span>{item.label}</span>
+                      </div>
+
+                      <strong>{item.value}</strong>
+                    </div>
+
+                    <div className="emp-request-track">
+                      <div
+                        style={{
+                          backgroundColor: item.color,
+                          width: `${
+                            totalLeaveRequests > 0
+                              ? (item.value /
+                                  totalLeaveRequests) *
+                                100
+                              : 0
+                          }%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </article>
+      </section>
+
+      {/* ATTENDANCE RECORDS */}
+
+      <section className="emp-panel admin-match-attendance">
+        <div className="emp-panel-heading">
+          <div>
+            <h3>Today's check-ins</h3>
+            <p>
+              Employee attendance and working hours
+            </p>
+          </div>
+
+          <div className="admin-match-panel-actions">
+            <span className="emp-period">
+              {attendanceRecords?.length ?? "—"} records
+            </span>
+
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={refresh}
+              disabled={loading}
+              startIcon={<RefreshRounded />}
+            >
+              Refresh
+            </Button>
+          </div>
+        </div>
+
+        <div className="emp-table-wrapper">
+          <table className="emp-attendance-table">
             <thead>
-
               <tr>
-
-                <th>
-                  Employee ID
-                </th>
-
-                <th>
-                  Email
-                </th>
-
-                <th>
-                  Check-in
-                </th>
-
-                <th>
-                  Check-out
-                </th>
-
-                <th>
-                  Status
-                </th>
-
+                <th>Employee ID</th>
+                <th>Email</th>
+                <th>Check In</th>
+                <th>Check Out</th>
+                <th>Working Hours</th>
+                <th>Status</th>
               </tr>
-
             </thead>
 
-
             <tbody>
-
-              {todaysAttendance.length >
-              0 ? (
-
-                todaysAttendance.map(
-                  (
-                    record,
-                    index
-                  ) => {
-
-                    const status =
-                      attendanceStatus(
-                        record
-                      );
-
-
-                    return (
-
-                      <tr
-                        key={
-                          record._id ??
-                          `${record.employeeId}-${index}`
-                        }
-                      >
-
-                        {/* EMPLOYEE ID */}
-
-                        <td
-                          data-label="Employee ID"
-                        >
-                          {record.employeeId ||
-                            "-"}
-                        </td>
-
-
-                        {/* EMAIL */}
-
-                        <td
-                          data-label="Email"
-                        >
-                          {record.email ||
-                            "-"}
-                        </td>
-
-
-                        {/* CHECK IN */}
-
-                        <td
-                          data-label="Check-in"
-                        >
-                          {formatTime(
-                            record.checkInTime
-                          )}
-                        </td>
-
-
-                        {/* CHECK OUT */}
-
-                        <td
-                          data-label="Check-out"
-                        >
-                          {formatTime(
-                            record.checkOutTime
-                          )}
-                        </td>
-
-
-                        {/* STATUS */}
-
-                        <td
-                          data-label="Status"
-                        >
-
-                          <span
-                            className={
-                              `admin-dashboard__status-pill ${
-                                statusPillClass(
-                                  status
-                                )
-                              }`
-                            }
-                          >
-                            {status}
-                          </span>
-
-                        </td>
-
-                      </tr>
-
-                    );
-                  }
-                )
-
-              ) : (
-
-                <tr
-                  className="admin-dashboard__empty-table-row"
-                >
-
+              {loading ||
+              attendanceRecords === null ||
+              attendanceRecords.length === 0 ? (
+                <tr>
                   <td
-                    colSpan={5}
-                    className="admin-dashboard__empty-row"
+                    colSpan={6}
+                    className="emp-table-empty"
                   >
-                    No check-ins
-                    recorded yet today.
+                    {loading
+                      ? "Loading attendance..."
+                      : attendanceRecords === null
+                        ? "Attendance records are unavailable."
+                        : "No check-ins recorded yet today."}
                   </td>
-
                 </tr>
+              ) : (
+                attendanceRecords.map((record, index) => {
+                  const status = getStatus(record);
 
+                  return (
+                    <tr
+                      key={
+                        record._id ||
+                        `${record.user_id}-${index}`
+                      }
+                    >
+                      <td>{record.employeeId || "—"}</td>
+                      <td>{record.email || "—"}</td>
+                      <td>
+                        {formatTime(record.checkInTime)}
+                      </td>
+                      <td>
+                        {formatTime(record.checkOutTime)}
+                      </td>
+                      <td>
+                        {formatDuration(
+                          record.totalWorkingSeconds
+                        )}
+                      </td>
+                      <td>
+                        <span
+                          className={`emp-status ${
+                            status === "Checked Out"
+                              ? "emp-status-complete"
+                              : status === "Checked In"
+                                ? "emp-status-active"
+                                : "emp-status-pending"
+                          }`}
+                        >
+                          {status}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
-
             </tbody>
-
           </table>
-
-        </Box>
-
-      </Box>
-
-    </Box>
+        </div>
+      </section>
+    </main>
   );
-};
-
+}
 
 export default AdminDashboard;

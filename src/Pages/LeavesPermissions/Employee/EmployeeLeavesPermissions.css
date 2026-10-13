@@ -1,461 +1,1039 @@
+
+/* ==========================================
+   EMPLOYEE LEAVES & PERMISSIONS
+========================================== */
+
 .employee-leaves-page {
-  max-width: 1240px;
-  margin: 0 auto;
+  --leaves-green: #087b4d;
+  --leaves-green-dark: #075b3d;
+  --leaves-green-soft: #e8f7ee;
+  --leaves-text: #17263b;
+  --leaves-muted: #8190a2;
+  --leaves-border: #e7edf2;
+
   width: 100%;
-  padding: 32px 32px;
-  font-family: var(--font-family);
+  max-width: 1440px;
+  min-width: 0;
+  margin: 0 auto;
+  padding: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  color: var(--leaves-text);
+  font-family: var(--font-family, Inter, sans-serif);
+  box-sizing: border-box;
 }
 
-.employee-leaves-header {
+.employee-leaves-page *,
+.employee-leaves-page *::before,
+.employee-leaves-page *::after {
+  box-sizing: border-box;
+}
+
+/* ==========================================
+   PAGE HEADER
+========================================== */
+
+.employee-leaves-page .employee-leaves-header {
+  display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
-}
-
-.page-title {
-  color: var(--brand-green-dark);
-  font-family: var(--font-family);
-  font-size: 36px;
-  font-weight: 800;
-}
-
-.page-subtitle {
-  color: var(--text-secondary);
-  font-family: var(--font-family);
-  margin-top: 4px;
-}
-
-
-.balance-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  flex-wrap: wrap;
   gap: 16px;
-  margin-bottom: 24px;
+  width: 100%;
 }
 
-.balance-card,
-.apply-card,
-.request-form-card,
-.requests-card {
-  border-radius: 8px;
-}
-
-.balance-card {
-  border: 1px solid var(--card-border);
-  padding: 20px;
-}
-
-.balance-card-content {
+.employee-leaves-heading {
+  display: flex;
   align-items: center;
+  gap: 13px;
+  min-width: 0;
+}
+
+.employee-leaves-heading-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
+
+  background: #e8f7ee;
+  border: 1px solid #d8efdf;
+  color: #087b4d;
+}
+
+.employee-leaves-heading-icon svg {
+  font-size: 25px;
+}
+
+.employee-leaves-page .page-title.MuiTypography-root {
+  font-family: inherit;
+  font-size: 21px;
+  font-weight: 750;
+  letter-spacing: -0.4px;
+  line-height: 1.3;
+  color: var(--leaves-text);
+}
+
+.employee-leaves-page .page-subtitle.MuiTypography-root {
+  margin-top: 4px;
+  color: var(--leaves-muted);
+  font-family: inherit;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.employee-leaves-page .employee-leaves-year-chip.MuiChip-root {
+  height: 32px;
+  max-width: 100%;
+  background: #edf8f1;
+  border: 1px solid #d1e9da;
+  color: #087b4d;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ==========================================
+   BALANCE GRID
+========================================== */
+
+.employee-leaves-page .balance-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+}
+
+.employee-leaves-page .balance-card.MuiPaper-root {
+  padding: 21px;
+  min-width: 0;
+  min-height: 146px;
+
+  border: 1px solid var(--leaves-border);
+  border-radius: 15px;
+  background: #ffffff;
+  box-shadow: 0 3px 15px rgba(17, 39, 64, 0.04);
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.employee-leaves-page .balance-card.MuiPaper-root:hover {
+  border-color: #bddfca;
+  box-shadow: 0 7px 22px rgba(8, 85, 49, 0.07);
+  transform: translateY(-2px);
+}
+
+.employee-leaves-page .balance-card-content {
+  display: flex;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
 }
 
-.balance-label {
-  color: var(--text-secondary);
-  font-family: var(--font-family);
-  font-size: 14px;
+.employee-leaves-page .balance-card-text {
+  flex: 1;
+  min-width: 0;
 }
 
-.balance-value {
-  color: var(--brand-green-dark);
-  font-family: var(--font-family);
-  font-size: 32px;
+.employee-leaves-page .balance-label.MuiTypography-root {
+  color: #7b8d83;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.employee-leaves-page .balance-value.MuiTypography-root {
+  margin-top: 15px;
+  color: #075b3d;
+  font-size: 30px;
   font-weight: 800;
-  line-height: 1.2;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
 }
 
-.balance-unit {
-  color: var(--text-secondary);
-  font-family: var(--font-family);
+.employee-leaves-page .balance-unit.MuiTypography-root {
+  margin-top: 8px;
+  color: #92a29a;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.employee-leaves-page .balance-icon {
+  width: 43px;
+  height: 43px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #e8f7ee;
+  color: #087b4d;
+  border-radius: 12px;
+}
+
+.employee-leaves-page .balance-icon svg {
+  font-size: 23px;
+}
+
+/* ==========================================
+   ERROR ALERT
+========================================== */
+
+.employee-leaves-page .employee-leaves-warning.MuiAlert-root {
+  border-radius: 11px;
   font-size: 12px;
 }
 
-.balance-icon {
-  align-items: center;
-  background-color: var(--brand-green-pale);
-  border-radius: 50%;
-  color: var(--brand-green-mid);
+/* ==========================================
+   APPLY CARD
+========================================== */
+
+.employee-leaves-page .apply-card.MuiPaper-root {
   display: flex;
-  height: 44px;
-  justify-content: center;
-  width: 44px;
-  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 18px;
+
+  width: 100%;
+  min-width: 0;
+  padding: 22px 24px;
+
+  background: linear-gradient(
+    110deg,
+    #e9f8ef 0%,
+    #f6fcf8 100%
+  );
+
+  border: 1px solid #dcefe3;
+  border-radius: 15px;
+  box-shadow: none;
 }
 
-.apply-card {
-  border: 1px dashed var(--brand-green-dark);
-  padding: 20px;
+.employee-leaves-page .apply-card-content {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.employee-leaves-page .apply-card-icon {
+  width: 47px;
+  height: 47px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+  background: #d5efdf;
+  color: #087b4d;
+}
+
+.employee-leaves-page .apply-card-icon svg {
+  font-size: 24px;
+}
+
+.employee-leaves-page .apply-card-title.MuiTypography-root {
+  font-size: 15px;
+  font-weight: 750;
+  color: #184b32;
+}
+
+.employee-leaves-page .apply-card-description.MuiTypography-root {
+  margin-top: 5px;
+  color: #6b8977;
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.employee-leaves-page .apply-card-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.employee-leaves-page .apply-button.MuiButton-contained,
+.employee-leaves-page .submit-button.MuiButton-contained {
+  min-height: 42px;
+  padding: 9px 17px;
+
+  background: linear-gradient(
+    105deg,
+    #087b4d,
+    #07945c
+  );
+
+  border-radius: 10px;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  text-transform: none;
+
+  box-shadow: 0 5px 13px rgba(8, 123, 77, 0.14);
+}
+
+.employee-leaves-page .apply-button.MuiButton-contained:hover,
+.employee-leaves-page .submit-button.MuiButton-contained:hover {
+  background: #075b3d;
+  box-shadow: 0 7px 16px rgba(8, 123, 77, 0.2);
+}
+
+.employee-leaves-page .apply-permission-button.MuiButton-outlined,
+.employee-leaves-page .cancel-button.MuiButton-outlined {
+  min-height: 42px;
+  padding: 9px 16px;
+
+  border: 1px solid #b7d9c4;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #087b4d;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  text-transform: none;
+}
+
+.employee-leaves-page .apply-permission-button.MuiButton-outlined:hover,
+.employee-leaves-page .cancel-button.MuiButton-outlined:hover {
+  background: #eef8f2;
+  border-color: #087b4d;
+}
+
+.employee-leaves-page .MuiButton-root.Mui-disabled {
+  box-shadow: none;
+}
+
+/* ==========================================
+   REQUEST FORM CARD
+========================================== */
+
+.employee-leaves-page .request-form-card.MuiPaper-root {
+  width: 100%;
+  min-width: 0;
+  padding: 24px;
+
+  background: #ffffff;
+  border: 1px solid var(--leaves-border);
+  border-radius: 16px;
+  box-shadow: 0 3px 16px rgba(17, 39, 64, 0.04);
+}
+
+.employee-leaves-page .request-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  padding-bottom: 20px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid #edf1ee;
+}
+
+.employee-leaves-page .request-form-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.employee-leaves-page .request-form-icon {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #eef8f2;
+  color: #087b4d;
+  border-radius: 11px;
+}
+
+.employee-leaves-page .request-form-icon svg {
+  font-size: 22px;
+}
+
+.employee-leaves-page .form-title.MuiTypography-root {
+  font-size: 16px;
+  font-weight: 750;
+  color: #17263b;
+}
+
+.employee-leaves-page .form-subtitle.MuiTypography-root {
+  margin-top: 4px;
+  color: #8190a2;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.employee-leaves-page .request-form-close.MuiIconButton-root {
+  color: #8190a2;
+  border-radius: 9px;
+}
+
+.employee-leaves-page .request-form-close.MuiIconButton-root:hover {
+  background: #f1f5f2;
+  color: #17263b;
+}
+
+.employee-leaves-page .request-form-error.MuiAlert-root {
+  margin-bottom: 20px;
+  border-radius: 10px;
+}
+
+/* ==========================================
+   FORM FIELDS
+========================================== */
+
+.employee-leaves-page .request-form-card .form-fields {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  gap: 12px;
-}
+  gap: 17px;
 
-.apply-button {
-  color: var(--brand-green-dark) !important;
-  font-family: var(--font-family);
-  font-weight: 700;
-  text-transform: none;
-  font-size: 16px;
-}
-
-.apply-options {
   width: 100%;
+  max-width: 930px;
 }
 
-.apply-options-title {
-  color: var(--brand-green-dark);
-  font-family: var(--font-family);
-  font-size: 13px;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
+.employee-leaves-page .request-form-card .field-row {
+  display: grid;
+  grid-template-columns:
+    minmax(145px, 0.3fr)
+    minmax(0, 1fr);
 
-.apply-option-button {
-  color: var(--brand-green-dark);
-  border-color: var(--brand-green-light);
-  font-weight: 700;
-  justify-content: flex-start;
-}
-
-.request-form-card {
-  border: 1px solid var(--card-border);
-  margin-bottom: 24px;
-  padding: 24px;
-}
-
-.form-title {
-  color: var(--brand-green-dark);
-  font-family: var(--font-family);
-  font-size: 20px;
-  font-weight: 700;
-  margin-bottom: 16px;
-}
-
-.form-fields {
-  width: 100%;
-}
-
-.field-row {
   align-items: center;
+  gap: 20px;
+
+  width: 100%;
+  min-width: 0;
 }
 
-.field-label {
-  width: 125px;
-  flex-shrink: 0;
+.employee-leaves-page .request-form-card .field-label.MuiTypography-root {
+  color: #4c6757;
+  font-size: 12.5px;
   font-weight: 700;
-  color: var(--text-primary);
-  font-family: var(--font-family);
-  font-size: 16px;
+  line-height: 1.5;
 }
 
-.required-star {
-  color: var(--brand-red);
+.employee-leaves-page .required-star {
   margin-left: 4px;
-  font-weight: 700;
+  color: #d24343;
+  font-weight: 750;
 }
 
-.form-actions {
+.employee-leaves-page .request-form-card .field-row > .MuiFormControl-root {
+  width: 100%;
+  min-width: 0;
+}
+
+.employee-leaves-page .request-form-card .MuiOutlinedInput-root {
+  border-radius: 9px;
+  background: #ffffff;
+  font-size: 12.5px;
+  min-height: 43px;
+}
+
+.employee-leaves-page .request-form-card .MuiOutlinedInput-root fieldset {
+  border-color: #dce6df;
+}
+
+.employee-leaves-page
+  .request-form-card
+  .MuiOutlinedInput-root:not(.Mui-error):hover
+  fieldset {
+  border-color: #86c9a5;
+}
+
+.employee-leaves-page
+  .request-form-card
+  .MuiOutlinedInput-root.Mui-focused:not(.Mui-error)
+  fieldset {
+  border-color: #087b4d;
+  border-width: 2px;
+}
+
+.employee-leaves-page .request-form-card .MuiInputBase-input,
+.employee-leaves-page .request-form-card .MuiSelect-select {
+  font-family: inherit;
+  color: #233a2d;
+  font-size: 12.5px;
+}
+
+.employee-leaves-page
+  .request-form-card
+  .MuiOutlinedInput-root.Mui-disabled {
+  background: #f7f9f8;
+}
+
+.employee-leaves-page
+  .request-form-card
+  .MuiOutlinedInput-root.Mui-disabled
+  .MuiInputBase-input {
+  color: #405d4c;
+  -webkit-text-fill-color: #405d4c;
+  opacity: 1;
+}
+
+/* ==========================================
+   FORM ACTIONS
+========================================== */
+
+.employee-leaves-page .form-actions {
+  display: flex;
+  align-items: center;
   justify-content: flex-end;
-  margin-top: 24px;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  padding-top: 20px;
+  margin-top: 23px;
+  border-top: 1px solid #edf1ee;
 }
 
-.cancel-button {
-  color: var(--brand-green-dark) !important;
-  border-color: var(--brand-green-light) !important;
-  font-weight: 700;
-}
+/* ==========================================
+   REQUEST HISTORY
+========================================== */
 
-.submit-button {
-  background-color: var(--brand-green-dark) !important;
-  border-color: var(--brand-green-dark) !important;
-  color: var(--card-bg);
-  font-family: var(--font-family);
-  font-weight: 700;
-}
+.employee-leaves-page .requests-card.MuiPaper-root {
+  width: 100%;
+  min-width: 0;
 
-.submit-button:hover {
-  background-color: var(--brand-green-mid);
-}
+  border: 1px solid var(--leaves-border);
+  border-radius: 16px;
+  background: #ffffff;
 
-.requests-card {
-  border: 1px solid var(--card-border);
+  box-shadow: 0 3px 16px rgba(17, 39, 64, 0.04);
   overflow: hidden;
 }
 
-.requests-card-header {
-  align-items: center;
-  background-color: var(--brand-green-pale);
+.employee-leaves-page .requests-card-header {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 14px 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+
+  padding: 20px 24px;
+  border-bottom: 1px solid #eaf0f3;
+  background: #ffffff;
 }
 
-.requests-title {
-  color: var(--brand-green-dark);
-  font-family: var(--font-family);
-  font-size: 18px;
-  font-weight: 700;
+.employee-leaves-page .requests-card-heading {
+  min-width: 0;
 }
 
-.requests-status-filter {
-  min-width: 160px;
-  background-color: var(--sidebar-active-text) !important;
+.employee-leaves-page .requests-title.MuiTypography-root {
+  color: #17263b;
+  font-size: 16px;
+  font-weight: 750;
 }
 
-.requests-status-filter .MuiOutlinedInput-notchedOutline {
-  border-color: var(--brand-green-dark) !important;
+.employee-leaves-page .requests-subtitle.MuiTypography-root {
+  margin-top: 4px;
+  color: #8190a2;
+  font-size: 11px;
+  line-height: 1.5;
 }
 
-.requests-status-filter:hover .MuiOutlinedInput-notchedOutline,
-.requests-status-filter.Mui-focused .MuiOutlinedInput-notchedOutline {
-  border-color: var(--brand-green-mid) !important;
+.employee-leaves-page .requests-status-filter.MuiOutlinedInput-root {
+  min-width: 155px;
+  height: 38px;
+  background: #f8fbf9;
+  border-radius: 9px;
+  color: #405c4a;
+  font-size: 12px;
 }
 
-.requests-status-menu .MuiMenuItem-root.Mui-selected {
-  background-color: var(--brand-green-dark) !important;
-  color: var(--card-bg) !important;
+.employee-leaves-page
+  .requests-status-filter
+  .MuiOutlinedInput-notchedOutline {
+  border-color: #d9e6dd;
 }
 
-.requests-status-menu .MuiMenuItem-root.Mui-selected:hover {
-  background-color: var(--brand-green-mid) !important;
+.employee-leaves-page
+  .requests-status-filter:hover
+  .MuiOutlinedInput-notchedOutline,
+.employee-leaves-page
+  .requests-status-filter.Mui-focused
+  .MuiOutlinedInput-notchedOutline {
+  border-color: #087b4d;
 }
 
-.requests-table-wrap {
+.requests-status-menu
+.MuiMenuItem-root.Mui-selected {
+  background: #e8f7ee;
+  color: #087b4d;
+}
+
+/* ==========================================
+   DESKTOP TABLE
+========================================== */
+
+.employee-leaves-page .requests-table-wrap {
+  width: 100%;
+  min-width: 0;
   overflow-x: auto;
 }
 
-.requests-card-list {
+.employee-leaves-page .requests-table {
+  min-width: 740px;
+}
+
+.employee-leaves-page .requests-table .MuiTableHead-root {
+  background: #f3f8f5;
+}
+
+.employee-leaves-page .requests-table .MuiTableCell-head {
+  padding: 15px 16px;
+  color: #547462;
+  font-size: 11.5px;
+  font-weight: 750;
+  white-space: nowrap;
+  border-bottom: 1px solid #e6eee9;
+}
+
+.employee-leaves-page .requests-table .MuiTableCell-body {
+  padding: 15px 16px;
+  color: #405345;
+  font-size: 12px;
+  font-weight: 550;
+  border-bottom: 1px solid #edf2ee;
+}
+
+.employee-leaves-page .requests-table .MuiTableRow-root:hover {
+  background: #f7fbf8;
+}
+
+.employee-leaves-page .request-employee-cell {
+  font-weight: 750 !important;
+  color: #1a4630 !important;
+}
+
+.employee-leaves-page .request-nowrap-cell,
+.employee-leaves-page .request-total-days-cell {
+  white-space: nowrap;
+}
+
+.employee-leaves-page .request-total-days-cell {
+  font-weight: 700 !important;
+}
+
+.employee-leaves-page .request-action-cell .MuiIconButton-root {
+  color: #087b4d;
+  border-radius: 9px;
+}
+
+.employee-leaves-page .request-action-cell .MuiIconButton-root:hover {
+  background: #e8f7ee;
+}
+
+/* ==========================================
+   REQUEST STATUS
+========================================== */
+
+.employee-leaves-page .status-chip.MuiChip-root {
+  height: 27px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.employee-leaves-page .status-chip.MuiChip-root
+.MuiChip-label {
+  padding: 0 9px;
+}
+
+.employee-leaves-page .status-pending.MuiChip-root {
+  background: #fff3dc;
+  color: #a46b16;
+  border: 1px solid #f5e1b5;
+}
+
+.employee-leaves-page .status-approved.MuiChip-root {
+  background: #e5f6eb;
+  color: #087b4d;
+  border: 1px solid #c7e9d3;
+}
+
+.employee-leaves-page .status-rejected.MuiChip-root {
+  background: #ffeded;
+  color: #c13f3f;
+  border: 1px solid #f3caca;
+}
+
+.employee-leaves-page .status-cancelled.MuiChip-root {
+  background: #f0f2f5;
+  color: #64748b;
+  border: 1px solid #dfe4eb;
+}
+
+/* ==========================================
+   MOBILE CARDS
+========================================== */
+
+.employee-leaves-page .requests-card-list {
   display: none;
   flex-direction: column;
   gap: 12px;
   padding: 16px;
 }
 
-.request-card {
-  border: 1px solid var(--card-border);
-  border-radius: 8px;
-  padding: 14px 16px;
+.employee-leaves-page .request-card.MuiPaper-root {
+  min-width: 0;
+  padding: 16px;
+
+  border: 1px solid #e7edf2;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: none;
 }
 
-.request-card-header {
+.employee-leaves-page .request-card-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 14px;
 }
 
-.request-card-name {
-  font-family: var(--font-family);
-  font-weight: 700;
-  color: var(--text-primary);
-  font-size: 15px;
+.employee-leaves-page .request-card-heading {
+  min-width: 0;
 }
 
-.request-card-type {
-  font-family: var(--font-family);
-  color: var(--text-secondary);
+.employee-leaves-page .request-card-name.MuiTypography-root {
+  color: #1a4630;
   font-size: 13px;
-  margin-top: 2px;
+  font-weight: 750;
 }
 
-.request-card-actions {
-  flex-shrink: 0;
-}
-
-.request-card-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-.request-card-field {
-  background-color: var(--brand-green-pale);
-  border-radius: 6px;
-  padding: 8px 10px;
-}
-
-.request-card-label {
-  font-family: var(--font-family);
-  color: var(--text-secondary);
+.employee-leaves-page .request-card-type.MuiTypography-root {
+  margin-top: 4px;
+  color: #8190a2;
   font-size: 11px;
 }
 
-.request-card-value {
-  font-family: var(--font-family);
-  color: var(--brand-green-dark);
-  font-weight: 700;
-  font-size: 13px;
-  margin-top: 2px;
-}
-
-.request-cell {
-  font-family: var(--font-family);
-}
-
-.request-employee-cell {
-  font-weight: 600;
-}
-
-.request-nowrap-cell {
-  white-space: nowrap;
-}
-
-.request-total-days-cell {
-  min-width: 88px;
-  white-space: nowrap;
-  font-weight: 700;
-}
-
-.request-reason-cell {
-  min-width: 180px;
-}
-
-.request-action-cell {
-  white-space: nowrap;
-  color: var(--brand-green-dark) !important;
-}
-
-
-.status-chip {
-  font-weight: 600;
-}
-
-.status-pending {
-  background-color: var(--status-warning-bg) !important;
-  color: var(--status-warning-text) !important;
-}
-
-.status-approved {
-  background-color: var(--brand-green-pale) !important;
-  color: var(--brand-green-dark) !important;
-}
-
-.status-rejected {
-  background-color: var(--status-danger-bg) !important;
-  color: var(--brand-red) !important;
-}
-
-.empty-requests {
-  align-items: center;
+.employee-leaves-page .request-card-actions {
   display: flex;
-  min-height: 150px;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.employee-leaves-page .request-card-actions .MuiIconButton-root {
+  color: #087b4d;
+}
+
+.employee-leaves-page .request-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.employee-leaves-page .request-card-field {
+  min-width: 0;
+  padding: 12px 10px;
+  border-radius: 9px;
+  background: #f3f9f5;
+  border: 1px solid #e7f1eb;
+}
+
+.employee-leaves-page .request-card-label.MuiTypography-root {
+  color: #83978b;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.employee-leaves-page .request-card-value.MuiTypography-root {
+  margin-top: 6px;
+  color: #1a5839;
+  font-size: 11.5px;
+  font-weight: 750;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================
+   EMPTY / LOADING
+========================================== */
+
+.employee-leaves-page .empty-requests {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  padding: 16px;
+  gap: 10px;
+
+  min-height: 190px;
+  padding: 30px 16px;
   text-align: center;
 }
 
-.empty-requests-text {
-  color: var(--text-secondary);
-  font-family: var(--font-family);
+.employee-leaves-page .empty-requests-icon {
+  font-size: 34px;
+  color: #9dafb0;
 }
 
-@media (max-width: 900px) {
+.employee-leaves-page .empty-requests-title.MuiTypography-root {
+  font-size: 13px;
+  font-weight: 750;
+  color: #334b3d;
+}
+
+.employee-leaves-page .empty-requests-text.MuiTypography-root {
+  color: #8190a2;
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+/* ==========================================
+   LAPTOP
+========================================== */
+
+@media (max-width: 1250px) {
+  .employee-leaves-page .balance-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .employee-leaves-page .balance-card.MuiPaper-root {
+    min-height: 130px;
+  }
+}
+
+/* ==========================================
+   TABLET
+========================================== */
+
+@media (max-width: 899.98px) {
   .employee-leaves-page {
-    padding: 32px 24px;
+    gap: 18px;
   }
 
-  .balance-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .requests-table-wrap {
+  .employee-leaves-page .requests-table-wrap {
     display: none;
   }
 
-  .requests-card-list {
+  .employee-leaves-page .requests-card-list {
     display: flex;
   }
 }
 
-@media (max-width: 380px) {
-  .request-card-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
+/* ==========================================
+   MOBILE
+========================================== */
 
 @media (max-width: 600px) {
   .employee-leaves-page {
-    padding: 32px 16px;
+    gap: 16px;
   }
 
-  .page-title {
-    font-size: 28px;
+  .employee-leaves-page .employee-leaves-header {
+    align-items: flex-start;
+    gap: 12px;
   }
 
-  .balance-grid {
-    grid-template-columns: 1fr;
+  .employee-leaves-heading {
+    gap: 10px;
   }
 
-  .field-label {
-    width: auto;
+  .employee-leaves-heading-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 11px;
+  }
+
+  .employee-leaves-page .page-title.MuiTypography-root {
+    font-size: 18px;
+  }
+
+  .employee-leaves-page .page-subtitle.MuiTypography-root {
+    font-size: 11.5px;
+  }
+
+  .employee-leaves-page .balance-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .employee-leaves-page .balance-card.MuiPaper-root {
+    min-height: 120px;
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .employee-leaves-page .balance-label.MuiTypography-root {
+    font-size: 11px;
+  }
+
+  .employee-leaves-page .balance-value.MuiTypography-root {
+    margin-top: 10px;
+    font-size: 25px;
+  }
+
+  .employee-leaves-page .balance-unit.MuiTypography-root {
+    font-size: 9px;
+  }
+
+  .employee-leaves-page .balance-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+  }
+
+  .employee-leaves-page .balance-icon svg {
+    font-size: 19px;
+  }
+
+  .employee-leaves-page .apply-card.MuiPaper-root {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 17px;
+    gap: 16px;
+  }
+
+  .employee-leaves-page .apply-card-title.MuiTypography-root {
     font-size: 14px;
   }
 
-  .field-row {
-    align-items: stretch;
+  .employee-leaves-page .apply-card-description.MuiTypography-root {
+    font-size: 11px;
   }
 
-  .requests-card-header {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .requests-status-filter {
+  .employee-leaves-page .apply-card-actions {
     width: 100%;
   }
 
-  .form-actions {
-    justify-content: flex-end;
+  .employee-leaves-page .apply-card-actions .MuiButton-root {
+    flex: 1;
+  }
+
+  .employee-leaves-page .request-form-card.MuiPaper-root {
+    padding: 17px;
+    border-radius: 13px;
+  }
+
+  .employee-leaves-page .request-form-header {
+    padding-bottom: 16px;
+    margin-bottom: 18px;
+  }
+
+  .employee-leaves-page .form-title.MuiTypography-root {
+    font-size: 14px;
+  }
+
+  .employee-leaves-page .request-form-card .field-row {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 7px;
+  }
+
+  .employee-leaves-page .request-form-card .field-label.MuiTypography-root {
+    font-size: 12px;
+  }
+
+  .employee-leaves-page .request-form-card .form-fields {
+    gap: 16px;
+  }
+
+  .employee-leaves-page .form-actions {
+    justify-content: stretch;
+  }
+
+  .employee-leaves-page .form-actions .MuiButton-root {
+    flex: 1;
+  }
+
+  .employee-leaves-page .requests-card-header {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 17px;
+  }
+
+  .employee-leaves-page .requests-status-filter.MuiOutlinedInput-root {
+    width: 100%;
+  }
+
+  .employee-leaves-page .requests-card-list {
+    padding: 12px;
+  }
+
+  .employee-leaves-page .request-card.MuiPaper-root {
+    padding: 13px;
   }
 }
 
+/* ==========================================
+   SMALL MOBILE
+========================================== */
 
-/* Requested leave / permission form layout */
-.request-form-card .form-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
+@media (max-width: 400px) {
+  .employee-leaves-page .balance-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 
-.request-form-card .field-row {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  width: 100%;
-  gap: 12px;
-}
+  .employee-leaves-page .balance-card.MuiPaper-root {
+    min-height: 105px;
+  }
 
-.request-form-card .field-row > .field-label {
-  width: 125px;
-  flex: 0 0 125px;
-}
-
-.request-form-card .field-row > .MuiFormControl-root,
-.request-form-card .field-row > .MuiTextField-root {
-  flex: 1;
-  min-width: 0;
-}
-
-@media (max-width: 600px) {
-  .request-form-card .field-row {
+  .employee-leaves-page .apply-card-actions {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .request-form-card .field-row > .field-label {
-    width: auto;
-    flex: none;
+  .employee-leaves-page .apply-card-actions .MuiButton-root {
+    width: 100%;
+  }
+
+  .employee-leaves-page .request-card-header {
+    flex-wrap: wrap;
+  }
+
+  .employee-leaves-page .request-card-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .employee-leaves-page .request-card-field:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .employee-leaves-page .form-actions {
+    flex-direction: column;
+  }
+
+  .employee-leaves-page .form-actions .MuiButton-root {
+    width: 100%;
   }
 }
 
+/* ==========================================
+   REDUCED MOTION
+========================================== */
 
-/* Permission / leave selector */
-.request-form-card .field-row .MuiFormControl-root,
-.request-form-card .field-row .MuiTextField-root {
-  width: 100%;
+@media (prefers-reduced-motion: reduce) {
+  .employee-leaves-page .balance-card.MuiPaper-root {
+    transition: none;
+  }
+
+  .employee-leaves-page .balance-card.MuiPaper-root:hover {
+    transform: none;
+  }
 }

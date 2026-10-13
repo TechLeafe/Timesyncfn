@@ -1,157 +1,860 @@
-:root {
-	--leave-primary: #35753B;
-}
+
+/* ==========================================
+   PREMIUM HRM LEAVE POLICIES
+========================================== */
 
 .leave-policies {
-	display: grid;
-	gap: 24px;
-	padding: 28px;
+  --leave-primary: #087b4d;
+  --leave-primary-dark: #075b3d;
+  --leave-text: #17263b;
+  --leave-muted: #8190a2;
+  --leave-border: #e7edf2;
+
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-sizing: border-box;
+
+  font-family: var(--font-family, Inter, sans-serif);
 }
+
+.leave-policies *,
+.leave-policies *::before,
+.leave-policies *::after {
+  box-sizing: border-box;
+}
+
+/* ==========================================
+   HEADER
+========================================== */
 
 .leave-policies__header,
 .leave-policies__detail-header {
-	display: flex;
-	align-items: flex-start;
-	justify-content: space-between;
-	gap: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-width: 0;
 }
 
-.leave-policies__title {
-	color: #17251b;
-	font-size: 28px !important;
-	font-weight: 700 !important;
+.leave-policies__heading-content {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
 }
 
-.leave-policies .MuiButton-root {
-	color: var(--leave-primary);
+.leave-policies__heading-content > .MuiBox-root:last-child {
+  min-width: 0;
 }
+
+.leave-policies__heading-icon {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #d8efdf;
+  border-radius: 13px;
+
+  background: #e8f7ee;
+  color: var(--leave-primary);
+}
+
+.leave-policies__heading-icon svg {
+  font-size: 25px;
+}
+
+.leave-policies__title.MuiTypography-root {
+  color: var(--leave-text);
+  font-size: 21px;
+  font-weight: 750;
+  letter-spacing: -0.4px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.leave-policies__subtitle.MuiTypography-root {
+  margin-top: 4px;
+  color: var(--leave-muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+/* ==========================================
+   BUTTONS
+========================================== */
 
 .leave-policies .MuiButton-contained,
-.leave-policies .MuiButton-containedPrimary {
-	background-color: var(--leave-primary) !important;
-	color: #ffffff !important;
+.leave-policies-dialog .MuiButton-contained {
+  background: linear-gradient(
+    105deg,
+    #087b4d,
+    #07945c
+  );
+  color: #ffffff;
+  min-height: 42px;
+  padding: 9px 17px;
+  border-radius: 10px;
+
+  font-size: 12.5px;
+  font-weight: 700;
+  text-transform: none;
+
+  box-shadow: 0 5px 13px rgba(8, 123, 77, 0.13);
 }
 
 .leave-policies .MuiButton-contained:hover,
-.leave-policies .MuiButton-containedPrimary:hover {
-	background-color: #285d2f !important;
+.leave-policies-dialog .MuiButton-contained:hover {
+  background: #075b3d;
 }
 
 .leave-policies .MuiButton-contained.Mui-disabled,
-.leave-policies .MuiButton-containedPrimary.Mui-disabled {
-	background-color: #d5d9d6 !important;
-	color: #737a75 !important;
+.leave-policies-dialog .MuiButton-contained.Mui-disabled {
+  background: #e7eee9;
+  color: #759482;
+  box-shadow: none;
 }
 
-.leave-policies .MuiButton-outlined.leave-policies__outlined-button,
-.leave-policies-dialog .MuiButton-outlined.leave-policies__outlined-button {
-	color: var(--leave-primary) !important;
-	border-color: var(--leave-primary) !important;
+.leave-policies__outlined-button.MuiButton-outlined,
+.leave-policies-dialog
+  .leave-policies__outlined-button.MuiButton-outlined {
+  border: 1px solid #b7d9c4;
+  color: #087b4d;
+  border-radius: 10px;
+  min-height: 40px;
+
+  padding: 8px 15px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: none;
 }
 
-.leave-policies .MuiButton-outlined.leave-policies__outlined-button:hover,
-.leave-policies-dialog .MuiButton-outlined.leave-policies__outlined-button:hover {
-	color: #285d2f !important;
-	border-color: #285d2f !important;
-	background-color: #edf5ee;
+.leave-policies__outlined-button.MuiButton-outlined:hover,
+.leave-policies-dialog
+  .leave-policies__outlined-button.MuiButton-outlined:hover {
+  background: #eef8f2;
+  border-color: #087b4d;
 }
 
-.leave-policies-dialog .MuiButton-contained,
-.leave-policies-dialog .MuiButton-containedPrimary {
-	background-color: var(--leave-primary) !important;
-	color: #ffffff !important;
+.leave-policies__delete-button.MuiButton-outlined {
+  border: 1px solid #f1cbcb;
+  color: #c33d3d;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: none;
 }
 
-.leave-policies-dialog .MuiButton-contained:hover,
-.leave-policies-dialog .MuiButton-containedPrimary:hover {
-	background-color: #285d2f !important;
+.leave-policies__delete-button.MuiButton-outlined:hover {
+  background: #fff1f1;
+  border-color: #d25151;
 }
 
-.leave-policies-dialog .MuiDialogActions .MuiButton-text {
-	color: var(--leave-primary) !important;
+/* ==========================================
+   OVERVIEW BANNER
+========================================== */
+
+.leave-policies__overview {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+
+  padding: 18px 20px;
+  min-width: 0;
+
+  background: linear-gradient(
+    110deg,
+    #e9f8ef 0%,
+    #f6fcf8 100%
+  );
+
+  border: 1px solid #dcefe3;
+  border-radius: 14px;
 }
 
-.leave-policies-dialog .MuiDialogActions .MuiButton-text:hover {
-	background-color: #edf5ee;
+.leave-policies__overview-icon {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #d4efdf;
+  color: #087b4d;
+  border-radius: 12px;
 }
 
-.leave-policies-dialog .MuiOutlinedInput-root fieldset {
-	border-color: #b7cdb9;
+.leave-policies__overview-icon svg {
+  font-size: 24px;
 }
 
-.leave-policies-dialog .MuiOutlinedInput-root:not(.Mui-error):hover fieldset {
-	border-color: var(--leave-primary);
+.leave-policies__overview-content {
+  flex: 1;
+  min-width: 0;
 }
 
-.leave-policies-dialog .MuiOutlinedInput-root.Mui-focused:not(.Mui-error) fieldset {
-	border-color: var(--leave-primary);
-	border-width: 2px;
+.leave-policies__overview-label.MuiTypography-root {
+  font-size: 12px;
+  font-weight: 600;
+  color: #668573;
 }
 
-.leave-policies-dialog .MuiInputLabel-root.Mui-focused:not(.Mui-error) {
-	color: var(--leave-primary);
+.leave-policies__overview-value.MuiTypography-root {
+  margin-top: 4px;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #075b3d;
 }
 
-.leave-policies-dialog .MuiSelect-select:focus {
-	background-color: #f4faf4;
+.leave-policies__year-chip.MuiChip-root {
+  background: #ffffff;
+  color: #087b4d;
+  border: 1px solid #c5e6d2;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ==========================================
+   SHARED CARDS
+========================================== */
+
+.leave-policies__table-card.MuiCard-root,
+.leave-policies__detail-card.MuiCard-root,
+.leave-policies__policy-card.MuiCard-root {
+  min-width: 0;
+  background: #ffffff;
+  border: 1px solid var(--leave-border);
+  border-radius: 16px;
+  box-shadow: 0 3px 16px rgba(17, 39, 64, 0.04);
+}
+
+.leave-policies__table-card.MuiCard-root {
+  overflow: hidden;
+}
+
+.leave-policies__table-heading {
+  padding: 22px 24px;
+  border-bottom: 1px solid #eaf0f3;
+}
+
+.leave-policies__section-title.MuiTypography-root {
+  color: var(--leave-text);
+  font-size: 17px;
+  font-weight: 750;
+  letter-spacing: -0.2px;
+}
+
+.leave-policies__section-description.MuiTypography-root {
+  margin-top: 5px;
+  color: var(--leave-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ==========================================
+   POLICY TABLE
+========================================== */
+
+.leave-policies__table {
+  min-width: 680px;
+}
+
+.leave-policies__table .MuiTableHead-root {
+  background: #f3f8f5;
+}
+
+.leave-policies__table .MuiTableCell-head {
+  padding: 16px;
+  color: #547462;
+  font-size: 11.5px;
+  font-weight: 750;
+  white-space: nowrap;
+  border-bottom: 1px solid #e6eee9;
+}
+
+.leave-policies__table .MuiTableCell-body {
+  padding: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #405345;
+  border-bottom: 1px solid #edf2ee;
+  white-space: nowrap;
+}
+
+.leave-policies__table
+  .MuiTableBody-root
+  .MuiTableRow-root:hover {
+  background: #f7fbf8;
+}
+
+.leave-policies__table
+  .MuiTableBody-root
+  .MuiTableRow-root:last-child
+  .MuiTableCell-root {
+  border-bottom: none;
+}
+
+.leave-policies__policy-name.MuiTypography-root {
+  color: #175b3b;
+  font-size: 13px;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+.leave-policies__table .MuiIconButton-root,
+.leave-policies__policy-card .MuiIconButton-root {
+  color: #087b4d;
+  border-radius: 9px;
+}
+
+.leave-policies__table .MuiIconButton-root:hover,
+.leave-policies__policy-card .MuiIconButton-root:hover {
+  background: #e8f7ee;
+}
+
+/* ==========================================
+   MOBILE POLICY CARDS
+========================================== */
+
+.leave-policies__policy-card.MuiCard-root {
+  padding: 17px;
+}
+
+.leave-policies__policy-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.leave-policies__policy-card-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.leave-policies__policy-card-field {
+  min-width: 0;
+  padding: 13px;
+  background: #f3f9f5;
+  border: 1px solid #e7f1eb;
+  border-radius: 10px;
+}
+
+.leave-policies__policy-card-label.MuiTypography-root {
+  color: #7b9185;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.leave-policies__policy-card-value.MuiTypography-root {
+  margin-top: 6px;
+  color: #175b3b;
+  font-size: 14px;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================
+   LOADING / EMPTY / ERROR
+========================================== */
+
+.leave-policies__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 90px;
+  padding: 20px;
+  color: #087b4d;
+}
+
+.leave-policies__loading .MuiCircularProgress-root {
+  color: #087b4d;
+}
+
+.leave-policies__loading .MuiTypography-root {
+  font-size: 12px;
+  color: #8190a2;
+}
+
+.leave-policies__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 110px;
+  text-align: center;
+}
+
+.leave-policies__empty svg {
+  font-size: 30px;
+  color: #a7b7ad;
+}
+
+.leave-policies__empty .MuiTypography-root {
+  font-size: 12px;
+  color: #8190a2;
+}
+
+.leave-policies__error.MuiAlert-root {
+  border-radius: 10px;
+}
+
+/* ==========================================
+   DETAILS VIEW
+========================================== */
+
+.leave-policies__back.MuiButton-root {
+  align-self: flex-start;
+  color: #087b4d;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: none;
+  padding-left: 0;
+}
+
+.leave-policies__detail-stat-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.leave-policies__stat.MuiCard-root {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+
+  padding: 20px;
+  border: 1px solid #e7edf2;
+  border-radius: 14px;
+
+  background: #ffffff;
+  box-shadow: 0 3px 12px rgba(17, 39, 64, 0.03);
+}
+
+.leave-policies__stat-icon {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+  background: #e8f7ee;
+  color: #087b4d;
+  margin-bottom: 16px;
+}
+
+.leave-policies__stat-icon svg {
+  font-size: 21px;
+}
+
+.leave-policies__stat--blue
+  .leave-policies__stat-icon {
+  color: #2378b7;
+  background: #eaf4fc;
+}
+
+.leave-policies__stat--orange
+  .leave-policies__stat-icon {
+  color: #b77a20;
+  background: #fff4df;
+}
+
+.leave-policies__stat--purple
+  .leave-policies__stat-icon {
+  color: #8656b6;
+  background: #f2eafd;
+}
+
+.leave-policies__stat-label.MuiTypography-root {
+  color: #788c80;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.leave-policies__stat-value.MuiTypography-root {
+  margin-top: 10px;
+  color: #172c21;
+  font-size: 27px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.leave-policies__stat-unit.MuiTypography-root {
+  margin-top: 5px;
+  color: #8a9c92;
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.leave-policies__detail-card.MuiCard-root {
+  padding: 24px;
+}
+
+.leave-policies__line-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+}
+
+.leave-policies__line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  padding: 17px 0;
+  border-bottom: 1px solid #edf1ee;
+}
+
+.leave-policies__line:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.leave-policies__line-label.MuiTypography-root {
+  color: #546f5c;
+  font-size: 12.5px;
+  font-weight: 650;
+}
+
+.leave-policies__line-value.MuiTypography-root {
+  color: #172c21;
+  font-size: 12.5px;
+  font-weight: 750;
+  text-align: right;
+}
+
+/* ==========================================
+   CREATE / EDIT DIALOG
+========================================== */
+
+.leave-policies-dialog .MuiDialog-paper {
+  width: min(100%, 550px);
+  max-height: calc(100dvh - 32px);
+  border-radius: 16px;
+
+  border: 1px solid #e1eae4;
+  border-top: 4px solid #087b4d;
+
+  box-shadow: 0 16px 45px rgba(
+    17,
+    39,
+    64,
+    0.16
+  );
 }
 
 .leave-policies-dialog .MuiDialogTitle-root {
-	color: #17251b;
-	border-bottom: 1px solid #e1e8e2;
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid #edf1ee;
+
+  color: #172c21;
+  font-size: 18px;
+  font-weight: 750;
 }
 
-.leave-policies__subtitle { color: #6b756d; margin-top: 5px !important; }
-.leave-policies__table-card,
-.leave-policies__detail-card { padding: 22px; border: 1px solid #e1e8e2; box-shadow: none !important; }
-.leave-policies__table-card .MuiTableHead-root { background: #edf5ee; }
-.leave-policies__table-card .MuiTableCell-head { color: #245c2c; font-weight: 700; }
-.leave-policies__table-card .MuiTableBody-root .MuiTableRow-root:hover { background: #f4faf4; }
-.leave-policies__table-card .MuiIconButton-root { color: var(--leave-primary); }
-.leave-policies__section-title { color: #17251b; font-size: 17px !important; font-weight: 700 !important; margin-bottom: 16px !important; }
-.leave-policies__policy-name { color: #245c2c; font-weight: 600 !important; }
-.leave-policies__status { display: inline-block; min-width: 68px; padding: 4px 9px; border-radius: 12px; font-size: 12px; font-weight: 700; }
-.leave-policies__status--active { color: #256b2d; background: #e2f3e4; }
-.leave-policies__status--inactive { color: #7a4b18; background: #fff1dc; }
-.leave-policies__back { justify-self: start; color: #35753b !important; }
-.leave-policies__stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-.leave-policies__stat { padding: 18px; background: #f4f8f4; border-radius: 6px; }
-.leave-policies__stat-label { color: #6b756d; font-size: 13px !important; }
-.leave-policies__stat-value { color: #245c2c; font-size: 21px !important; font-weight: 700 !important; margin-top: 8px !important; }
-.leave-policies__line-list { display: grid; }
-.leave-policies__line { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 16px 0; border-bottom: 1px solid #e1e8e2; }
-.leave-policies__line:first-child { padding-top: 0; }
-.leave-policies__line:last-child { padding-bottom: 0; border-bottom: 0; }
-.leave-policies__line-label { color: #245c2c; font-weight: 700 !important; }
-.leave-policies__line-value { color: #17251b; font-weight: 600 !important; text-align: right; }
-.leave-policies__dialog-content { display: grid; gap: 18px; padding-top: 8px !important; }
-.leave-policies-dialog .MuiDialog-paper { border-top: 4px solid var(--leave-primary); }
+.leave-policies__dialog-subtitle.MuiTypography-root {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #8190a2;
+  font-weight: 400;
+}
+
+.leave-policies__dialog-content.MuiDialogContent-root {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  padding: 24px;
+}
+
+.leave-policies__form-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 17px;
+}
+
+.leave-policies-dialog .MuiOutlinedInput-root {
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.leave-policies-dialog
+  .MuiOutlinedInput-root
+  fieldset {
+  border-color: #d6e5db;
+}
+
+.leave-policies-dialog
+  .MuiOutlinedInput-root:not(.Mui-error):hover
+  fieldset {
+  border-color: #087b4d;
+}
+
+.leave-policies-dialog
+  .MuiOutlinedInput-root.Mui-focused:not(.Mui-error)
+  fieldset {
+  border-color: #087b4d;
+  border-width: 2px;
+}
+
+.leave-policies-dialog
+  .MuiInputLabel-root.Mui-focused:not(.Mui-error) {
+  color: #087b4d;
+}
+
+.leave-policies__business-year {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  padding: 12px 14px;
+  background: #eef8f2;
+  border: 1px solid #dceee3;
+  border-radius: 10px;
+}
+
+.leave-policies__business-year svg {
+  font-size: 19px;
+  color: #087b4d;
+}
+
+.leave-policies__business-year .MuiTypography-root {
+  color: #547462;
+  font-size: 12px;
+}
+
+.leave-policies__business-year strong {
+  color: #075b3d;
+}
+
+.leave-policies__dialog-actions.MuiDialogActions-root {
+  padding: 17px 24px 22px;
+  border-top: 1px solid #edf1ee;
+  gap: 9px;
+}
+
+/* ==========================================
+   TOAST
+========================================== */
 
 .leave-policies-toast .MuiAlert-filledSuccess {
-	background-color: var(--leave-primary) !important;
+  background: #087b4d;
 }
 
 .leave-policies-toast .MuiAlert-filledError {
-	background-color: #b3261e !important;
+  background: #ba3737;
 }
 
-.leave-policies__policy-card { padding: 16px; border: 1px solid #e1e8e2; box-shadow: none !important; }
-.leave-policies__policy-card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
-.leave-policies__policy-card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-.leave-policies__policy-card-field { background: #f4f8f4; border-radius: 6px; padding: 10px 12px; }
-.leave-policies__policy-card-label { color: #6b756d; font-size: 12px !important; }
-.leave-policies__policy-card-value { color: #245c2c; font-weight: 700 !important; font-size: 15px !important; margin-top: 2px !important; }
+/* ==========================================
+   RESPONSIVE: LAPTOP
+========================================== */
 
-@media (max-width: 899px) {
-	.leave-policies { padding: 18px; }
-	.leave-policies__header, .leave-policies__detail-header { flex-direction: column; align-items: stretch !important; }
-	.leave-policies__stat-grid { grid-template-columns: repeat(2, 1fr); }
-	.leave-policies__table-card { overflow-x: auto; }
-	.leave-policies__form-grid { grid-template-columns: 1fr; }
-	.leave-policies__line { align-items: flex-start; flex-direction: column; gap: 5px; }
-	.leave-policies__line-value { text-align: left; }
+@media (max-width: 1250px) {
+  .leave-policies__detail-stat-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
 }
 
-@media (max-width: 400px) {
-	.leave-policies__policy-card-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+/* ==========================================
+   RESPONSIVE: TABLET
+========================================== */
+
+@media (max-width: 899.98px) {
+  .leave-policies {
+    gap: 18px;
+  }
+
+  .leave-policies__header,
+  .leave-policies__detail-header {
+    align-items: flex-start;
+  }
+
+  .leave-policies__detail-card.MuiCard-root {
+    padding: 20px;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE: MOBILE
+========================================== */
+
+@media (max-width: 600px) {
+  .leave-policies {
+    gap: 16px;
+  }
+
+  .leave-policies__header,
+  .leave-policies__detail-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+  }
+
+  .leave-policies__heading-content {
+    gap: 11px;
+  }
+
+  .leave-policies__heading-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 11px;
+  }
+
+  .leave-policies__heading-icon svg {
+    font-size: 22px;
+  }
+
+  .leave-policies__title.MuiTypography-root {
+    font-size: 18px;
+  }
+
+  .leave-policies__subtitle.MuiTypography-root {
+    font-size: 11.5px;
+  }
+
+  .leave-policies__create-button.MuiButton-root {
+    width: 100%;
+  }
+
+  .leave-policies__overview {
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .leave-policies__overview-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .leave-policies__overview-value.MuiTypography-root {
+    font-size: 23px;
+  }
+
+  .leave-policies__year-chip.MuiChip-root {
+    margin-top: 3px;
+  }
+
+  .leave-policies__policy-card.MuiCard-root {
+    padding: 14px;
+  }
+
+  .leave-policies__policy-card-grid {
+    gap: 9px;
+  }
+
+  .leave-policies__policy-card-field {
+    padding: 11px;
+  }
+
+  .leave-policies__detail-stat-grid {
+    gap: 10px;
+  }
+
+  .leave-policies__stat.MuiCard-root {
+    padding: 14px;
+  }
+
+  .leave-policies__stat-icon {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 12px;
+  }
+
+  .leave-policies__stat-value.MuiTypography-root {
+    font-size: 23px;
+  }
+
+  .leave-policies__detail-card.MuiCard-root {
+    padding: 17px;
+  }
+
+  .leave-policies__line {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px 0;
+  }
+
+  .leave-policies__line-value.MuiTypography-root {
+    text-align: left;
+  }
+
+  .leave-policies-dialog .MuiDialogTitle-root {
+    padding: 18px;
+  }
+
+  .leave-policies__dialog-content.MuiDialogContent-root {
+    padding: 18px;
+  }
+
+  .leave-policies__dialog-actions.MuiDialogActions-root {
+    padding: 14px 18px 18px;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE: SMALL MOBILE
+========================================== */
+
+@media (max-width: 420px) {
+  .leave-policies__form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .leave-policies__policy-card-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .leave-policies__policy-card-value.MuiTypography-root {
+    font-size: 12.5px;
+  }
+
+  .leave-policies__stat-label.MuiTypography-root {
+    font-size: 11px;
+  }
+
+  .leave-policies__detail-stat-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .leave-policies__stat.MuiCard-root {
+    padding: 12px;
+  }
+}
+
+/* ==========================================
+   ACCESSIBILITY
+========================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .leave-policies .MuiButton-root {
+    transition: none !important;
+  }
 }

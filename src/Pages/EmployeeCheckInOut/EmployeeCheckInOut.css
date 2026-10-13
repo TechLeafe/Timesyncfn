@@ -1,602 +1,851 @@
+
+/* ==========================================
+   PREMIUM HRM CHECK IN / CHECK OUT
+========================================== */
+
 .employee-attendance-page {
-  box-sizing: border-box;
-  background: var(--bg-main);
-}
+  --attendance-green: #087b4d;
+  --attendance-dark-green: #075b3d;
+  --attendance-text: #17263b;
+  --attendance-muted: #8190a2;
+  --attendance-border: #e7edf2;
 
-.employee-attendance-container {
-  display: grid;
-  grid-template-columns: 4fr 6fr;
-  gap: 18px;
   width: 100%;
-  max-width: 1120px;
-  margin: 0 auto;
-  height: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  font-family: var(--font-family, Inter, sans-serif);
 }
 
-/* =========================================
-   COMMON CARD
-========================================= */
-
-.employee-profile-card,
-.timer-card,
-.employee-details-card {
-  border: 1px solid rgba(24, 122, 12, 0.14) !important;
-  border-radius: 10px !important;
-  box-shadow: none !important;
-  overflow: hidden;
-}
-
-/* =========================================
-   LEFT PROFILE CARD
-========================================= */
-
-.employee-profile-card {
-  position: relative;
-  min-height: 520px;
-  background: linear-gradient(
-    145deg,
-    #f5fff2 0%,
-    #ffffff 55%,
-    #f5fff2 100%
-  ) !important;
-}
-
-.employee-profile-content {
-  position: relative;
-  z-index: 2;
-
-  height: 100%;
-  min-height: 520px;
-
-  padding: 30px 34px !important;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.employee-attendance-page *,
+.employee-attendance-page *::before,
+.employee-attendance-page *::after {
   box-sizing: border-box;
 }
 
-/* =========================================
-   EMPLOYEE IMAGE
-========================================= */
+/* ==========================================
+   PAGE HEADER
+========================================== */
 
-.employee-image-wrapper {
-  width: 150px;
-  height: 150px;
-  margin-top: 2px;
-  margin-bottom: 14px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: var(--white);
-  border: 3px solid rgba(24, 122, 12, 0.12);
-  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.08);
-  position: relative;
-}
-
-.employee-image {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-/* =========================================
-   NAME
-========================================= */
-
-.employee-name {
-  color: #111 !important;
-  font-size: 32px !important;
-  line-height: 1.3 !important;
-  font-weight: 700 !important;
-  text-align: center;
-}
-
-.employee-designation {
-  margin-top: 4px !important;
-
-  color: #4d5f58 !important;
-  font-size: 20px !important;
-  font-weight: 500 !important;
-}
-
-/* =========================================
-   BUTTONS
-========================================= */
-
-.attendance-actions {
-  width: 100%;
-  max-width: 210px;
-
-  margin-top: 28px;
-
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.check-in-button{
-  height: 44px !important;
-  border-radius: 8px !important;
-  text-transform: none !important;
-  font-family: inherit !important;
-  font-size: 15px !important;
-  font-weight: 600 !important;
-  background: var(--brand-green-mid) !important;
-  color: var(--card-bg) !important;
-  box-shadow: none !important;
-}
-
-.check-out-button {
-  color: var(--green) !important;
-  border-color: var(--green) !important;
-  background: var(--white) !important;
-}
-
-.check-out-button:hover {
-  background: rgba(24, 122, 12, 0.05) !important;
-}
-
-.button-disabled-state {
-  opacity: 0.45 !important;
-}
-
-/* =========================================
-   LOCATION
-========================================= */
-
-.employee-location {
+.attendance-page-heading {
   display: flex;
   align-items: center;
-  gap: 8px;
-
-  margin-top: 22px;
+  gap: 13px;
+  min-width: 0;
+  margin-bottom: 20px;
 }
 
-.employee-location svg {
-  font-size: 20px;
-  color: #27784d;
-}
-
-.employee-location p {
-  color: #52736a !important;
-  font-size: 12px !important;
-  font-weight: 500 !important;
-}
-
-/* =========================================
-   DECORATIVE LEAVES
-========================================= */
-
-.employee-leaf {
-  position: absolute;
-
-  width: 150px;
-  height: 150px;
-
-  object-fit: contain;
-
-  opacity: 0.17;
-
-  pointer-events: none;
-}
-
-.employee-leaf-left {
-  top: 18px;
-  left: -52px;
-
-  transform: rotate(-35deg);
-}
-
-.employee-leaf-bottom {
-  right: -58px;
-  bottom: -48px;
-
-  transform: rotate(125deg);
-}
-
-/* =========================================
-   RIGHT SECTION
-========================================= */
-
-.attendance-right-section {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-/* =========================================
-   TIMER CARD
-========================================= */
-
-.timer-card {
-  min-height: 130px;
-
-  background: linear-gradient(
-    110deg,
-    #ffffff 0%,
-    #fbfffa 60%,
-    #f2faef 100%
-  ) !important;
-}
-
-.timer-card-content {
-  min-height: 170px;
-  
-  padding: 22px 24px !important;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  box-sizing: border-box;
-}
-
-.timer-left {
-  display: flex;
-  flex-direction: column;
-}
-
-.timer-heading {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.timer-heading svg {
-  font-size: 25px;
-  color: var(--green);
-}
-
-.timer-heading p {
-  color: #18251f !important;
-  font-size: 20px !important;
-  font-weight: 600 !important;
-}
-
-.timer-value {
-  margin-top: 6px !important;
-
-  color: #123c2a !important;
-  padding-top: 15px !important;
-  font-size: 32px !important;
-  line-height: 1 !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.5px !important;
-}
-
-.timer-labels {
-  display: flex;
-  gap: 15px;
-  margin-top: 9px;
-}
-
-.timer-labels p {
-  color: #668079 !important;
-  font-size: 10px !important;
-  text-align: left;
-}
-
-/* =========================================
-   TIMER MESSAGE
-========================================= */
-
-.timer-message {
-  min-width: 150px;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
-  text-align: center;
-}
-
-.timer-leaf {
-  width: 80px;
-  height: 80px;
-
-  object-fit: contain;
-
-  margin-bottom: 3px;
-}
-
-.timer-message-title {
-  color: #173d2c !important;
-
-  font-size: 20px !important;
-  font-weight: 700 !important;
-}
-
-.timer-message-subtitle {
-  margin-top: 3px !important;
-
-  color: #739086 !important;
-
-  font-size: 16px !important;
-}
-
-/* =========================================
-   EMPLOYEE DETAILS
-========================================= */
-
-.employee-details-card {
-  background: var(--white) !important;
-}
-
-.employee-details-content {
-  padding: 18px 24px !important;
-}
-
-.details-title {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
-
-.details-title svg {
-  color: var(--green);
-  font-size: 40px;
-}
-
-.details-title p {
-  color: #17241f !important;
-  font-size: 20px !important;
-  font-weight: 700 !important;
-}
-
-/* =========================================
-   DETAILS GRID
-========================================= */
-
-.details-grid {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-
-  gap: 24px;
-
-  margin-top: 17px;
-}
-
-.details-column {
-  display: flex;
-  flex-direction: column;
-  gap: 17px;
-}
-
-.details-divider {
-  border-color: rgba(24, 122, 12, 0.12) !important;
-}
-
-/* =========================================
-   DETAIL ITEM
-========================================= */
-
-.detail-item {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-}
-
-.detail-icon {
-  width: 30px;
-  height: 30px;
-
+.attendance-page-heading-icon {
+  width: 48px;
+  height: 48px;
   flex-shrink: 0;
-
-  border-radius: 50%;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  background: #f4f7f5;
+  background: #e8f7ee;
+  border: 1px solid #d8efdf;
+  border-radius: 13px;
+  color: var(--attendance-green);
 }
 
-.detail-icon svg {
-  color: #1e2924;
-  font-size: 32px;
+.attendance-page-heading-icon svg {
+  font-size: 25px;
 }
 
-.detail-text {
+.attendance-page-title.MuiTypography-root {
+  font-size: 21px;
+  font-weight: 750;
+  letter-spacing: -0.4px;
+  color: var(--attendance-text);
+}
+
+.attendance-page-description.MuiTypography-root {
+  margin-top: 4px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--attendance-muted);
+}
+
+/* ==========================================
+   DATE OVERVIEW
+========================================== */
+
+.attendance-overview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  padding: 17px 20px;
+  margin-bottom: 20px;
+
+  background: linear-gradient(
+    110deg,
+    #e9f8ef,
+    #f5fcf7
+  );
+
+  border: 1px solid #dcefe3;
+  border-radius: 14px;
+}
+
+.attendance-overview-date {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   min-width: 0;
 }
 
-.detail-label {
-  color: #719087 !important;
-
-  font-size: 16px !important;
-  font-weight: 500 !important;
-
-  line-height: 1.2 !important;
+.attendance-overview-date svg {
+  color: var(--attendance-green);
+  font-size: 21px;
 }
 
-.detail-value {
-  margin-top: 4px !important;
-
-  color: #1c2924 !important;
-
-  font-size: 14px !important;
-  font-weight: 600 !important;
-
-  line-height: 1.2 !important;
-
-  word-break: break-word;
+.attendance-overview-date .MuiTypography-root {
+  color: #245b40;
+  font-size: 13px;
+  font-weight: 700;
 }
 
-/* =========================================
-   LARGE TABLET / SMALL LAPTOP
+.attendance-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 
-   Covers landscape on devices like Surface Pro 10 (~1368px)
-   and iPad Pro 13" (~1376px), and iPad Pro 13" portrait
-   (~1032px) — this band sat between the mobile stack (<=900px)
-   and the full desktop grid with no tuning at all, so the fixed
-   520px profile-card height and edge-to-edge container left a
-   large amount of visibly empty space next to the shorter
-   natural-height timer/details column.
-========================================= */
+  padding: 8px 12px;
+  border-radius: 8px;
 
-@media (min-width: 901px) and (max-width: 1440px) {
+  font-size: 11px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.attendance-status-active {
+  background: #d8f4e3;
+  color: #087b4d;
+}
+
+.attendance-status-complete {
+  background: #e4edff;
+  color: #2858a5;
+}
+
+.attendance-status-pending {
+  background: #fff2d7;
+  color: #9c6819;
+}
+
+.attendance-status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.attendance-error {
+  margin-bottom: 18px;
+  border-radius: 10px !important;
+}
+
+/* ==========================================
+   MAIN LAYOUT
+========================================== */
+
+.employee-attendance-container {
+  display: grid;
+  grid-template-columns:
+    minmax(280px, 0.85fr)
+    minmax(0, 1.5fr);
+  gap: 20px;
+
+  width: 100%;
+  min-width: 0;
+  max-width: 1440px;
+  margin: 0 auto;
+
+  align-items: stretch;
+}
+
+/* ==========================================
+   COMMON CARDS
+========================================== */
+
+.employee-profile-card.MuiCard-root,
+.timer-card.MuiCard-root,
+.employee-details-card.MuiCard-root {
+  min-width: 0;
+  border: 1px solid var(--attendance-border);
+  border-radius: 16px;
+  box-shadow: 0 3px 16px rgba(17, 39, 64, 0.04);
+  background: #ffffff;
+  overflow: hidden;
+}
+
+/* ==========================================
+   PROFILE CARD
+========================================== */
+
+.employee-profile-card.MuiCard-root {
+  background: linear-gradient(
+    155deg,
+    #effaf3 0%,
+    #ffffff 52%,
+    #ffffff 100%
+  );
+}
+
+.employee-profile-content.MuiCardContent-root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  height: 100%;
+  min-height: 455px;
+  padding: 28px 28px 24px;
+}
+
+.employee-profile-content.MuiCardContent-root:last-child {
+  padding-bottom: 24px;
+}
+
+.employee-profile-top-label {
+  align-self: flex-start;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  color: #90a499;
+}
+
+.employee-profile-avatar.MuiAvatar-root {
+  width: 100px;
+  height: 100px;
+  margin: 20px 0 15px;
+
+  background: linear-gradient(
+    135deg,
+    #098553,
+    #075b3d
+  );
+
+  border: 5px solid #ffffff;
+  box-shadow: 0 6px 18px rgba(8, 123, 77, 0.15);
+
+  font-size: 31px;
+  font-weight: 750;
+  color: #ffffff;
+}
+
+.employee-name.MuiTypography-root {
+  max-width: 100%;
+  color: #17263b;
+  font-size: 22px;
+  line-height: 1.35;
+  font-weight: 750;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.employee-designation.MuiTypography-root {
+  margin-top: 5px;
+  color: #8190a2;
+  font-size: 13px;
+  font-weight: 550;
+  text-align: center;
+}
+
+.employee-profile-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  margin-top: 15px;
+  padding: 7px 12px;
+
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 750;
+
+  background: #f1f6f3;
+  color: #527e68;
+}
+
+.employee-profile-divider.MuiDivider-root {
+  width: 100%;
+  margin: 22px 0 17px;
+  border-color: #e5eee9;
+}
+
+/* ==========================================
+   CHECK-IN / CHECK-OUT TIMES
+========================================== */
+
+.employee-session-info {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.employee-session-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  min-width: 0;
+}
+
+.employee-session-row span {
+  color: #7a8b95;
+  font-size: 12px;
+  font-weight: 550;
+}
+
+.employee-session-row strong {
+  color: #263b32;
+  font-size: 12px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+/* ==========================================
+   ATTENDANCE BUTTON
+========================================== */
+
+.attendance-actions {
+  width: 100%;
+  margin-top: 25px;
+}
+
+.check-in-button.MuiButton-root {
+  min-height: 46px;
+
+  border-radius: 10px;
+  background: linear-gradient(
+    105deg,
+    #087b4d,
+    #07945c
+  );
+
+  color: #ffffff;
+  box-shadow: 0 5px 13px rgba(8, 123, 77, 0.16);
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 750;
+  text-transform: none;
+}
+
+.check-in-button.MuiButton-root:hover {
+  background: #075b3d;
+  box-shadow: 0 7px 16px rgba(8, 123, 77, 0.2);
+}
+
+.check-in-button.MuiButton-root.Mui-disabled {
+  background: #e7eee9;
+  color: #6b927e;
+  box-shadow: none;
+}
+
+/* ==========================================
+   EMPLOYEE LOCATION
+========================================== */
+
+.employee-location {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  width: 100%;
+  margin-top: 18px;
+  text-align: center;
+}
+
+.employee-location svg {
+  flex-shrink: 0;
+  font-size: 17px;
+  color: #719c83;
+}
+
+.employee-location .MuiTypography-root {
+  color: #82998b;
+  font-size: 11px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================
+   RIGHT SECTION
+========================================== */
+
+.attendance-right-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+/* ==========================================
+   TIMER CARD
+========================================== */
+
+.timer-card.MuiCard-root {
+  background: linear-gradient(
+    115deg,
+    #ffffff 0%,
+    #f2faf5 100%
+  );
+}
+
+.timer-card-content.MuiCardContent-root {
+  min-height: 180px;
+  padding: 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.timer-card-content.MuiCardContent-root:last-child {
+  padding-bottom: 24px;
+}
+
+.timer-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.timer-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.timer-heading svg {
+  color: #087b4d;
+  font-size: 23px;
+}
+
+.timer-heading .MuiTypography-root {
+  font-size: 14px;
+  font-weight: 700;
+  color: #31483a;
+}
+
+.timer-value.MuiTypography-root {
+  margin-top: 17px;
+
+  color: #075b3d;
+  font-size: clamp(27px, 3vw, 42px);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: 1px;
+  font-variant-numeric: tabular-nums;
+}
+
+.timer-labels {
+  display: flex;
+  gap: 24px;
+  margin-top: 8px;
+}
+
+.timer-labels .MuiTypography-root {
+  color: #93a69a;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* ==========================================
+   TIMER MESSAGE
+========================================== */
+
+.timer-message {
+  width: 160px;
+  flex-shrink: 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  text-align: center;
+}
+
+.timer-message-icon {
+  width: 52px;
+  height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 11px;
+
+  border-radius: 14px;
+  background: #def4e7;
+  color: #087b4d;
+}
+
+.timer-message-icon svg {
+  font-size: 27px;
+}
+
+.timer-message-title.MuiTypography-root {
+  font-size: 13px;
+  font-weight: 750;
+  color: #244d37;
+}
+
+.timer-message-subtitle.MuiTypography-root {
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #82998b;
+}
+
+/* ==========================================
+   EMPLOYEE DETAILS CARD
+========================================== */
+
+.employee-details-content.MuiCardContent-root {
+  padding: 24px;
+}
+
+.employee-details-content.MuiCardContent-root:last-child {
+  padding-bottom: 24px;
+}
+
+.details-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.details-title > svg {
+  font-size: 24px;
+  color: #087b4d;
+}
+
+.details-heading.MuiTypography-root {
+  font-size: 16px;
+  font-weight: 750;
+  color: #17263b;
+}
+
+.details-subheading.MuiTypography-root {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #8391a5;
+}
+
+/* ==========================================
+   DETAILS GRID
+========================================== */
+
+.details-grid {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto
+    minmax(0, 1fr);
+
+  gap: 18px;
+  margin-top: 23px;
+}
+
+.details-column {
+  display: flex;
+  flex-direction: column;
+  gap: 23px;
+  min-width: 0;
+}
+
+.details-divider.MuiDivider-root {
+  border-color: #eaf0ec;
+}
+
+/* ==========================================
+   DETAIL ITEMS
+========================================== */
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+.detail-icon {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #eef8f1;
+  border-radius: 10px;
+  color: #087b4d;
+}
+
+.detail-icon svg {
+  font-size: 20px;
+}
+
+.detail-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.detail-label.MuiTypography-root {
+  color: #8a9c92;
+  font-size: 10.5px;
+  font-weight: 550;
+  line-height: 1.4;
+}
+
+.detail-value.MuiTypography-root {
+  margin-top: 3px;
+  color: #263a31;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================
+   MEDIUM DESKTOP
+========================================== */
+
+@media (max-width: 1250px) {
   .employee-attendance-container {
-    max-width: 980px;
-    gap: 20px;
-  }
-
-  .employee-profile-card {
-    min-height: 440px;
-  }
-
-  .employee-profile-content {
-    min-height: 440px;
-    padding: 26px 28px !important;
-  }
-
-  .employee-name {
-    font-size: 26px !important;
-  }
-
-  .employee-image-wrapper {
-    width: 128px;
-    height: 128px;
-  }
-}
-
-/* =========================================
-   TABLET
-========================================= */
-
-@media (max-width: 900px) {
-  .employee-attendance-page {
-    padding: 18px;
-  }
-
-  .employee-attendance-container {
-    grid-template-columns: 1fr;
-  }
-
-  .employee-profile-card {
-    min-height: auto;
-  }
-
-  .employee-profile-content {
-    min-height: auto;
-  }
-
-  .attendance-right-section {
-    width: 100%;
-  }
-}
-
-/* =========================================
-   MOBILE
-========================================= */
-
-@media (max-width: 600px) {
-  .employee-attendance-page {
-    padding: 12px;
-  }
-
-  .employee-attendance-container {
-    gap: 12px;
-  }
-
-  .employee-profile-content {
-    padding: 25px 20px !important;
-  }
-
-  .employee-image-wrapper {
-    width: 85px;
-    height: 85px;
-  }
-
-  .employee-name {
-    font-size: 19px !important;
-  }
-
-  .attendance-actions {
-    max-width: 100%;
-  }
-
-  .timer-card-content {
-    padding: 18px !important;
-
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .timer-value {
-    font-size: 27px !important;
-  }
-
-  .timer-labels {
-    grid-template-columns: repeat(3, 60px);
-  }
-
-  .timer-message {
-    min-width: 110px;
-  }
-
-  .timer-leaf {
-    width: 38px;
-    height: 38px;
-  }
-
-  .timer-message-title {
-    font-size: 11px !important;
-  }
-
-  .timer-message-subtitle {
-    font-size: 9px !important;
-  }
-
-  .employee-details-content {
-    padding: 18px !important;
-  }
-
-  .details-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns:
+      minmax(260px, 0.9fr)
+      minmax(0, 1.3fr);
     gap: 16px;
   }
 
-  .details-divider {
+  .employee-profile-content.MuiCardContent-root {
+    padding: 23px 20px;
+  }
+
+  .timer-card-content.MuiCardContent-root {
+    padding: 20px;
+  }
+
+  .timer-message {
+    width: 120px;
+  }
+
+  .employee-details-content.MuiCardContent-root {
+    padding: 20px;
+  }
+
+  .details-grid {
+    gap: 12px;
+  }
+}
+
+/* ==========================================
+   TABLET
+========================================== */
+
+@media (max-width: 1050px) {
+  .employee-attendance-container {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .employee-profile-content.MuiCardContent-root {
+    min-height: 0;
+  }
+
+  .employee-profile-avatar.MuiAvatar-root {
+    width: 86px;
+    height: 86px;
+    margin-top: 14px;
+  }
+
+  .attendance-actions {
+    max-width: 340px;
+  }
+
+  .employee-session-info {
+    max-width: 340px;
+  }
+}
+
+/* ==========================================
+   MOBILE
+========================================== */
+
+@media (max-width: 600px) {
+  .attendance-page-heading {
+    margin-bottom: 16px;
+    gap: 10px;
+  }
+
+  .attendance-page-heading-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 11px;
+  }
+
+  .attendance-page-title.MuiTypography-root {
+    font-size: 18px;
+  }
+
+  .attendance-page-description.MuiTypography-root {
+    font-size: 11.5px;
+  }
+
+  .attendance-overview {
+    padding: 13px 14px;
+    margin-bottom: 16px;
+  }
+
+  .attendance-overview-date .MuiTypography-root {
+    font-size: 11.5px;
+  }
+
+  .employee-attendance-container {
+    gap: 16px;
+  }
+
+  .employee-profile-content.MuiCardContent-root {
+    padding: 20px 18px;
+  }
+
+  .employee-profile-content.MuiCardContent-root:last-child {
+    padding-bottom: 20px;
+  }
+
+  .employee-name.MuiTypography-root {
+    font-size: 19px;
+  }
+
+  .employee-profile-avatar.MuiAvatar-root {
+    width: 80px;
+    height: 80px;
+    font-size: 24px;
+  }
+
+  .attendance-right-section {
+    gap: 16px;
+  }
+
+  .timer-card-content.MuiCardContent-root {
+    padding: 18px;
+    gap: 14px;
+  }
+
+  .timer-card-content.MuiCardContent-root:last-child {
+    padding-bottom: 18px;
+  }
+
+  .timer-value.MuiTypography-root {
+    font-size: 29px;
+    letter-spacing: 0.5px;
+  }
+
+  .timer-message {
+    width: 110px;
+  }
+
+  .timer-message-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .timer-message-icon svg {
+    font-size: 22px;
+  }
+
+  .timer-message-title.MuiTypography-root {
+    font-size: 11px;
+  }
+
+  .timer-message-subtitle.MuiTypography-root {
+    font-size: 10px;
+  }
+
+  .employee-details-content.MuiCardContent-root {
+    padding: 18px;
+  }
+
+  .employee-details-content.MuiCardContent-root:last-child {
+    padding-bottom: 18px;
+  }
+
+  .details-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .details-divider.MuiDivider-root {
     display: none;
   }
 
   .details-column {
-    gap: 15px;
+    gap: 18px;
   }
 
-  .employee-leaf {
-    width: 110px;
-    height: 110px;
+  .detail-icon {
+    width: 35px;
+    height: 35px;
+  }
+
+  .detail-icon svg {
+    font-size: 19px;
   }
 }
 
-/* =========================================
+/* ==========================================
    SMALL MOBILE
-========================================= */
+========================================== */
 
 @media (max-width: 400px) {
-  .timer-card-content {
+  .timer-card-content.MuiCardContent-root {
     flex-direction: column;
+    align-items: flex-start;
   }
 
   .timer-message {
     width: 100%;
-
     flex-direction: row;
-    justify-content: flex-start;
-    gap: 8px;
-
+    align-items: center;
+    gap: 10px;
     text-align: left;
   }
 
-  .timer-leaf {
+  .timer-message-icon {
     margin: 0;
+    flex-shrink: 0;
   }
 
-  .timer-message-subtitle {
-    display: none;
+  .timer-message-subtitle.MuiTypography-root {
+    margin-top: 4px;
+  }
+
+  .timer-value.MuiTypography-root {
+    font-size: 32px;
+  }
+
+  .attendance-overview {
+    align-items: flex-start;
+  }
+}
+
+/* ==========================================
+   ACCESSIBILITY
+========================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .check-in-button {
+    transition: none !important;
   }
 }

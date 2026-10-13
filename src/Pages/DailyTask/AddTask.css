@@ -1,369 +1,295 @@
-/* =========================================================
-   ADD TASK PAGE
-========================================================= */
 
 .add-task-page {
+  --add-green: #087b4d;
+  --add-dark: #075b3d;
+  --add-text: #17263b;
+  --add-muted: #8190a2;
+
   width: 100%;
+  max-width: 1440px;
   min-width: 0;
-  min-height: 100vh;
-  padding: clamp(16px, 2vw, 28px);
+  margin: 0 auto;
+  padding: 0;
   box-sizing: border-box;
-  background: #f7f9fb;
-  overflow-x: hidden;
+  font-family: var(--font-family, Inter, sans-serif);
 }
 
-/* =========================================================
-   HEADER
-========================================================= */
+.add-task-page *,
+.add-task-page *::before,
+.add-task-page *::after {
+  box-sizing: border-box;
+}
 
-.add-task-header {
-  width: 100%;
-  max-width: 1100px;
-  margin: 0 auto 24px;
-
+.add-task-page .add-task-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
-.add-task-header > div {
+.add-task-page .add-task-heading {
+  display: flex;
+  align-items: center;
+  gap: 13px;
   min-width: 0;
 }
 
-.add-task-header h1 {
-  margin: 0;
-
-  color: #101828;
-
-  font-size: clamp(24px, 2.4vw, 32px);
-  font-weight: 700;
-  line-height: 1.2;
-
-  overflow-wrap: anywhere;
+.add-task-page .add-task-heading-icon {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  background: #e8f7ee;
+  border: 1px solid #d8efdf;
+  border-radius: 13px;
+  color: #087b4d;
 }
 
-.add-task-header p {
-  margin: 6px 0 0;
+.add-task-page .add-task-header h1 {
+  margin: 0;
+  color: var(--add-text);
+  font-size: 21px;
+  font-weight: 750;
+  letter-spacing: -0.4px;
+}
 
-  color: #667085;
-
-  font-size: 14px;
+.add-task-page .add-task-header p {
+  margin: 4px 0 0;
+  color: var(--add-muted);
+  font-size: 12.5px;
   line-height: 1.5;
 }
 
-/* =========================================================
-   BACK BUTTON
-========================================================= */
-
-.back-button {
-  flex-shrink: 0;
-
-  min-height: 42px;
-  padding: 9px 16px;
-
-  border: 1px solid #d0d5dd;
-  border-radius: 8px;
-
-  background: #ffffff;
-  color: #344054;
-
+.add-task-page .back-button {
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 1px solid #b7d9c4;
+  border-radius: 10px;
+  background: #fff;
+  color: #087b4d;
   font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-
+  font-size: 12px;
+  font-weight: 750;
   cursor: pointer;
-
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease;
 }
 
-.back-button:hover {
-  background: #f8fafc;
-  border-color: #98a2b3;
+.add-task-page .back-button:hover {
+  background: #eef8f2;
 }
 
-/* =========================================================
-   FORM CARD
-========================================================= */
-
-.add-task-card {
+.add-task-page .add-task-card {
   width: 100%;
-  max-width: 1100px;
-  margin: 0 auto;
-
+  min-width: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-
-  gap: clamp(16px, 2vw, 20px);
-
-  padding: clamp(18px, 2.5vw, 28px);
-
-  box-sizing: border-box;
-
-  background: #ffffff;
-
-  border: 1px solid #eaecf0;
-  border-radius: 12px;
-
-  box-shadow:
-    0 2px 8px rgba(16, 24, 40, 0.04);
-
-  min-width: 0;
+  gap: 20px;
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #e7edf2;
+  border-radius: 16px;
+  box-shadow: 0 3px 16px rgba(17,39,64,0.04);
 }
 
-/* =========================================================
-   FORM GROUP
-========================================================= */
+.add-task-page .add-task-form-header {
+  grid-column: 1 / -1;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #edf1ee;
+}
 
-.task-form-group {
+.add-task-page .add-task-form-header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 750;
+  color: var(--add-text);
+}
+
+.add-task-page .add-task-form-header p {
+  margin: 5px 0 0;
+  font-size: 11.5px;
+  color: var(--add-muted);
+}
+
+.add-task-page .task-form-group {
   min-width: 0;
-
   display: flex;
   flex-direction: column;
-
   gap: 8px;
 }
 
-.task-form-full {
+.add-task-page .task-form-full {
   grid-column: 1 / -1;
 }
 
-.task-form-group label {
+.add-task-page .task-form-group label {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-
-  gap: 5px;
-
-  color: #344054;
-
-  font-size: 14px;
-  font-weight: 600;
+  gap: 6px;
+  color: #4c6757;
+  font-size: 12.5px;
+  font-weight: 700;
 }
 
-.task-form-group label span {
-  color: #d92d20;
+.add-task-page .task-form-group label span {
+  color: #d24343;
 }
 
-.task-form-group label small {
-  color: #98a2b3;
-
-  font-size: 11px;
-  font-weight: 400;
+.add-task-page .task-form-group label small {
+  color: #92a29a;
+  font-size: 10px;
+  font-weight: 500;
 }
 
-/* =========================================================
-   INPUTS
-========================================================= */
-
-.task-form-group input,
-.task-form-group textarea,
-.task-form-group select {
+.add-task-page .task-form-group input,
+.add-task-page .task-form-group textarea,
+.add-task-page .task-form-group select {
   width: 100%;
   min-width: 0;
-
-  padding: 11px 12px;
-
-  box-sizing: border-box;
-
-  color: #101828;
-  background: #ffffff;
-
-  border: 1px solid #d0d5dd;
-  border-radius: 8px;
-
+  min-height: 44px;
+  padding: 11px 13px;
+  border: 1px solid #dce6df;
+  border-radius: 10px;
+  background: #fff;
+  color: #233a2d;
+  font-family: inherit;
+  font-size: 13px;
   outline: none;
-
-  font-family: inherit;
-  font-size: 16px;
-
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
 }
 
-.task-form-group textarea {
-  min-height: 120px;
+.add-task-page .task-form-group textarea {
+  min-height: 122px;
   resize: vertical;
-
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
-.task-form-group input:focus,
-.task-form-group textarea:focus,
-.task-form-group select:focus {
-  border-color: #1d620c;
-
-  box-shadow:
-    0 0 0 3px rgba(29, 98, 12, 0.1);
+.add-task-page .task-form-group input:focus,
+.add-task-page .task-form-group textarea:focus,
+.add-task-page .task-form-group select:focus {
+  border-color: #087b4d;
+  box-shadow: 0 0 0 3px rgba(8,123,77,0.09);
 }
 
-/* =========================================================
-   ACTION BUTTONS
-========================================================= */
+.add-task-page .task-form-group input[readonly] {
+  background: #f7f9f8;
+  color: #668573;
+  cursor: default;
+}
 
-.task-form-actions {
+.add-task-page .task-form-actions {
   grid-column: 1 / -1;
-
   display: flex;
-  align-items: center;
   justify-content: flex-end;
-
-  gap: 12px;
-
-  padding-top: 8px;
+  gap: 10px;
+  padding-top: 19px;
+  margin-top: 4px;
+  border-top: 1px solid #edf1ee;
 }
 
-.cancel-task-button,
-.create-task-button {
+.add-task-page .cancel-task-button,
+.add-task-page .create-task-button {
   min-height: 42px;
-
-  padding: 10px 18px;
-
-  border-radius: 8px;
-
+  padding: 9px 18px;
+  border-radius: 10px;
   font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-
+  font-size: 12px;
+  font-weight: 750;
   cursor: pointer;
-
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    opacity 0.2s ease;
 }
 
-.cancel-task-button {
-  border: 1px solid #d0d5dd;
-
-  background: #ffffff;
-  color: #344054;
+.add-task-page .cancel-task-button {
+  background: #fff;
+  border: 1px solid #b7d9c4;
+  color: #087b4d;
 }
 
-.cancel-task-button:hover {
-  background: #f8fafc;
+.add-task-page .cancel-task-button:hover {
+  background: #eef8f2;
 }
 
-.create-task-button {
-  border: none;
-
-  background: #1d620c;
-  color: #ffffff;
+.add-task-page .create-task-button {
+  border: 0;
+  background: linear-gradient(105deg, #087b4d, #07945c);
+  color: #fff;
+  box-shadow: 0 5px 13px rgba(8,123,77,0.14);
 }
 
-.create-task-button:hover:not(:disabled) {
-  background: #16530a;
+.add-task-page .create-task-button:hover:not(:disabled) {
+  background: #075b3d;
 }
 
-.create-task-button:disabled {
+.add-task-page .create-task-button:disabled,
+.add-task-page .cancel-task-button:disabled,
+.add-task-page .back-button:disabled {
+  opacity: 0.55;
   cursor: not-allowed;
-  opacity: 0.6;
 }
 
-/* =========================================================
-   ERROR
-========================================================= */
-
-.add-task-error {
+.add-task-page .add-task-error {
   grid-column: 1 / -1;
-
-  min-width: 0;
-
-  padding: 12px 14px;
-
-  color: #b42318;
-  background: #fef3f2;
-
-  border: 1px solid #fecdca;
-  border-radius: 8px;
-
-  font-size: 14px;
+  padding: 13px 15px;
+  background: #fff1f1;
+  border: 1px solid #f3caca;
+  border-radius: 10px;
+  color: #b63737;
+  font-size: 12px;
   line-height: 1.5;
-
-  overflow-wrap: anywhere;
 }
-
-/* =========================================================
-   TABLET
-========================================================= */
-
-@media (max-width: 900px) {
-  .add-task-page {
-    padding: 22px 20px;
-  }
-
-  .add-task-card {
-    padding: 22px;
-  }
-}
-
-/* =========================================================
-   MOBILE
-========================================================= */
 
 @media (max-width: 700px) {
-  .add-task-page {
-    padding: 18px 16px;
-  }
-
-  .add-task-header {
-    margin-bottom: 18px;
-
-    align-items: stretch;
+  .add-task-page .add-task-header {
     flex-direction: column;
-
-    gap: 14px;
-  }
-
-  .back-button {
-    width: 100%;
-  }
-
-  .add-task-card {
-    grid-template-columns: minmax(0, 1fr);
-
-    padding: 18px;
-
-    gap: 18px;
-  }
-
-  .task-form-full,
-  .task-form-actions,
-  .add-task-error {
-    grid-column: 1;
-  }
-
-  .task-form-actions {
-    flex-direction: column-reverse;
     align-items: stretch;
+    gap: 15px;
+  }
 
+  .add-task-page .add-task-heading {
     gap: 10px;
   }
 
-  .cancel-task-button,
-  .create-task-button {
+  .add-task-page .add-task-heading-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .add-task-page .add-task-header h1 {
+    font-size: 18px;
+  }
+
+  .add-task-page .add-task-header p {
+    font-size: 11.5px;
+  }
+
+  .add-task-page .back-button {
+    width: 100%;
+  }
+
+  .add-task-page .add-task-card {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 17px;
+    padding: 17px;
+  }
+
+  .add-task-page .task-form-full,
+  .add-task-page .add-task-form-header,
+  .add-task-page .task-form-actions,
+  .add-task-page .add-task-error {
+    grid-column: 1;
+  }
+
+  .add-task-page .task-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .add-task-page .task-form-actions button {
     width: 100%;
   }
 }
 
-/* =========================================================
-   SMALL MOBILE
-========================================================= */
-
-@media (max-width: 420px) {
-  .add-task-page {
-    padding: 14px 12px;
-  }
-
-  .add-task-header h1 {
-    font-size: 23px;
-  }
-
-  .add-task-card {
-    padding: 16px;
-    border-radius: 10px;
+@media (prefers-reduced-motion: reduce) {
+  .add-task-page button,
+  .add-task-page input {
+    transition: none;
   }
 }

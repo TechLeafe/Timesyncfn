@@ -1,34 +1,35 @@
-import { useEffect, useState } from "react";
+
+import { useCallback, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 
 import {
   Alert,
+  Avatar,
   Box,
   Button,
   Card,
   CardContent,
+  CircularProgress,
   Divider,
   Snackbar,
   Typography,
 } from "@mui/material";
 
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
+import LoginRoundedIcon from "@mui/icons-material/LoginRounded";
+import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
 import BusinessCenterOutlinedIcon from "@mui/icons-material/BusinessCenterOutlined";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
+import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
+import CheckCircleOutlineRoundedIcon from "@mui/icons-material/CheckCircleOutlineRounded";
+import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
+import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 
 import api from "../../api/axiosInstance";
-
 import "./EmployeeCheckInOut.css";
-
-import employeeImage from "../../assets/CheckInOut/User_icon.png";
-import leafImage from "../../assets/StatCards/Leafe.png";
-
-/* =========================================
-   TYPES
-========================================= */
 
 interface Employee {
   name: string;
@@ -40,310 +41,676 @@ interface Employee {
   location: string;
 }
 
-/* =========================================
-   COMPONENT
+interface StoredUser {
+  userId?: string;
+  employeeId?: string;
+  name?: string;
+  designation?: string;
+  department?: string;
+  email?: string;
+  reportingManager?: string;
+  location?: string;
+}
 
-   Personal self check-in / check-out.
-   Every role (Employee, HR, Admin) gets this
-   same page for their own attendance — the
-   "view everyone's records" table lives on
-   its own page now (Employee Management ->
-   AdminCheckinout.tsx), reached only by HR/Admin.
-========================================= */
+interface AttendanceRecord {
+  employeeId?: string;
+  user_id?: string;
+  email?: string;
+  checkInTime?: string | null;
+  checkOutTime?: string | null;
+}
 
-const EmployeeCheckInOut = () => {
-  /* =========================================
-     GET LOGGED IN USER
-  ========================================= */
+interface AttendanceResponse {
+  data?: {
+    checkInTime?: string | null;
+  };
+  checkInTime?: string | null;
+}
 
-  const storedUser = localStorage.getItem("loggedInUser");
+type AttendanceStatus =
+  | "unknown"
+  | "not-checked-in"
+  | "checked-in"
+  | "checked-out";
 
-  let loggedInUser: any = null;
+type ToastMessage = {
+  severity: "success" | "error";
+  text: string;
+};
 
-  if (storedUser) {
-    try {
-      loggedInUser = JSON.parse(storedUser);
-    } catch {
-      loggedInUser = null;
+const getStoredUser = (): StoredUser | null => {
+  try {
+    const stored = localStorage.getItem("loggedInUser");
+
+    if (!stored) return null;
+
+    const parsed: unknown = JSON.parse(stored);
+
+    if (
+      !parsed ||
+      typeof parsed !== "object" ||
+      Array.isArray(parsed)
+    ) {
+      return null;
+    }
+
+    return parsed as StoredUser;
+  } catch {
+    return null;
+  }
+};
+
+const initialUser = getStoredUser();
+
+const makeEmployee = (user: StoredUser | null): Employee => ({
+  name: user?.name || "Employee",
+  designation: user?.designation || "Employee",
+  employeeId:
+    user?.employeeId || user?.userId || "-",
+  department: user?.department || "-",
+  email: user?.email || "-",
+  reportingManager: user?.reportingManager || "-",
+  location: user?.location || "Office - TechLeafe",
+});
+
+const formatTimer = (seconds: number): string => {
+  const total = Math.max(0, Math.floor(seconds));
+
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const secs = total % 60;
+
+  return [
+    hours,
+    minutes,
+    secs,
+  ]
+    .map((value) => String(value).padStart(2, "0"))
+    .join(":");
+};
+
+const formatClockTime = (
+  value: string | Date | null
+): string => {
+  if (!value) return "--";
+
+  const date = value instanceof Date
+    ? value
+    : new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "--";
+
+  return date.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
+
+const getApiError = (
+  error: unknown,
+  fallback: string
+): string => {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "response" in error
+  ) {
+    const response = (
+      error as {
+        response?: {
+          data?: { message?: string };
+        };
+      }
+    ).response;
+
+    if (response?.data?.message) {
+      return response.data.message;
     }
   }
 
-  /* =========================================
-     STATES
-  ========================================= */
+  return fallback;
+};
 
-  const [employee, setEmployee] = useState<Employee>({
-    name: loggedInUser?.name ?? "Employee",
-    designation: loggedInUser?.designation ?? "-",
-    employeeId: loggedInUser?.employeeId ?? loggedInUser?.userId ?? "-",
-    department: loggedInUser?.department ?? "-",
-    email: loggedInUser?.email ?? "-",
-    reportingManager: loggedInUser?.reportingManager ?? "-",
-    location: loggedInUser?.location ?? "Office - TechLeafe",
-  });
+const EmployeeCheckInOut = () => {
+  const [employee, setEmployee] = useState<Employee>(
+    () => makeEmployee(initialUser)
+  );
 
-  const [isCheckedIn, setIsCheckedIn] = useState(false);
-  const [checkInTime, setCheckInTime] = useState<Date | null>(null);
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] =
+    useState<AttendanceStatus>("unknown");
+
+  const [checkInTime, setCheckInTime] =
+    useState<Date | null>(null);
+
+  const [checkOutTime, setCheckOutTime] =
+    useState<Date | null>(null);
+
+  const [elapsedSeconds, setElapsedSeconds] =
+    useState(0);
+
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [toast, setToast] = useState<{ severity: "success" | "error"; text: string } | null>(null);
 
-  /* =========================================
-     FETCH OWN STATUS
+  const [toast, setToast] =
+    useState<ToastMessage | null>(null);
 
-     There's no dedicated "/checkinout/me" endpoint on this backend
-     (confirmed 404). We previously used /dashboard/employee to find
-     this user's internal user_id, but that endpoint is restricted to
-     Employee-role accounts only (confirmed: an Admin account gets a
-     403 there) — and this page has to work identically for Employee,
-     HR, and Admin. So status now comes from /attendance/daily with an
-     empty user_id (get everyone today — the same call the Admin/HR
-     "Employee Management" table already uses successfully for every
-     role), filtered down to this person's own row. The dashboard call
-     is now only used as optional, best-effort profile enrichment — if
-     it 403s (HR/Admin), we just keep the localStorage-based details.
+  const isCheckedIn = status === "checked-in";
+  const isCheckedOut = status === "checked-out";
 
-     Returns the real checkInTime if one was found, so callers
-     (e.g. a failed check-in) know whether status actually synced.
-  ========================================= */
+  const todayLabel = new Date().toLocaleDateString(
+    "en-IN",
+    {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }
+  );
 
-  const fetchStatus = async (): Promise<Date | null> => {
+  /* ================= FETCH STATUS ================= */
+
+  const fetchStatus = useCallback(async () => {
+    setLoading(true);
+    setError("");
+
     try {
-      setLoading(true);
+      /*
+       * Preserve the existing API contract.
+       * This endpoint should ultimately return
+       * only the authenticated user's permitted data.
+       */
+      const response = await api.post(
+        "/attendance/daily",
+        {
+          user_id: "",
+          date: "",
+        }
+      );
 
+      const payload =
+        response.data?.data ?? response.data;
+
+      if (!Array.isArray(payload)) {
+        throw new Error("Invalid attendance response.");
+      }
+
+      const records = payload as AttendanceRecord[];
+      const user = getStoredUser();
+
+      const myId =
+        user?.userId || user?.employeeId;
+
+      const myEmail = user?.email?.toLowerCase();
+
+      if (!myId && !myEmail) {
+        throw new Error(
+          "Your employee identity is unavailable. Please sign in again."
+        );
+      }
+
+      const record = records.find((entry) => {
+        const idMatches =
+          Boolean(myId) &&
+          (entry.employeeId === myId ||
+            entry.user_id === myId);
+
+        const emailMatches =
+          Boolean(myEmail) &&
+          entry.email?.toLowerCase() === myEmail;
+
+        return idMatches || emailMatches;
+      });
+
+      const inTime = record?.checkInTime
+        ? new Date(record.checkInTime)
+        : null;
+
+      const outTime = record?.checkOutTime
+        ? new Date(record.checkOutTime)
+        : null;
+
+      const validIn =
+        inTime && !Number.isNaN(inTime.getTime())
+          ? inTime
+          : null;
+
+      const validOut =
+        outTime && !Number.isNaN(outTime.getTime())
+          ? outTime
+          : null;
+
+      setCheckInTime(validIn);
+      setCheckOutTime(validOut);
+
+      if (validOut) {
+        setStatus("checked-out");
+      } else if (validIn) {
+        setStatus("checked-in");
+      } else {
+        setStatus("not-checked-in");
+      }
+
+      return true;
+    } catch (err) {
+      setError(
+        getApiError(
+          err,
+          err instanceof Error
+            ? err.message
+            : "Unable to load attendance status."
+        )
+      );
+
+      setStatus("unknown");
+      setCheckInTime(null);
+      setCheckOutTime(null);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  /* ================= INITIAL LOAD ================= */
+
+  useEffect(() => {
+    void fetchStatus();
+
+    /*
+     * The employee dashboard endpoint is used
+     * only for optional employee-role profile details.
+     * HR/Admin may not have access to it.
+     */
+    const loadProfile = async () => {
       try {
-        const dashboardResponse = await api.post("/dashboard/employee", { date: "" });
+        const response = await api.post(
+          "/dashboard/employee",
+          { date: "" }
+        );
 
-        console.log("Employee dashboard (profile enrichment):", dashboardResponse.data);
+        const payload =
+          response.data?.data ?? response.data;
 
-        const dashboardData = dashboardResponse.data?.data ?? dashboardResponse.data;
-        const info = dashboardData?.employeeInformation;
+        const info = payload?.employeeInformation;
 
         if (info) {
           setEmployee((current) => ({
             ...current,
             name: info.name ?? current.name,
-            designation: info.designation ?? current.designation,
-            employeeId: info.employeeId ?? current.employeeId,
+            designation:
+              info.designation ?? current.designation,
+            employeeId:
+              info.employeeId ?? current.employeeId,
             email: info.email ?? current.email,
           }));
         }
-      } catch (dashboardErr) {
-        // Expected for HR/Admin accounts — this endpoint is Employee-only.
-        console.warn("Employee dashboard not accessible for this account's role (expected for HR/Admin):", dashboardErr);
+      } catch {
+        // Keep profile data from the current login.
       }
+    };
 
-      const dailyResponse = await api.post("/attendance/daily", { user_id: "", date: "" });
+    void loadProfile();
+  }, [fetchStatus]);
 
-      console.log("Today's attendance (all employees):", dailyResponse.data);
-
-      const dailyData = dailyResponse.data?.data ?? dailyResponse.data;
-      const records = Array.isArray(dailyData) ? dailyData : [];
-
-      const myEmployeeId: string | undefined = loggedInUser?.userId ?? loggedInUser?.employeeId;
-      const myEmail: string | undefined = loggedInUser?.email;
-
-      const todaysRecord = records.find(
-        (record: any) =>
-          (myEmployeeId && record.employeeId === myEmployeeId) ||
-          (myEmail && record.email === myEmail)
-      );
-
-      const checkedIn = Boolean(todaysRecord?.checkInTime) && !todaysRecord?.checkOutTime;
-
-      setIsCheckedIn(checkedIn);
-
-      if (checkedIn && todaysRecord?.checkInTime) {
-        const time = new Date(todaysRecord.checkInTime);
-        setCheckInTime(time);
-        return time;
-      }
-
-      setCheckInTime(null);
-      return null;
-    } catch (err: any) {
-      console.error("Status fetch error:", err);
-
-      setError(err.response?.data?.message || "Unable to load check-in/out status.");
-
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
+  /* ================= LIVE TIMER ================= */
 
   useEffect(() => {
-    setError("");
-    fetchStatus();
-  }, []);
-
-  /* =========================================
-     TIMER
-  ========================================= */
-
-  useEffect(() => {
-    if (!checkInTime) {
+    if (!isCheckedIn || !checkInTime) {
       return;
     }
 
     const updateTimer = () => {
-      const difference = Math.floor((Date.now() - checkInTime.getTime()) / 1000);
+      const seconds = Math.floor(
+        (Date.now() - checkInTime.getTime()) / 1000
+      );
 
-      setElapsedSeconds(Math.max(0, difference));
+      setElapsedSeconds(Math.max(0, seconds));
     };
 
     updateTimer();
 
-    const interval = setInterval(updateTimer, 1000);
+    const interval = window.setInterval(
+      updateTimer,
+      1000
+    );
 
-    return () => clearInterval(interval);
-  }, [checkInTime]);
+    return () => window.clearInterval(interval);
+  }, [isCheckedIn, checkInTime]);
 
-  /* =========================================
-     CHECK IN
-  ========================================= */
+  /* ================= CHECK IN ================= */
 
   const handleCheckIn = async () => {
+    if (
+      submitting ||
+      loading ||
+      status !== "not-checked-in"
+    ) {
+      return;
+    }
+
+    setSubmitting(true);
+    setError("");
+
     try {
-      setError("");
+      const response = await api.post<AttendanceResponse>(
+        "/attendance/check-in"
+      );
 
-      const response = await api.post("/attendance/check-in");
+      const payload =
+        response.data?.data ?? response.data;
 
-      console.log("Check In:", response.data);
+      const returnedTime = payload?.checkInTime
+        ? new Date(payload.checkInTime)
+        : new Date();
 
-      const data = response.data?.data ?? response.data;
-
-      const time = data?.checkInTime ? new Date(data.checkInTime) : new Date();
+      const time = Number.isNaN(returnedTime.getTime())
+        ? new Date()
+        : returnedTime;
 
       setCheckInTime(time);
-      setIsCheckedIn(true);
+      setCheckOutTime(null);
       setElapsedSeconds(0);
-      setToast({ severity: "success", text: "Checked in successfully." });
-    } catch (err: any) {
-      console.error("Check In error:", err);
+      setStatus("checked-in");
 
-      const message: string = err.response?.data?.message || "Unable to check in.";
+      setToast({
+        severity: "success",
+        text: "Checked in successfully.",
+      });
+    } catch (err) {
+      setToast({
+        severity: "error",
+        text: getApiError(
+          err,
+          "Unable to check in. Please refresh your attendance status."
+        ),
+      });
 
-      // Already checked in for the day — just tell them, don't start the
-      // timer or flip the button. There's no session here to "resume":
-      // one check-in per day, and today's is already used.
-      setToast({ severity: "error", text: message });
+      // Reconcile with the backend after a failed request.
+      await fetchStatus();
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  /* =========================================
-     CHECK OUT
-  ========================================= */
+  /* ================= CHECK OUT ================= */
 
   const handleCheckOut = async () => {
+    if (
+      submitting ||
+      loading ||
+      status !== "checked-in"
+    ) {
+      return;
+    }
+
+    setSubmitting(true);
+    setError("");
+
     try {
-      setError("");
+      await api.post("/attendance/check-out");
 
-      const response = await api.post("/attendance/check-out");
-
-      console.log("Check Out:", response.data);
-
-      setIsCheckedIn(false);
+      setCheckOutTime(new Date());
       setCheckInTime(null);
       setElapsedSeconds(0);
-      setToast({ severity: "success", text: "Checked out successfully." });
-    } catch (err: any) {
-      console.error("Check Out error:", err);
+      setStatus("checked-out");
 
-      const message: string = err.response?.data?.message || "Unable to check out.";
+      setToast({
+        severity: "success",
+        text: "Checked out successfully.",
+      });
+    } catch (err) {
+      setToast({
+        severity: "error",
+        text: getApiError(
+          err,
+          "Unable to check out. Please try again."
+        ),
+      });
 
-      setToast({ severity: "error", text: message });
+      await fetchStatus();
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  /* =========================================
-     FORMAT TIMER
-  ========================================= */
+  /* ================= STATUS DETAILS ================= */
 
-  const formatTime = (totalSeconds: number) => {
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
+  const statusLabel =
+    status === "checked-in"
+      ? "Checked In"
+      : status === "checked-out"
+        ? "Checked Out"
+        : status === "not-checked-in"
+          ? "Not Checked In"
+          : "Status Unavailable";
 
-    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-  };
+  const statusClass =
+    status === "checked-in"
+      ? "attendance-status-active"
+      : status === "checked-out"
+        ? "attendance-status-complete"
+        : "attendance-status-pending";
 
-  /* =========================================
-     VIEW
-  ========================================= */
+  const userInitials = employee.name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("");
+
+  const actionDisabled =
+    loading || submitting || status === "unknown";
+
+  const timerValue = isCheckedIn
+    ? elapsedSeconds
+    : 0;
+
+  /* ================= UI ================= */
 
   return (
     <Box className="employee-attendance-page">
       <Snackbar
-        open={!!toast}
+        open={Boolean(toast)}
         autoHideDuration={4000}
         onClose={() => setToast(null)}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
       >
         {toast ? (
-          <Alert severity={toast.severity} variant="filled" onClose={() => setToast(null)}>
+          <Alert
+            severity={toast.severity}
+            variant="filled"
+            onClose={() => setToast(null)}
+          >
             {toast.text}
           </Alert>
         ) : undefined}
       </Snackbar>
 
+      {/* PAGE HEADER */}
+
+      <Box className="attendance-page-heading">
+        <Box className="attendance-page-heading-icon">
+          <AccessTimeOutlinedIcon />
+        </Box>
+
+        <Box>
+          <Typography
+            component="h2"
+            className="attendance-page-title"
+          >
+            Check In / Check Out
+          </Typography>
+
+          <Typography className="attendance-page-description">
+            Manage your daily attendance and
+            track your working session.
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* DATE AND STATUS */}
+
+      <Box className="attendance-overview">
+        <Box className="attendance-overview-date">
+          <CalendarTodayOutlinedIcon />
+          <Typography>{todayLabel}</Typography>
+        </Box>
+
+        <Box
+          className={`attendance-status-badge ${statusClass}`}
+        >
+          <span className="attendance-status-dot" />
+          {loading ? "Loading status..." : statusLabel}
+        </Box>
+      </Box>
+
+      {/* ERROR AND RETRY */}
+
       {error && (
-        <Typography sx={{ mb: 2, color: "#D42B2B", fontSize: 13 }}>
+        <Alert
+          severity="error"
+          className="attendance-error"
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              startIcon={<RefreshRoundedIcon />}
+              onClick={() => void fetchStatus()}
+              disabled={loading || submitting}
+            >
+              Retry
+            </Button>
+          }
+        >
           {error}
-        </Typography>
+        </Alert>
       )}
 
       <Box className="employee-attendance-container">
-        {/* LEFT EMPLOYEE CARD */}
+
+        {/* EMPLOYEE CARD */}
 
         <Card className="employee-profile-card">
-          <img src={leafImage} alt="" className="employee-leaf employee-leaf-left" />
-          <img src={leafImage} alt="" className="employee-leaf employee-leaf-bottom" />
-
           <CardContent className="employee-profile-content">
-            {/* EMPLOYEE IMAGE */}
-
-            <Box className="employee-image-wrapper">
-              <img src={employeeImage} alt={employee.name} className="employee-image" />
+            <Box className="employee-profile-top-label">
+              MY ATTENDANCE
             </Box>
 
-            {/* NAME */}
+            <Avatar className="employee-profile-avatar">
+              {userInitials || "E"}
+            </Avatar>
 
-            <Typography className="employee-name">{employee.name}</Typography>
-            <Typography className="employee-designation">{employee.designation}</Typography>
+            <Typography className="employee-name">
+              {employee.name}
+            </Typography>
 
-            {/* CHECK IN / CHECK OUT */}
+            <Typography className="employee-designation">
+              {employee.designation}
+            </Typography>
+
+            <Box className="employee-profile-status">
+              <span
+                className={`attendance-status-dot ${statusClass}`}
+              />
+              {statusLabel}
+            </Box>
+
+            <Divider className="employee-profile-divider" />
+
+            <Box className="employee-session-info">
+              <Box className="employee-session-row">
+                <span>Check In</span>
+                <strong>
+                  {formatClockTime(checkInTime)}
+                </strong>
+              </Box>
+
+              <Box className="employee-session-row">
+                <span>Check Out</span>
+                <strong>
+                  {formatClockTime(checkOutTime)}
+                </strong>
+              </Box>
+            </Box>
 
             <Box className="attendance-actions">
-              <Button
-                fullWidth
-                variant="contained"
-                startIcon={<AccessTimeOutlinedIcon />}
-                className="check-in-button"
-                disabled={loading}
-                onClick={isCheckedIn ? handleCheckOut : handleCheckIn}
-              >
-                {isCheckedIn ? "Check Out" : "Check In"}
-              </Button>
+              {isCheckedOut ? (
+                <Button
+                  fullWidth
+                  variant="contained"
+                  disabled
+                  startIcon={
+                    <CheckCircleOutlineRoundedIcon />
+                  }
+                  className="check-in-button"
+                >
+                  Attendance Completed
+                </Button>
+              ) : (
+                <Button
+                  fullWidth
+                  variant="contained"
+                  className="check-in-button"
+                  disabled={actionDisabled}
+                  onClick={
+                    isCheckedIn
+                      ? handleCheckOut
+                      : handleCheckIn
+                  }
+                  startIcon={
+                    submitting ? (
+                      <CircularProgress
+                        size={17}
+                        color="inherit"
+                      />
+                    ) : isCheckedIn ? (
+                      <LogoutRoundedIcon />
+                    ) : (
+                      <LoginRoundedIcon />
+                    )
+                  }
+                >
+                  {submitting
+                    ? "Processing..."
+                    : isCheckedIn
+                      ? "Check Out"
+                      : "Check In"}
+                </Button>
+              )}
+            </Box>
+
+            <Box className="employee-location">
+              <LocationOnOutlinedIcon />
+              <Typography>
+                {employee.location}
+              </Typography>
             </Box>
           </CardContent>
         </Card>
 
-        {/* RIGHT SIDE */}
+        {/* RIGHT COLUMN */}
 
         <Box className="attendance-right-section">
-          {/* TIMER CARD */}
+
+          {/* TIMER */}
 
           <Card className="timer-card">
             <CardContent className="timer-card-content">
               <Box className="timer-left">
                 <Box className="timer-heading">
                   <AccessTimeOutlinedIcon />
-                  <Typography>Time Since Check In</Typography>
+                  <Typography>
+                    Current Working Session
+                  </Typography>
                 </Box>
 
-                <Typography className="timer-value">{formatTime(elapsedSeconds)}</Typography>
+                <Typography className="timer-value">
+                  {formatTimer(timerValue)}
+                </Typography>
 
                 <Box className="timer-labels">
                   <Typography>Hours</Typography>
@@ -353,14 +720,24 @@ const EmployeeCheckInOut = () => {
               </Box>
 
               <Box className="timer-message">
-                <img src={leafImage} alt="" className="timer-leaf" />
+                <Box className="timer-message-icon">
+                  <AccessTimeOutlinedIcon />
+                </Box>
 
                 <Typography className="timer-message-title">
-                  {isCheckedIn ? "Keep going!" : "Ready to start?"}
+                  {isCheckedIn
+                    ? "Session in progress"
+                    : isCheckedOut
+                      ? "Day completed"
+                      : "Ready to start?"}
                 </Typography>
 
                 <Typography className="timer-message-subtitle">
-                  {isCheckedIn ? "You're doing great!" : "Check in to start your timer"}
+                  {isCheckedIn
+                    ? "Your session timer is running."
+                    : isCheckedOut
+                      ? "You have checked out for today."
+                      : "Check in to start tracking time."}
                 </Typography>
               </Box>
             </CardContent>
@@ -372,26 +749,61 @@ const EmployeeCheckInOut = () => {
             <CardContent className="employee-details-content">
               <Box className="details-title">
                 <PersonOutlineOutlinedIcon />
-                <Typography>Employee Details</Typography>
+                <Box>
+                  <Typography className="details-heading">
+                    Employee Details
+                  </Typography>
+                  <Typography className="details-subheading">
+                    Your workplace information
+                  </Typography>
+                </Box>
               </Box>
 
               <Box className="details-grid">
-                {/* LEFT */}
-
                 <Box className="details-column">
-                  <DetailItem icon={<PersonOutlineOutlinedIcon />} label="Name" value={employee.name} />
-                  <DetailItem icon={<BadgeOutlinedIcon />} label="Employee ID" value={employee.employeeId} />
-                  <DetailItem icon={<BusinessCenterOutlinedIcon />} label="Department" value={employee.department} />
+                  <DetailItem
+                    icon={<PersonOutlineOutlinedIcon />}
+                    label="Full Name"
+                    value={employee.name}
+                  />
+
+                  <DetailItem
+                    icon={<BadgeOutlinedIcon />}
+                    label="Employee ID"
+                    value={employee.employeeId}
+                  />
+
+                  <DetailItem
+                    icon={<BusinessCenterOutlinedIcon />}
+                    label="Department"
+                    value={employee.department}
+                  />
                 </Box>
 
-                <Divider orientation="vertical" flexItem className="details-divider" />
-
-                {/* RIGHT */}
+                <Divider
+                  orientation="vertical"
+                  flexItem
+                  className="details-divider"
+                />
 
                 <Box className="details-column">
-                  <DetailItem icon={<PersonOutlineOutlinedIcon />} label="Designation" value={employee.designation} />
-                  <DetailItem icon={<EmailOutlinedIcon />} label="Email" value={employee.email} />
-                  <DetailItem icon={<GroupsOutlinedIcon />} label="Reporting Manager" value={employee.reportingManager} />
+                  <DetailItem
+                    icon={<BusinessCenterOutlinedIcon />}
+                    label="Designation"
+                    value={employee.designation}
+                  />
+
+                  <DetailItem
+                    icon={<EmailOutlinedIcon />}
+                    label="Email Address"
+                    value={employee.email}
+                  />
+
+                  <DetailItem
+                    icon={<GroupsOutlinedIcon />}
+                    label="Reporting Manager"
+                    value={employee.reportingManager}
+                  />
                 </Box>
               </Box>
             </CardContent>
@@ -402,9 +814,7 @@ const EmployeeCheckInOut = () => {
   );
 };
 
-/* =========================================
-   DETAIL ITEM
-========================================= */
+/* ================= DETAIL ITEM ================= */
 
 interface DetailItemProps {
   icon: ReactNode;
@@ -412,17 +822,24 @@ interface DetailItemProps {
   value: string;
 }
 
-const DetailItem = ({ icon, label, value }: DetailItemProps) => {
-  return (
-    <Box className="detail-item">
-      <Box className="detail-icon">{icon}</Box>
+const DetailItem = ({
+  icon,
+  label,
+  value,
+}: DetailItemProps) => (
+  <Box className="detail-item">
+    <Box className="detail-icon">{icon}</Box>
 
-      <Box className="detail-text">
-        <Typography className="detail-label">{label}</Typography>
-        <Typography className="detail-value">{value}</Typography>
-      </Box>
+    <Box className="detail-text">
+      <Typography className="detail-label">
+        {label}
+      </Typography>
+
+      <Typography className="detail-value">
+        {value}
+      </Typography>
     </Box>
-  );
-};
+  </Box>
+);
 
 export default EmployeeCheckInOut;

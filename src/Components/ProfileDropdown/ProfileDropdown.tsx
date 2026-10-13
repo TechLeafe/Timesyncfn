@@ -1,3 +1,4 @@
+
 import {
   useState,
   type MouseEvent,
@@ -8,30 +9,49 @@ import {
   Box,
   Menu,
   Typography,
+  Divider,
+  ButtonBase,
 } from "@mui/material";
 
-import KeyboardArrowDownRoundedIcon
-  from "@mui/icons-material/KeyboardArrowDownRounded";
+import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
+import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
+import MailOutlineRoundedIcon from "@mui/icons-material/MailOutlineRounded";
+import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
 
+/* =========================================
+   CONSTANTS
+========================================= */
 
 const FONT =
   "var(--font-family, 'Inter', sans-serif)";
 
+const avatarGradient =
+  "linear-gradient(135deg, #098553 0%, #075B3D 100%)";
 
-type StoredUser = {
-  userId: string;
-  name: string;
-  email: string;
-  userType: 1 | 2 | 3;
-};
+/* =========================================
+   TYPES
+========================================= */
 
+interface StoredUser {
+  userId?: string;
+  employeeId?: string;
+  name?: string;
+  fullName?: string;
+  email?: string;
+  userType?: number | string;
+  designation?: string;
+  jobTitle?: string;
+}
 
-const getDesignation = (
-  userType?: number
-) => {
-  switch (userType) {
+/* =========================================
+   SYSTEM ROLE
+========================================= */
+const getRole = (
+  userType?: number | string
+): string => {
+  switch (Number(userType)) {
     case 1:
-      return "HR Manager";
+      return "HR";
 
     case 2:
       return "Admin";
@@ -43,166 +63,240 @@ const getDesignation = (
       return "User";
   }
 };
+/* =========================================
+   GET LOGGED-IN USER
+========================================= */
 
+const getStoredUser = (): StoredUser | null => {
+  try {
+    const storedUser =
+      localStorage.getItem("loggedInUser");
 
-const getStoredUser =
-  (): StoredUser | null => {
-
-    try {
-      const storedUser =
-        localStorage.getItem(
-          "loggedInUser"
-        );
-
-      return storedUser
-        ? JSON.parse(
-            storedUser
-          ) as StoredUser
-        : null;
-
-    } catch {
+    if (!storedUser) {
       return null;
     }
-  };
 
+    const parsed: unknown =
+      JSON.parse(storedUser);
+
+    if (
+      !parsed ||
+      typeof parsed !== "object" ||
+      Array.isArray(parsed)
+    ) {
+      return null;
+    }
+
+    return parsed as StoredUser;
+  } catch {
+    return null;
+  }
+};
+
+/* =========================================
+   GET INITIALS
+========================================= */
+
+const getInitials = (name: string): string => {
+  const initials = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) =>
+      part.charAt(0).toUpperCase()
+    )
+    .join("");
+
+  return initials || "U";
+};
+
+/* =========================================
+   REUSABLE PROFILE DETAILS ROW
+========================================= */
+
+interface ProfileDetailProps {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  last?: boolean;
+}
+
+const ProfileDetail = ({
+  icon,
+  label,
+  value,
+  last = false,
+}: ProfileDetailProps) => (
+  <Box
+    sx={{
+      display: "flex",
+      alignItems: "center",
+      gap: 1.3,
+      mb: last ? 0 : 1.6,
+      minWidth: 0,
+    }}
+  >
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        color: "#087B4D",
+      }}
+    >
+      {icon}
+    </Box>
+
+    <Box sx={{ minWidth: 0, flex: 1 }}>
+      <Typography
+        sx={{
+          fontFamily: FONT,
+          fontSize: 10.5,
+          color: "#9AA5B4",
+          mb: 0.3,
+        }}
+      >
+        {label}
+      </Typography>
+
+      <Typography
+        sx={{
+          fontFamily: FONT,
+          fontSize: 12,
+          fontWeight: 650,
+          color: "#26364B",
+          overflowWrap: "anywhere",
+          lineHeight: 1.5,
+        }}
+      >
+        {value}
+      </Typography>
+    </Box>
+  </Box>
+);
+
+/* =========================================
+   PROFILE DROPDOWN
+========================================= */
 
 export default function ProfileDropdown() {
+  /* =========================================
+     LOGGED-IN USER DETAILS
+  ========================================= */
 
-  const loggedInUser =
-    getStoredUser();
+  const loggedInUser = getStoredUser();
 
   const userName =
-    loggedInUser?.name ||
-    loggedInUser?.email ||
+    loggedInUser?.name?.trim() ||
+    loggedInUser?.fullName?.trim() ||
+    loggedInUser?.email?.trim() ||
     "User";
 
   const email =
-    loggedInUser?.email || "";
+    loggedInUser?.email?.trim() || "";
 
-  const designation =
-    getDesignation(
-      loggedInUser?.userType
-    );
+  /* System role controls permissions */
+  const systemRole = getRole(
+    loggedInUser?.userType
+  );
 
-  const initial =
-    userName
-      .charAt(0)
-      .toUpperCase();
+  /*
+    Job designation comes from employee data.
+    Example: App Developer, Web Developer,
+    UI/UX Designer, Full Stack Developer.
+  */
+  const jobDesignation =
+    loggedInUser?.designation?.trim() ||
+    loggedInUser?.jobTitle?.trim() ||
+    "";
 
+  /*
+    Display actual designation when available.
+    Otherwise show the system role as fallback.
+  */
+  const profileTitle =
+    jobDesignation || systemRole;
 
-  /* =========================================================
-     DROPDOWN
-  ========================================================= */
+  const initials = getInitials(userName);
 
-  const [
-    anchorEl,
-    setAnchorEl,
-  ] =
-    useState<HTMLElement | null>(
-      null
-    );
+  /* =========================================
+     MENU STATE
+  ========================================= */
 
-  const open =
-    Boolean(anchorEl);
+  const [anchorEl, setAnchorEl] =
+    useState<HTMLElement | null>(null);
 
+  const open = Boolean(anchorEl);
 
   const handleOpen = (
-    event:
-      MouseEvent<HTMLElement>
+    event: MouseEvent<HTMLElement>
   ) => {
-    setAnchorEl(
-      event.currentTarget
-    );
+    setAnchorEl(event.currentTarget);
   };
-
 
   const handleClose = () => {
     setAnchorEl(null);
   };
 
-
-  /* =========================================================
+  /* =========================================
      UI
-  ========================================================= */
+  ========================================= */
 
   return (
     <>
+      {/* =====================================
+          TOP-RIGHT PROFILE TRIGGER
+      ===================================== */}
 
-      {/* =========================
-          PROFILE BUTTON
-      ========================= */}
-
-      <Box
+      <ButtonBase
         onClick={handleOpen}
+        aria-label={`Open profile menu for ${userName}`}
+        aria-haspopup="menu"
+        aria-expanded={open}
         sx={{
           display: "flex",
-
           alignItems: "center",
-
-          gap: {
-            xs: 0.5,
-            sm: 1.25,
-          },
-
-          px: {
-            xs: 0.4,
-            sm: 1.25,
-          },
-
-          py: 0.65,
-
+          gap: { xs: 0, sm: 1.25 },
+          px: { xs: 0.2, sm: 1.2 },
+          py: 0.6,
           borderRadius: "12px",
-
-          userSelect: "none",
-
-          cursor: "pointer",
-
-          transition:
-            "background 0.2s ease",
+          textAlign: "left",
+          minWidth: 0,
+          transition: "background 0.2s ease",
 
           "&:hover": {
-            backgroundColor:
-              "#F8FAFC",
+            backgroundColor: "#F3F8F5",
+          },
+
+          "&:focus-visible": {
+            outline: "3px solid #71C6A1",
+            outlineOffset: "3px",
           },
         }}
       >
-
         {/* AVATAR */}
 
         <Avatar
           alt={userName}
           sx={{
-            width: {
-              xs: 38,
-              sm: 40,
-            },
-
-            height: {
-              xs: 38,
-              sm: 40,
-            },
-
+            width: { xs: 38, sm: 42 },
+            height: { xs: 38, sm: 42 },
             flexShrink: 0,
-
-            fontWeight: 700,
-
-            fontSize: 15,
-
-            background:
-              "linear-gradient(135deg, #176B3A 0%, #0F532C 100%)",
-
+            fontFamily: FONT,
+            fontWeight: 750,
+            fontSize: 14,
+            background: avatarGradient,
+            border: "2px solid #FFFFFF",
             boxShadow:
-              "0 2px 5px rgba(0,0,0,0.08)",
-
-            border:
-              "2px solid #FFFFFF",
+              "0 3px 12px rgba(8,123,77,0.14)",
           }}
         >
-          {initial}
+          {initials}
         </Avatar>
 
-
-        {/* NAME + DESIGNATION */}
+        {/* USER NAME + JOB DESIGNATION */}
 
         <Box
           sx={{
@@ -210,67 +304,56 @@ export default function ProfileDropdown() {
               xs: "none",
               sm: "flex",
             },
-
-            flexDirection:
-              "column",
-
-            textAlign:
-              "left",
-
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: 0.4,
             minWidth: 0,
           }}
         >
-
           <Typography
             sx={{
               fontFamily: FONT,
+              fontSize: 13,
+              fontWeight: 750,
+              color: "#142238",
+              lineHeight: 1.25,
 
-              fontSize: 13.5,
+              maxWidth: {
+                sm: 125,
+                md: 175,
+              },
 
-              fontWeight: 700,
-
-              color: "#111827",
-
-              lineHeight: 1.2,
-
-              maxWidth: 150,
-
-              whiteSpace:
-                "nowrap",
-
-              overflow:
-                "hidden",
-
-              textOverflow:
-                "ellipsis",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
             }}
           >
             {userName}
           </Typography>
 
-
           <Typography
             sx={{
               fontFamily: FONT,
+              fontSize: 11,
+              fontWeight: 550,
+              color: "#8591A2",
+              lineHeight: 1.25,
 
-              fontSize: 11.5,
+              maxWidth: {
+                sm: 125,
+                md: 175,
+              },
 
-              fontWeight: 500,
-
-              color: "#6B7280",
-
-              lineHeight: 1.1,
-
-              mt: 0.2,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
             }}
           >
-            {designation}
+            {profileTitle}
           </Typography>
-
         </Box>
 
-
-        {/* ARROW */}
+        {/* DROPDOWN ARROW */}
 
         <KeyboardArrowDownRoundedIcon
           sx={{
@@ -278,193 +361,224 @@ export default function ProfileDropdown() {
               xs: "none",
               sm: "block",
             },
-
-            fontSize: 20,
-
-            color: "#667085",
-
-            transition:
-              "transform 0.2s ease",
+            fontSize: 19,
+            ml: 0.4,
+            color: "#8190A3",
+            transition: "transform 0.2s ease",
 
             transform: open
               ? "rotate(180deg)"
               : "rotate(0deg)",
           }}
         />
+      </ButtonBase>
 
-      </Box>
-
-
-      {/* =========================
-          DROPDOWN
-      ========================= */}
+      {/* =====================================
+          PROFILE MENU
+      ===================================== */}
 
       <Menu
         anchorEl={anchorEl}
-
         open={open}
-
         onClose={handleClose}
-
         anchorOrigin={{
           vertical: "bottom",
           horizontal: "right",
         }}
-
         transformOrigin={{
           vertical: "top",
           horizontal: "right",
         }}
-
         slotProps={{
           paper: {
             sx: {
-              mt: 1,
-
-              width: 240,
-
-              maxWidth:
-                "calc(100vw - 24px)",
-
-              borderRadius:
-                "12px",
-
-              border:
-                "1px solid #EAECF0",
-
+              mt: 1.2,
+              width: 290,
+              maxWidth: "calc(100vw - 24px)",
+              borderRadius: "16px",
+              border: "1px solid #E7EDF2",
               boxShadow:
-                "0 10px 30px rgba(16,24,40,0.14)",
-
-              overflow:
-                "hidden",
+                "0 16px 45px rgba(20,38,60,0.13)",
+              overflow: "hidden",
             },
           },
         }}
       >
-
-        {/* =========================
-            USER DETAILS
-        ========================= */}
+        {/* ===================================
+            PROFILE HEADER
+        =================================== */}
 
         <Box
           sx={{
-            display: "flex",
-
-            alignItems:
-              "center",
-
-            gap: 1.5,
-
-            px: 2,
-
-            py: 1.8,
+            px: 2.3,
+            pt: 2.1,
+            pb: 1.8,
+            background:
+              "linear-gradient(115deg, #F0FAF4, #FFFFFF)",
           }}
         >
-
-          <Avatar
-            sx={{
-              width: 42,
-
-              height: 42,
-
-              flexShrink: 0,
-
-              fontWeight: 700,
-
-              background:
-                "linear-gradient(135deg, #176B3A 0%, #0F532C 100%)",
-            }}
-          >
-            {initial}
-          </Avatar>
-
-
           <Box
             sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
               minWidth: 0,
-
-              flex: 1,
             }}
           >
-
-            {/* USER NAME */}
-
-            <Typography
+            <Avatar
+              alt={userName}
               sx={{
+                width: 47,
+                height: 47,
+                flexShrink: 0,
+                background: avatarGradient,
                 fontFamily: FONT,
-
-                fontSize: 14,
-
-                fontWeight: 700,
-
-                color: "#101828",
-
-                whiteSpace:
-                  "nowrap",
-
-                overflow:
-                  "hidden",
-
-                textOverflow:
-                  "ellipsis",
+                fontWeight: 750,
+                fontSize: 15,
+                boxShadow:
+                  "0 4px 12px rgba(8,123,77,0.15)",
               }}
             >
-              {userName}
-            </Typography>
+              {initials}
+            </Avatar>
 
-
-            {/* DESIGNATION */}
-
-            <Typography
+            <Box
               sx={{
-                fontFamily: FONT,
-
-                fontSize: 12,
-
-                color: "#667085",
-
-                mt: 0.25,
+                minWidth: 0,
+                flex: 1,
               }}
             >
-              {designation}
-            </Typography>
+              <Typography
+                sx={{
+                  fontFamily: FONT,
+                  fontSize: 14,
+                  fontWeight: 750,
+                  color: "#142238",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {userName}
+              </Typography>
 
-
-            {/* EMAIL */}
-
-            {email && (
+              {/* ACTUAL JOB DESIGNATION */}
 
               <Typography
                 sx={{
                   fontFamily: FONT,
-
                   fontSize: 11.5,
-
-                  color: "#98A2B3",
-
-                  mt: 0.4,
-
-                  whiteSpace:
-                    "nowrap",
-
-                  overflow:
-                    "hidden",
-
-                  textOverflow:
-                    "ellipsis",
+                  color: "#087B4D",
+                  fontWeight: 650,
+                  mt: 0.35,
+                  overflowWrap: "anywhere",
                 }}
               >
-                {email}
+                {profileTitle}
               </Typography>
-
-            )}
-
+            </Box>
           </Box>
-
         </Box>
 
-      </Menu>
+        <Divider
+          sx={{
+            borderColor: "#EDF1F4",
+          }}
+        />
 
+        {/* ===================================
+            ACCOUNT DETAILS
+        =================================== */}
+
+        <Box
+          sx={{
+            px: 2.2,
+            py: 1.6,
+          }}
+        >
+          <Typography
+            sx={{
+              fontFamily: FONT,
+              fontSize: 10,
+              fontWeight: 800,
+              color: "#98A4B4",
+              letterSpacing: 1.4,
+              mb: 1.6,
+            }}
+          >
+            ACCOUNT DETAILS
+          </Typography>
+
+          {/* FULL NAME */}
+
+          <ProfileDetail
+            icon={
+              <PersonOutlineRoundedIcon
+                sx={{ fontSize: 20 }}
+              />
+            }
+            label="Full Name"
+            value={userName}
+          />
+
+          {/* JOB DESIGNATION */}
+
+          <ProfileDetail
+            icon={
+              <BadgeOutlinedIcon
+                sx={{ fontSize: 20 }}
+              />
+            }
+            label="Designation"
+            value={
+              jobDesignation || "Not assigned"
+            }
+          />
+
+          {/* EMAIL ADDRESS */}
+
+          {email && (
+            <ProfileDetail
+              icon={
+                <MailOutlineRoundedIcon
+                  sx={{ fontSize: 20 }}
+                />
+              }
+              label="Email Address"
+              value={email}
+              last
+            />
+          )}
+        </Box>
+
+        <Divider
+          sx={{
+            borderColor: "#EDF1F4",
+          }}
+        />
+
+        {/* ===================================
+            FOOTER
+        =================================== */}
+
+        <Box
+          sx={{
+            px: 2.2,
+            py: 1.4,
+          }}
+        >
+          <Typography
+            sx={{
+              fontFamily: FONT,
+              fontSize: 11,
+              color: "#8A98A8",
+              textAlign: "center",
+            }}
+          >
+            HRM Employee Management Portal
+          </Typography>
+        </Box>
+      </Menu>
     </>
   );
 }

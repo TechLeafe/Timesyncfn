@@ -1,6 +1,8 @@
+
 import {
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 
@@ -13,235 +15,298 @@ import {
 
 import "./DailyTask.css";
 
+/* =========================================
+   DATE FORMAT
+========================================= */
+
+const formatDate = (value?: string | null) => {
+  if (!value) return "-";
+
+  const datePart = value.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+
+  const date = datePart
+    ? new Date(`${datePart}T12:00:00`)
+    : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+/* =========================================
+   ERROR HANDLING
+========================================= */
+
+const getErrorMessage = (error: unknown) => {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "response" in error
+  ) {
+    const response = (
+      error as {
+        response?: {
+          data?: { message?: string };
+        };
+      }
+    ).response;
+
+    if (response?.data?.message) {
+      return response.data.message;
+    }
+  }
+
+  return "Unable to load tasks.";
+};
+
+/* =========================================
+   STATUS AND PRIORITY
+========================================= */
+
+const getStatusClass = (status?: string) => {
+  const value = status?.toLowerCase();
+
+  if (value === "completed") return "completed";
+
+  if (
+    value === "in progress" ||
+    value === "in-progress"
+  ) {
+    return "progress";
+  }
+
+  return "pending";
+};
+
+const getPriorityClass = (priority?: string) => {
+  const value = priority?.toLowerCase();
+
+  if (value === "high") return "highest";
+  if (value === "low") return "lowest";
+
+  return "medium";
+};
+
+/* =========================================
+   DAILY TASK COMPONENT
+========================================= */
 
 function DailyTask() {
   const navigate = useNavigate();
 
-  const [tasks, setTasks] =
-    useState<DailyTaskItem[]>([]);
+  const [tasks, setTasks] = useState<DailyTaskItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const [loading, setLoading] =
-    useState(true);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
 
-  const [error, setError] =
-    useState("");
+  /* LOAD TASKS */
 
+  const fetchTasks = useCallback(async () => {
+    setLoading(true);
+    setError("");
 
-  /* =========================================================
-     FORMAT DATE
-  ========================================================= */
+    try {
+      const response = await getAllTasks();
+      const result = response.data?.data;
 
-  const formatDate = (
-    date?: string | null
-  ) => {
-    if (!date) {
-      return "-";
-    }
-
-    const parsedDate =
-      new Date(date);
-
-    if (
-      Number.isNaN(
-        parsedDate.getTime()
-      )
-    ) {
-      return date;
-    }
-
-    return parsedDate.toLocaleDateString(
-      "en-IN",
-      {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
+      if (!Array.isArray(result)) {
+        throw new Error("Invalid task response.");
       }
-    );
-  };
 
-
-  /* =========================================================
-     FETCH TASKS
-  ========================================================= */
-
-  const fetchTasks =
-    useCallback(async () => {
-      setLoading(true);
-      setError("");
-
-      try {
-        const response =
-          await getAllTasks();
-
-        console.log(
-          "Daily Task API Response:",
-          response.data
-        );
-
-        const taskList:
-          DailyTaskItem[] =
-          Array.isArray(
-            response.data?.data
-          )
-            ? response.data.data
-            : [];
-
-        setTasks(taskList);
-
-      } catch (err: any) {
-        console.error(
-          "Get Tasks Error:",
-          err
-        );
-
-        console.error(
-          "Backend Response:",
-          err.response?.data
-        );
-
-        setError(
-          err.response?.data?.message ||
-            "Unable to load tasks."
-        );
-
-      } finally {
-        setLoading(false);
-      }
-    }, []);
-
-
-  /* =========================================================
-     INITIAL LOAD
-  ========================================================= */
+      setTasks(result);
+    } catch (err) {
+      setTasks([]);
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    fetchTasks();
+    void fetchTasks();
   }, [fetchTasks]);
 
+  /* SEARCH AND FILTER */
 
-  /* =========================================================
-     STATUS CLASS
-  ========================================================= */
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((task) => {
+      const matchesSearch = task.title
+        .toLowerCase()
+        .includes(search.toLowerCase().trim());
 
-  const getStatusClass = (
-    status?: string
-  ) => {
-    const value =
-      status?.toLowerCase();
+      const matchesStatus =
+        statusFilter === "All" ||
+        getStatusClass(task.status) === statusFilter;
 
-    if (value === "completed") {
-      return "task-status completed";
-    }
+      return matchesSearch && matchesStatus;
+    });
+  }, [tasks, search, statusFilter]);
 
-    if (
-      value === "in progress" ||
-      value === "in-progress"
-    ) {
-      return "task-status progress";
-    }
+  /* TASK COUNTS */
 
-    return "task-status pending";
-  };
+  const total = tasks.length;
 
+  const completed = tasks.filter(
+    (task) => getStatusClass(task.status) === "completed"
+  ).length;
 
-  /* =========================================================
-     PRIORITY CLASS
-  ========================================================= */
+  const inProgress = tasks.filter(
+    (task) => getStatusClass(task.status) === "progress"
+  ).length;
 
-  const getPriorityClass = (
-    priority?: string
-  ) => {
-    const value =
-      priority?.toLowerCase();
-
-    if (value === "high") {
-      return "task-priority highest";
-    }
-
-    if (value === "low") {
-      return "task-priority lowest";
-    }
-
-    return "task-priority medium";
-  };
-
-
-  /* =========================================================
-     UI
-  ========================================================= */
+  const pending = tasks.filter(
+    (task) => getStatusClass(task.status) === "pending"
+  ).length;
 
   return (
     <div className="daily-task-page">
-
       {/* PAGE HEADER */}
 
-      <div className="daily-task-header">
-
+      <header className="daily-task-header">
         <div className="daily-task-heading">
+          <div className="daily-task-heading-icon">
+            <svg
+              width="23"
+              height="23"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <rect
+                x="4"
+                y="3"
+                width="16"
+                height="18"
+                rx="2"
+              />
 
-          <h1>
-            Tasks
-          </h1>
+              <path d="m8 9 2 2 4-4M8 16h8" />
+            </svg>
+          </div>
 
-          <p>
-            Create, manage and track daily employee tasks.
-          </p>
-
+          <div>
+            <h1>Daily Tasks</h1>
+            <p>Create, manage, and track employee tasks.</p>
+          </div>
         </div>
-
 
         <button
           type="button"
           className="add-task-button"
-          onClick={() =>
-            navigate(
-              "/daily-task/add"
-            )
-          }
+          onClick={() => navigate("/daily-task/add")}
         >
-          <span className="add-task-plus">
-            +
-          </span>
-
-          <span>
-            Add Task
-          </span>
+          <span className="add-task-plus">+</span>
+          Add Task
         </button>
+      </header>
 
-      </div>
-
-
-      {/* ERROR */}
+      {/* ERROR MESSAGE */}
 
       {error && (
-        <div className="task-error">
-
-          <span>
-            {error}
-          </span>
+        <div className="task-error" role="alert">
+          <span>{error}</span>
 
           <button
             type="button"
-            onClick={fetchTasks}
+            onClick={() => void fetchTasks()}
           >
             Retry
           </button>
-
         </div>
       )}
 
+      {/* SUMMARY CARDS */}
 
-      {/* TASK TABLE */}
+      <section className="daily-task-summary">
+        {[
+          {
+            label: "Total Tasks",
+            value: total,
+            tone: "green",
+          },
+          {
+            label: "Pending",
+            value: pending,
+            tone: "amber",
+          },
+          {
+            label: "In Progress",
+            value: inProgress,
+            tone: "blue",
+          },
+          {
+            label: "Completed",
+            value: completed,
+            tone: "purple",
+          },
+        ].map((item) => (
+          <div
+            key={item.label}
+            className={`daily-task-summary-card daily-task-summary-card--${item.tone}`}
+          >
+            <div>
+              <span>{item.label}</span>
 
-      <div className="task-table-card">
+              <strong>
+                {loading || error ? "—" : item.value}
+              </strong>
+            </div>
+
+            <span className="daily-task-summary-dot" />
+          </div>
+        ))}
+      </section>
+
+      {/* TASK OVERVIEW */}
+
+      <section className="task-table-card">
+        <div className="task-table-header">
+          <div>
+            <h2>Task Overview</h2>
+            <p>View task priorities, progress, and details.</p>
+          </div>
+
+          <div className="task-table-filters">
+            <input
+              type="search"
+              aria-label="Search tasks"
+              placeholder="Search tasks..."
+              value={search}
+              onChange={(event) =>
+                setSearch(event.target.value)
+              }
+            />
+
+            <select
+              aria-label="Filter tasks by status"
+              value={statusFilter}
+              onChange={(event) =>
+                setStatusFilter(event.target.value)
+              }
+            >
+              <option value="All">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="progress">In Progress</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+        </div>
 
         <div className="task-table-wrapper">
-
           <table className="task-table">
-
             <thead>
               <tr>
-                <th>Title</th>
+                <th>Task Title</th>
                 <th>Priority</th>
                 <th>Created On</th>
                 <th>Status</th>
@@ -250,103 +315,72 @@ function DailyTask() {
             </thead>
 
             <tbody>
-
-              {loading ? (
-
+              {loading ||
+              error ||
+              filteredTasks.length === 0 ? (
                 <tr className="task-message-row">
                   <td
                     colSpan={5}
                     className="task-table-message"
                   >
-                    Loading tasks...
+                    {loading
+                      ? "Loading tasks..."
+                      : error
+                        ? "Task information is unavailable."
+                        : "No tasks found."}
                   </td>
                 </tr>
-
-              ) : tasks.length === 0 ? (
-
-                <tr className="task-message-row">
-                  <td
-                    colSpan={5}
-                    className="task-table-message"
-                  >
-                    No tasks found.
-                  </td>
-                </tr>
-
               ) : (
-
-                tasks.map((task) => (
-
+                filteredTasks.map((task) => (
                   <tr key={task._id}>
-
-                    <td data-label="Title">
+                    <td data-label="Task Title">
                       <div className="task-title-cell">
                         {task.title}
                       </div>
                     </td>
 
-
                     <td data-label="Priority">
                       <span
-                        className={
-                          getPriorityClass(
-                            task.priority
-                          )
-                        }
+                        className={`task-priority ${getPriorityClass(
+                          task.priority
+                        )}`}
                       >
-                        {task.priority}
+                        {task.priority || "Medium"}
                       </span>
                     </td>
 
-
                     <td data-label="Created On">
-                      {formatDate(
-                        task.createdAt
-                      )}
+                      {formatDate(task.createdAt)}
                     </td>
-
 
                     <td data-label="Status">
                       <span
-                        className={
-                          getStatusClass(
-                            task.status
-                          )
-                        }
+                        className={`task-status ${getStatusClass(
+                          task.status
+                        )}`}
                       >
-                        {task.status ||
-                          "Pending"}
+                        {task.status || "Pending"}
                       </span>
                     </td>
-
 
                     <td data-label="Action">
                       <button
                         type="button"
                         className="view-task-button"
                         onClick={() =>
-                          navigate(
-                            `/daily-task/${task._id}`
-                          )
+                          navigate(`/daily-task/${task._id}`)
                         }
                       >
-                        View
+                        View Details
                       </button>
                     </td>
-
                   </tr>
-
                 ))
               )}
-
             </tbody>
-
           </table>
-
         </div>
-
-      </div>
-
+      </section>
     </div>
   );
 }

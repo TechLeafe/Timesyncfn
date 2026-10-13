@@ -1,49 +1,30 @@
-import {
-  useEffect,
-  useState,
-} from "react";
+
+import { useCallback, useEffect, useState } from "react";
 
 import {
+  Alert,
   Box,
+  Button,
+  CircularProgress,
 } from "@mui/material";
 
-import TaskAltRoundedIcon
-  from "@mui/icons-material/TaskAltRounded";
+import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
+import TaskAltRoundedIcon from "@mui/icons-material/TaskAltRounded";
+import EventBusyRoundedIcon from "@mui/icons-material/EventBusyRounded";
+import BeachAccessRoundedIcon from "@mui/icons-material/BeachAccessRounded";
+import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
+import Diversity3RoundedIcon from "@mui/icons-material/Diversity3Rounded";
 
-import EventBusyRoundedIcon
-  from "@mui/icons-material/EventBusyRounded";
+import StatCard from "../../Components/Dashboard/StatCard/StatCard";
+import ProjectsPieChart from "../../Components/Dashboard/Chart/ProjectsPieChart";
+import TeamAllocationChart from "../../Components/Dashboard/Chart/TeamAllocationChart";
 
-import BeachAccessRoundedIcon
-  from "@mui/icons-material/BeachAccessRounded";
+import type { StatCardProps } from "../../Components/Dashboard/StatCard/StatCard";
 
-import GroupsRoundedIcon
-  from "@mui/icons-material/GroupsRounded";
-
-import Diversity3RoundedIcon
-  from "@mui/icons-material/Diversity3Rounded";
-
-import StatCard
-  from "../../Components/Dashboard/StatCard/StatCard";
-
-import ProjectsPieChart
-  from "../../Components/Dashboard/Chart/ProjectsPieChart";
-
-import TeamAllocationChart
-  from "../../Components/Dashboard/Chart/TeamAllocationChart";
-
-import type {
-  StatCardProps,
-} from "../../Components/Dashboard/StatCard/StatCard";
-
-import api
-  from "../../api/axiosInstance";
-
+import api from "../../api/axiosInstance";
 import "./Dashboard.css";
 
-
-/* =========================================================
-   TYPES
-========================================================= */
+/* ================= TYPES ================= */
 
 interface EmployeeStatistics {
   totalEmployees: number;
@@ -51,14 +32,13 @@ interface EmployeeStatistics {
   inactiveEmployees: number;
 }
 
-
 interface AttendanceStatistics {
-  present: number;
-  absent: number;
-  onLeave: number;
-  notCheckedIn: number;
+  present?: number;
+  presentToday?: number;
+  absent?: number;
+  onLeave?: number;
+  notCheckedIn?: number;
 }
-
 
 interface LeaveStatistics {
   pending: number;
@@ -66,857 +46,615 @@ interface LeaveStatistics {
   rejected: number;
 }
 
-
 interface HRDashboardData {
-  employeeStatistics:
-    EmployeeStatistics;
-
-  attendanceStatistics:
-    AttendanceStatistics;
-
-  leaveStatistics:
-    LeaveStatistics;
+  employeeStatistics: EmployeeStatistics;
+  attendanceStatistics: AttendanceStatistics;
+  leaveStatistics: LeaveStatistics;
 }
-
-
-/* =========================================================
-   DAILY ATTENDANCE TYPE
-========================================================= */
 
 interface DailyAttendanceRecord {
   _id?: string;
-
   user_id: string;
-
   employeeId: string;
-
   email: string;
-
-  checkInTime:
-    string | null;
-
-  checkOutTime:
-    string | null;
-
-  totalWorkingSeconds:
-    number | null;
+  checkInTime: string | null;
+  checkOutTime: string | null;
+  totalWorkingSeconds: number | null;
 }
 
-
-type ApiResponse<T> = {
+interface ApiResponse<T> {
   success?: boolean;
   message?: string;
   data?: T;
+}
+
+type LoadState = "loading" | "success" | "error";
+
+/* ================= HELPERS ================= */
+
+const getApiError = (
+  error: unknown,
+  fallback: string
+): string => {
+  if (typeof error === "object" && error !== null) {
+    const err = error as {
+      code?: string;
+      message?: string;
+      response?: {
+        status?: number;
+        data?: { message?: string };
+      };
+    };
+
+    if (err.response?.status === 401) {
+      return "Session expired. Please sign in again.";
+    }
+
+    if (err.response?.status === 403) {
+      return "You do not have permission to view this data.";
+    }
+
+    if (
+      err.code === "ECONNABORTED" ||
+      err.code === "ETIMEDOUT"
+    ) {
+      return "Server response timed out. Please try again.";
+    }
+
+    if (err.response?.data?.message) {
+      return err.response.data.message;
+    }
+
+    if (!err.response && err.message === "Network Error") {
+      return "Unable to connect to the server.";
+    }
+
+    return err.message || fallback;
+  }
+
+  return fallback;
 };
 
-
-/* =========================================================
-   EMPTY DATA
-========================================================= */
-
-const EMPTY_DATA:
-  HRDashboardData = {
-
-  employeeStatistics: {
-    totalEmployees: 0,
-    activeEmployees: 0,
-    inactiveEmployees: 0,
-  },
-
-  attendanceStatistics: {
-    present: 0,
-    absent: 0,
-    onLeave: 0,
-    notCheckedIn: 0,
-  },
-
-  leaveStatistics: {
-    pending: 0,
-    approved: 0,
-    rejected: 0,
-  },
+const safeCount = (value: unknown): number => {
+  const number = Number(value);
+  return Number.isFinite(number)
+    ? Math.max(0, number)
+    : 0;
 };
 
+const formatTime = (value?: string | null): string => {
+  if (!value) return "—";
 
-/* =========================================================
-   FORMAT TIME
-========================================================= */
+  const date = new Date(value);
 
-const formatTime = (
-  isoString?: string | null
-) => {
-
-  if (!isoString) {
+  if (Number.isNaN(date.getTime())) {
     return "—";
   }
 
-  return new Date(
-    isoString
-  ).toLocaleTimeString(
-    "en-US",
-    {
-      hour: "2-digit",
-      minute: "2-digit",
-    }
-  );
+  return date.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
 };
 
-
-/* =========================================================
-   ATTENDANCE STATUS
-========================================================= */
-
-const attendanceStatus = (
-  record:
-    DailyAttendanceRecord
-) => {
-
+const formatDuration = (value?: number | null): string => {
   if (
-    record.checkInTime &&
-    record.checkOutTime
+    value === null ||
+    value === undefined ||
+    !Number.isFinite(value)
   ) {
+    return "—";
+  }
+
+  const seconds = Math.max(0, value);
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+
+  return `${hours}h ${minutes}m`;
+};
+
+const attendanceStatus = (record: DailyAttendanceRecord) => {
+  if (record.checkInTime && record.checkOutTime) {
     return "Checked Out";
   }
 
-  if (
-    record.checkInTime
-  ) {
+  if (record.checkInTime) {
     return "Checked In";
   }
 
   return "Not Checked In";
 };
 
-
-/* =========================================================
-   STATUS CLASS
-========================================================= */
-
-const statusPillClass = (
-  status: string
-) => {
-
-  if (
-    status ===
-    "Checked Out"
-  ) {
-    return (
-      "admin-dashboard__status-pill--present"
-    );
+const statusPillClass = (status: string) => {
+  if (status === "Checked Out") {
+    return "admin-dashboard__status-pill--present";
   }
 
-  if (
-    status ===
-    "Checked In"
-  ) {
-    return (
-      "admin-dashboard__status-pill--leave"
-    );
+  if (status === "Checked In") {
+    return "admin-dashboard__status-pill--leave";
   }
 
-  return (
-    "admin-dashboard__status-pill--pending"
-  );
+  return "admin-dashboard__status-pill--pending";
 };
 
-
-/* =========================================================
-   HR DASHBOARD
-========================================================= */
+/* ================= MAIN COMPONENT ================= */
 
 function HRDashboard() {
+  const [dashboard, setDashboard] =
+    useState<HRDashboardData | null>(null);
 
-  const [
-    data,
-    setData,
-  ] =
-    useState<HRDashboardData>(
-      EMPTY_DATA
-    );
+  const [todaysAttendance, setTodaysAttendance] =
+    useState<DailyAttendanceRecord[] | null>(null);
 
+  const [dashboardState, setDashboardState] =
+    useState<LoadState>("loading");
 
-  const [
-    todaysAttendance,
-    setTodaysAttendance,
-  ] =
-    useState<
-      DailyAttendanceRecord[]
-    >([]);
+  const [attendanceState, setAttendanceState] =
+    useState<LoadState>("loading");
 
+  const [dashboardError, setDashboardError] = useState("");
+  const [attendanceError, setAttendanceError] = useState("");
+  const [refreshCount, setRefreshCount] = useState(0);
 
-  /* =========================================================
-     LOAD DASHBOARD
-  ========================================================= */
+  const refresh = useCallback(() => {
+    setRefreshCount((count) => count + 1);
+  }, []);
+
+  /* ================= FETCH APIS ================= */
 
   useEffect(() => {
+    let cancelled = false;
 
-    const loadAll =
-      async () => {
+    const loadAll = async () => {
+      setDashboardState("loading");
+      setAttendanceState("loading");
+      setDashboardError("");
+      setAttendanceError("");
 
-        const [
-          dashboardResult,
-          dailyResult,
-        ] =
-          await Promise.allSettled([
+      const [dashboardResult, dailyResult] =
+        await Promise.allSettled([
+          api.post<ApiResponse<HRDashboardData>>(
+            "/dashboard/admin",
+            { date: "" }
+          ),
 
-            api.post<
-              ApiResponse<
-                HRDashboardData
-              >
-            >(
-              "/dashboard/admin",
-              {
-                date: "",
-              }
-            ),
+          api.post<ApiResponse<DailyAttendanceRecord[]>>(
+            "/attendance/daily",
+            { user_id: "", date: "" }
+          ),
+        ]);
 
-            api.post<
-              ApiResponse<
-                DailyAttendanceRecord[]
-              >
-            >(
-              "/attendance/daily",
-              {
-                user_id: "",
-                date: "",
-              }
-            ),
+      if (cancelled) return;
 
-          ]);
+      /* DASHBOARD RESPONSE */
 
-
-        /* =====================================================
-           DASHBOARD DATA
-        ===================================================== */
-
-        let employeeStatistics =
-          EMPTY_DATA
-            .employeeStatistics;
-
-        let leaveStatistics =
-          EMPTY_DATA
-            .leaveStatistics;
-
-        let dashboardAbsent = 0;
-
-        let dashboardOnLeave = 0;
-
+      if (dashboardResult.status === "fulfilled") {
+        const body = dashboardResult.value.data;
+        const payload = body.data;
 
         if (
-          dashboardResult.status ===
-          "fulfilled"
+          body.success !== false &&
+          payload?.employeeStatistics &&
+          payload?.attendanceStatistics &&
+          payload?.leaveStatistics
         ) {
-
-          console.log(
-            "HR dashboard response:",
-            dashboardResult
-              .value
-              .data
-          );
-
-
-          const payload =
-            dashboardResult
-              .value
-              .data
-              .data;
-
-
-          if (payload) {
-
-            employeeStatistics =
-              payload
-                .employeeStatistics ??
-              EMPTY_DATA
-                .employeeStatistics;
-
-
-            leaveStatistics =
-              payload
-                .leaveStatistics ??
-              EMPTY_DATA
-                .leaveStatistics;
-
-
-            dashboardAbsent =
-              payload
-                .attendanceStatistics
-                ?.absent ?? 0;
-
-
-            dashboardOnLeave =
-              payload
-                .attendanceStatistics
-                ?.onLeave ?? 0;
-          }
-
+          setDashboard(payload);
+          setDashboardState("success");
         } else {
-
-          console.error(
-            "HR dashboard error:",
-            dashboardResult.reason
+          setDashboard(null);
+          setDashboardState("error");
+          setDashboardError(
+            body.message || "Invalid dashboard response."
           );
-
         }
-
-
-        /* =====================================================
-           DAILY ATTENDANCE
-        ===================================================== */
-
-        let records:
-          DailyAttendanceRecord[] =
-          [];
-
-
-        if (
-          dailyResult.status ===
-          "fulfilled"
-        ) {
-
-          console.log(
-            "Today's check-ins (daily attendance):",
-            dailyResult
-              .value
-              .data
-          );
-
-
-          const dailyData =
-            dailyResult
-              .value
-              .data
-              .data;
-
-
-          records =
-            Array.isArray(
-              dailyData
-            )
-              ? dailyData
-              : [];
-
-        } else {
-
-          console.error(
-            "Daily attendance error:",
-            dailyResult.reason
-          );
-
-        }
-
-
-        setTodaysAttendance(
-          records
+      } else {
+        console.error(
+          "HR Dashboard API Error:",
+          dashboardResult.reason
         );
 
+        setDashboard(null);
+        setDashboardState("error");
+        setDashboardError(
+          getApiError(
+            dashboardResult.reason,
+            "Unable to load dashboard data."
+          )
+        );
+      }
 
-        /* =====================================================
-           CALCULATE PRESENT
-        ===================================================== */
+      /* DAILY ATTENDANCE RESPONSE */
 
-        const present =
-          records.filter(
-            (record) =>
-              record.checkInTime
-          ).length;
+      if (dailyResult.status === "fulfilled") {
+        const body = dailyResult.value.data;
 
-
-        const notCheckedIn =
-          Math.max(
-            0,
-
-            employeeStatistics
-              .totalEmployees -
-              present
+        if (
+          body.success !== false &&
+          Array.isArray(body.data)
+        ) {
+          setTodaysAttendance(body.data);
+          setAttendanceState("success");
+        } else {
+          setTodaysAttendance(null);
+          setAttendanceState("error");
+          setAttendanceError(
+            body.message || "Invalid attendance response."
           );
+        }
+      } else {
+        console.error(
+          "Daily Attendance API Error:",
+          dailyResult.reason
+        );
 
-
-        /* =====================================================
-           UPDATE STATE
-        ===================================================== */
-
-        setData({
-
-          employeeStatistics,
-
-          leaveStatistics,
-
-          attendanceStatistics: {
-
-            present,
-
-            notCheckedIn,
-
-            absent:
-              dashboardAbsent,
-
-            onLeave:
-              dashboardOnLeave,
-          },
-
-        });
-
-      };
-
+        setTodaysAttendance(null);
+        setAttendanceState("error");
+        setAttendanceError(
+          getApiError(
+            dailyResult.reason,
+            "Unable to load attendance records."
+          )
+        );
+      }
+    };
 
     void loadAll();
 
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshCount]);
 
+  /* ================= DASHBOARD DATA ================= */
 
-  /* =========================================================
-     DATA
-  ========================================================= */
+  const employeeStats = dashboard?.employeeStatistics;
+  const attendanceStats = dashboard?.attendanceStatistics;
+  const leaveStats = dashboard?.leaveStatistics;
 
-  const {
-    employeeStatistics,
-    attendanceStatistics,
-    leaveStatistics,
-  } = data;
+  const isDashboardLoading = dashboardState === "loading";
+  const isAttendanceLoading = attendanceState === "loading";
 
+  const isRefreshing =
+    isDashboardLoading || isAttendanceLoading;
 
-  /* =========================================================
-     STAT CARDS
-  ========================================================= */
+  const attendanceReady =
+    attendanceState === "success" &&
+    todaysAttendance !== null;
 
-  const STATS:
-    StatCardProps[] = [
+  const dashboardReady =
+    dashboardState === "success" &&
+    dashboard !== null;
 
-    {
-      label:
-        "Total employees",
+  const presentToday = attendanceReady
+    ? todaysAttendance.filter(
+        (record) => Boolean(record.checkInTime)
+      ).length
+    : null;
 
-      value:
-        employeeStatistics
-          .totalEmployees,
+  const totalEmployees = employeeStats
+    ? safeCount(employeeStats.totalEmployees)
+    : null;
 
-      icon:
-        <GroupsRoundedIcon
-          fontSize="small"
-        />,
+  const notCheckedIn =
+    presentToday !== null && totalEmployees !== null
+      ? Math.max(0, totalEmployees - presentToday)
+      : attendanceReady
+        ? safeCount(attendanceStats?.notCheckedIn)
+        : null;
 
+  /* ================= STAT CARDS ================= */
+
+  const STATS: StatCardProps[] = [];
+
+  if (employeeStats) {
+    STATS.push(
+      {
+        label: "Total employees",
+        value: safeCount(employeeStats.totalEmployees),
+        icon: <GroupsRoundedIcon fontSize="small" />,
+        trend: "Company-wide",
+        trendDirection: "neutral",
+      },
+      {
+        label: "Active employees",
+        value: safeCount(employeeStats.activeEmployees),
+        icon: <Diversity3RoundedIcon fontSize="small" />,
+        trend: `${safeCount(
+          employeeStats.inactiveEmployees
+        )} inactive`,
+        trendDirection: "neutral",
+      }
+    );
+  }
+
+  if (presentToday !== null) {
+    STATS.push({
+      label: "Present today",
+      value: presentToday,
+      icon: <TaskAltRoundedIcon fontSize="small" />,
       trend:
-        "Company-wide",
+        notCheckedIn !== null
+          ? `${notCheckedIn} not checked in`
+          : "Attendance recorded",
+      trendDirection: "up",
+    });
+  }
 
-      trendDirection:
-        "neutral",
-    },
+  if (attendanceStats && dashboardReady) {
+    STATS.push(
+      {
+        label: "Absent today",
+        value: safeCount(attendanceStats.absent),
+        icon: <EventBusyRoundedIcon fontSize="small" />,
+        trend: `${safeCount(
+          attendanceStats.onLeave
+        )} on leave`,
+        trendDirection: "down",
+      },
+      {
+        label: "On leave today",
+        value: safeCount(attendanceStats.onLeave),
+        icon: <BeachAccessRoundedIcon fontSize="small" />,
+        trend: leaveStats
+          ? `${safeCount(leaveStats.pending)} pending requests`
+          : "Leave overview",
+        trendDirection: "neutral",
+      }
+    );
+  }
 
-
-    {
-      label:
-        "Active employees",
-
-      value:
-        employeeStatistics
-          .activeEmployees,
-
-      icon:
-        <Diversity3RoundedIcon
-          fontSize="small"
-        />,
-
-      trend:
-        `${employeeStatistics.inactiveEmployees} inactive`,
-
-      trendDirection:
-        "neutral",
-    },
-
-
-    {
-      label:
-        "Present today",
-
-      value:
-        attendanceStatistics
-          .present,
-
-      icon:
-        <TaskAltRoundedIcon
-          fontSize="small"
-        />,
-
-      trend:
-        `${attendanceStatistics.notCheckedIn} not checked in`,
-
-      trendDirection:
-        "up",
-    },
-
-
-    {
-      label:
-        "Absent today",
-
-      value:
-        attendanceStatistics
-          .absent,
-
-      icon:
-        <EventBusyRoundedIcon
-          fontSize="small"
-        />,
-
-      trend:
-        `${attendanceStatistics.onLeave} on leave`,
-
-      trendDirection:
-        "down",
-    },
-
-
-    {
-      label:
-        "On leave today",
-
-      value:
-        attendanceStatistics
-          .onLeave,
-
-      icon:
-        <BeachAccessRoundedIcon
-          fontSize="small"
-        />,
-
-      trend:
-        `${leaveStatistics.pending} pending requests`,
-
-      trendDirection:
-        "neutral",
-    },
-
-  ];
-
-
-  /* =========================================================
-     ATTENDANCE CHART DATA
-  ========================================================= */
+  /* ================= CHART DATA ================= */
 
   const ATTENDANCE_DISTRIBUTION = [
-
     {
-      label:
-        "Present",
-
+      label: "Present",
       value:
-        attendanceStatistics
-          .present,
+        presentToday ??
+        safeCount(
+          attendanceStats?.presentToday ??
+          attendanceStats?.present
+        ),
     },
-
     {
-      label:
-        "Absent",
-
-      value:
-        attendanceStatistics
-          .absent,
+      label: "Absent",
+      value: safeCount(attendanceStats?.absent),
     },
-
     {
-      label:
-        "On leave",
-
-      value:
-        attendanceStatistics
-          .onLeave,
+      label: "On leave",
+      value: safeCount(attendanceStats?.onLeave),
     },
-
     {
-      label:
-        "Not checked in",
-
+      label: "Not checked in",
       value:
-        attendanceStatistics
-          .notCheckedIn,
+        notCheckedIn ??
+        safeCount(attendanceStats?.notCheckedIn),
     },
-
   ];
-
-
-  /* =========================================================
-     LEAVE CHART DATA
-  ========================================================= */
 
   const LEAVE_REQUESTS_BY_STATUS = [
-
     {
-      project:
-        "Pending",
-
-      members:
-        leaveStatistics
-          .pending,
+      project: "Pending",
+      members: safeCount(leaveStats?.pending),
     },
-
     {
-      project:
-        "Approved",
-
-      members:
-        leaveStatistics
-          .approved,
+      project: "Approved",
+      members: safeCount(leaveStats?.approved),
     },
-
     {
-      project:
-        "Rejected",
-
-      members:
-        leaveStatistics
-          .rejected,
+      project: "Rejected",
+      members: safeCount(leaveStats?.rejected),
     },
-
   ];
 
-
-  /* =========================================================
-     UI
-  ========================================================= */
+  /* ================= UI ================= */
 
   return (
+    <Box component="main" className="admin-dashboard__main">
 
-    <Box
-      component="main"
-      className="admin-dashboard__main"
-    >
-
-      {/* =====================================================
-          STAT CARDS
-      ===================================================== */}
+      {/* HEADER ACTIONS */}
 
       <Box
-        className="admin-dashboard__stats"
+        sx={{
+          display: "flex",
+          justifyContent: "flex-end",
+          marginBottom: 2,
+        }}
       >
-
-        {STATS.map(
-          (stat) => (
-
-            <StatCard
-              key={stat.label}
-              {...stat}
-            />
-
-          )
-        )}
-
-      </Box>
-
-
-      {/* =====================================================
-          CHARTS
-      ===================================================== */}
-
-      <Box
-        className="admin-dashboard__charts"
-      >
-
-        <ProjectsPieChart
-          title={
-            "Today's attendance breakdown"
-          }
-          subtitle={
-            "Present vs absent vs on leave vs not checked in"
-          }
-          data={
-            ATTENDANCE_DISTRIBUTION
-          }
-        />
-
-
-        <TeamAllocationChart
-          title={
-            "Leave requests by status"
-          }
-          subtitle={
-            "Pending vs approved vs rejected requests"
-          }
-          data={
-            LEAVE_REQUESTS_BY_STATUS
-          }
-        />
-
-      </Box>
-
-
-      {/* =====================================================
-          TODAY'S CHECK-INS
-      ===================================================== */}
-
-      <Box
-        className="admin-dashboard__table-card"
-      >
-
-        <Box
-          className="admin-dashboard__table-title"
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<RefreshRoundedIcon />}
+          onClick={refresh}
+          disabled={isRefreshing}
+          sx={{
+            color: "#087b4d",
+            borderColor: "#087b4d",
+          }}
         >
+          Refresh
+        </Button>
+      </Box>
+
+      {/* API ERROR MESSAGES */}
+
+      {dashboardError && (
+        <Alert
+          severity="error"
+          sx={{ mb: 2 }}
+          action={
+            <Button color="inherit" size="small" onClick={refresh}>
+              Retry
+            </Button>
+          }
+        >
+          {dashboardError}
+        </Alert>
+      )}
+
+      {attendanceError && (
+        <Alert
+          severity="warning"
+          sx={{ mb: 2 }}
+          action={
+            <Button color="inherit" size="small" onClick={refresh}>
+              Retry
+            </Button>
+          }
+        >
+          {attendanceError}
+        </Alert>
+      )}
+
+      {/* STAT CARDS */}
+
+      <Box className="admin-dashboard__stats">
+        {isRefreshing && STATS.length === 0 ? (
+          <Box
+            sx={{
+              width: "100%",
+              display: "flex",
+              justifyContent: "center",
+              padding: 4,
+            }}
+          >
+            <CircularProgress size={28} sx={{ color: "#087b4d" }} />
+          </Box>
+        ) : STATS.length > 0 ? (
+          STATS.map((stat) => (
+            <StatCard key={stat.label} {...stat} />
+          ))
+        ) : (
+          <Alert severity="info" sx={{ width: "100%" }}>
+            Dashboard statistics are unavailable.
+          </Alert>
+        )}
+      </Box>
+
+      {/* CHARTS */}
+
+      <Box className="admin-dashboard__charts">
+        {dashboardReady ? (
+          <>
+            <Box sx={{ width: "100%", minWidth: 0 }}>
+              <ProjectsPieChart
+                title="Today's attendance breakdown"
+                subtitle="Present vs absent vs on leave vs not checked in"
+                data={ATTENDANCE_DISTRIBUTION}
+              />
+            </Box>
+
+            <Box sx={{ width: "100%", minWidth: 0 }}>
+              <TeamAllocationChart
+                title="Leave requests by status"
+                subtitle="Pending vs approved vs rejected requests"
+                data={LEAVE_REQUESTS_BY_STATUS}
+              />
+            </Box>
+          </>
+        ) : isDashboardLoading ? (
+          <Box sx={{ display: "flex", alignItems: "center", p: 4 }}>
+            <CircularProgress size={25} sx={{ color: "#087b4d" }} />
+          </Box>
+        ) : (
+          <Alert severity="info">
+            Charts are unavailable until dashboard data loads.
+          </Alert>
+        )}
+      </Box>
+
+      {/* TODAY'S CHECK-INS */}
+
+      <Box className="admin-dashboard__table-card">
+        <Box className="admin-dashboard__table-title">
           Today's Check-ins
         </Box>
 
-
-        <Box
-          className="admin-dashboard__table-wrapper"
-        >
-
-          <table
-            className="admin-dashboard__table"
-          >
-
-            {/* DESKTOP HEADER */}
-
+        <Box className="admin-dashboard__table-wrapper">
+          <table className="admin-dashboard__table">
             <thead>
-
               <tr>
-
-                <th>
-                  Employee ID
-                </th>
-
-                <th>
-                  Email
-                </th>
-
-                <th>
-                  Check-in
-                </th>
-
-                <th>
-                  Check-out
-                </th>
-
-                <th>
-                  Status
-                </th>
-
+                <th>Employee ID</th>
+                <th>Email</th>
+                <th>Check-in</th>
+                <th>Check-out</th>
+                <th>Working Hours</th>
+                <th>Status</th>
               </tr>
-
             </thead>
 
-
             <tbody>
-
-              {todaysAttendance.length >
-              0 ? (
-
-                todaysAttendance.map(
-                  (
-                    record,
-                    index
-                  ) => {
-
-                    const status =
-                      attendanceStatus(
-                        record
-                      );
-
-
-                    return (
-
-                      <tr
-                        key={
-                          record._id ??
-                          `${record.employeeId}-${index}`
-                        }
-                      >
-
-                        {/* EMPLOYEE ID */}
-
-                        <td
-                          data-label="Employee ID"
-                        >
-                          {record.employeeId ||
-                            "-"}
-                        </td>
-
-
-                        {/* EMAIL */}
-
-                        <td
-                          data-label="Email"
-                        >
-                          {record.email ||
-                            "-"}
-                        </td>
-
-
-                        {/* CHECK IN */}
-
-                        <td
-                          data-label="Check-in"
-                        >
-                          {formatTime(
-                            record.checkInTime
-                          )}
-                        </td>
-
-
-                        {/* CHECK OUT */}
-
-                        <td
-                          data-label="Check-out"
-                        >
-                          {formatTime(
-                            record.checkOutTime
-                          )}
-                        </td>
-
-
-                        {/* STATUS */}
-
-                        <td
-                          data-label="Status"
-                        >
-
-                          <span
-                            className={
-                              `admin-dashboard__status-pill ${
-                                statusPillClass(
-                                  status
-                                )
-                              }`
-                            }
-                          >
-                            {status}
-                          </span>
-
-                        </td>
-
-                      </tr>
-
-                    );
-                  }
-                )
-
-              ) : (
-
-                <tr
-                  className="admin-dashboard__empty-table-row"
-                >
-
-                  <td
-                    colSpan={5}
-                    className="admin-dashboard__empty-row"
-                  >
-                    No check-ins
-                    recorded yet today.
+              {isAttendanceLoading ? (
+                <tr>
+                  <td colSpan={6} className="admin-dashboard__empty-row">
+                    <CircularProgress
+                      size={20}
+                      sx={{ color: "#087b4d" }}
+                    />
                   </td>
-
                 </tr>
+              ) : !attendanceReady ? (
+                <tr>
+                  <td colSpan={6} className="admin-dashboard__empty-row">
+                    Attendance records are unavailable.
+                  </td>
+                </tr>
+              ) : todaysAttendance.length === 0 ? (
+                <tr className="admin-dashboard__empty-table-row">
+                  <td colSpan={6} className="admin-dashboard__empty-row">
+                    No check-ins recorded yet today.
+                  </td>
+                </tr>
+              ) : (
+                todaysAttendance.map((record, index) => {
+                  const status = attendanceStatus(record);
 
+                  return (
+                    <tr
+                      key={
+                        record._id ??
+                        `${record.employeeId}-${index}`
+                      }
+                    >
+                      <td data-label="Employee ID">
+                        {record.employeeId || "—"}
+                      </td>
+
+                      <td data-label="Email">
+                        {record.email || "—"}
+                      </td>
+
+                      <td data-label="Check-in">
+                        {formatTime(record.checkInTime)}
+                      </td>
+
+                      <td data-label="Check-out">
+                        {formatTime(record.checkOutTime)}
+                      </td>
+
+                      <td data-label="Working Hours">
+                        {formatDuration(record.totalWorkingSeconds)}
+                      </td>
+
+                      <td data-label="Status">
+                        <span
+                          className={`admin-dashboard__status-pill ${statusPillClass(
+                            status
+                          )}`}
+                        >
+                          {status}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
-
             </tbody>
-
           </table>
-
         </Box>
-
       </Box>
-
     </Box>
   );
 }
-
 
 export default HRDashboard;
