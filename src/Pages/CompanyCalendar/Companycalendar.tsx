@@ -250,7 +250,6 @@ export default function CompanyCalendar() {
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [attendance, setAttendance] = useState<Record<string, AttendanceMark>>({});
   const [approvedLeaveDays, setApprovedLeaveDays] = useState<Record<string, true>>({});
-  const [approvedPermissionHours, setApprovedPermissionHours] = useState<Record<string, number>>({});
   const [canMarkAbsences, setCanMarkAbsences] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -317,7 +316,6 @@ export default function CompanyCalendar() {
           result.message || "Approved leave records are unavailable; absences cannot be confirmed.",
         ].filter(Boolean).join(" "));
         setApprovedLeaveDays({});
-        setApprovedPermissionHours({});
       } else {
         const leaveDays: Record<string, true> = {};
         const permissionHours: Record<string, number> = {};
@@ -352,7 +350,6 @@ export default function CompanyCalendar() {
           }
         }
         setApprovedLeaveDays(leaveDays);
-        setApprovedPermissionHours(permissionHours);
         permissionHoursByDay = permissionHours;
         leavesLoaded = true;
       }
@@ -362,7 +359,6 @@ export default function CompanyCalendar() {
         errorText(leaveResponse.reason, "Approved leave records are unavailable; absences cannot be confirmed."),
       ].filter(Boolean).join(" "));
       setApprovedLeaveDays({});
-      setApprovedPermissionHours({});
     }
 
     setCanMarkAbsences(
