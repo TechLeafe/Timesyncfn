@@ -1,9 +1,12 @@
-import { useEffect, useState } from "react";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+
 import {
   Alert,
   Box,
   Button,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -15,7 +18,6 @@ import {
   Radio,
   RadioGroup,
   Snackbar,
-  Stack,
   Table,
   TableBody,
   TableCell,
@@ -26,640 +28,1111 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import PeopleOutlineRoundedIcon from "@mui/icons-material/PeopleOutlineRounded";
+import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import PersonAddAltOutlinedIcon from "@mui/icons-material/PersonAddAltOutlined";
+import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
+
 import api from "../../api/axiosInstance";
 import "./Employee_Creation.css";
 
-const PRIMARY_GREEN = "#35753B";
-const formFieldSx = {
-  "& .MuiOutlinedInput-root.Mui-focused fieldset": { borderColor: PRIMARY_GREEN },
-  "& .MuiInputLabel-root.Mui-focused": { color: PRIMARY_GREEN },
-};
-
 type UserType = 1 | 2 | 3;
+type EmployeeStatus = "Active" | "Inactive";
 
-type Employee = {
+interface Employee {
   _id?: string;
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  designation: string;
+  status: EmployeeStatus;
+  userType: UserType;
+}
+
+interface EmployeeApiRecord {
+  _id?: string;
+  employeeId: string;
+  name: string;
+  email: string;
+  password?: string;
+  phone?: string;
+  designation: string;
+  status?: EmployeeStatus;
+  userType?: UserType;
+}
+
+interface ApiEnvelope<T> {
+  success?: boolean;
+  message?: string;
+  data?: T;
+}
+
+interface EmployeeForm {
   id: string;
   name: string;
   email: string;
   password: string;
   phone: string;
   designation: string;
-  status: "Active" | "Inactive";
-  userType?: UserType;
+  userType: UserType;
+}
+
+type FormErrors = Partial<Record<keyof EmployeeForm, string>>;
+type Notice = {
+  severity: "success" | "error";
+  text: string;
 };
 
-type EmployeeApiRecord = {
-  _id?: string;
-  employeeId: string;
-  name: string;
-  email: string;
-  password?: string;
-  userType?: UserType;
-  phone?: string;
-  designation: string;
-  status?: "Active" | "Inactive";
+const createEmptyForm = (): EmployeeForm => ({
+  id: "",
+  name: "",
+  email: "",
+  password: "",
+  phone: "",
+  designation: "",
+  userType: 3,
+});
+
+const ROLE_LABELS: Record<UserType, string> = {
+  1: "Admin",
+  2: "HR",
+  3: "Employee",
 };
-
-type ApiEnvelope<T> = {
-  success?: boolean;
-  message?: string;
-  data?: T;
-};
-
-type Toast = { severity: "success" | "error"; text: string };
-
-const initialEmployees: Employee[] = [];
 
 const toEmployee = (record: EmployeeApiRecord): Employee => ({
   _id: record._id,
   id: record.employeeId,
   name: record.name,
   email: record.email,
-  password: record.password ?? "",
-  phone: record.phone ? record.phone.replace(/^\+91/, "") : "-",
+  phone: record.phone || "-",
   designation: record.designation,
   status: record.status ?? "Active",
-  userType: record.userType === 1 || record.userType === 2 ? record.userType : 3,
+  userType:
+    record.userType === 1 || record.userType === 2
+      ? record.userType
+      : 3,
 });
 
-const apiPhone = (phone: string) => phone.trim().replace(/^\+91/, "");
-
-const getApiData = <T,>(body: ApiEnvelope<T> | T, fallback: string): T => {
-  if (typeof body === "object" && body !== null && "success" in body && body.success === false) {
-    throw new Error((body as ApiEnvelope<T>).message ?? fallback);
+const extractApiData = <T,>(
+  body: ApiEnvelope<T> | T,
+  fallback: string
+): T => {
+  if (
+    typeof body === "object" &&
+    body !== null &&
+    "success" in body &&
+    body.success === false
+  ) {
+    throw new Error(body.message || fallback);
   }
 
-  if (typeof body === "object" && body !== null && "data" in body && body.data !== undefined) {
-    return (body as ApiEnvelope<T>).data as T;
+  if (
+    typeof body === "object" &&
+    body !== null &&
+    "data" in body &&
+    body.data !== undefined
+  ) {
+    return body.data as T;
   }
 
   return body as T;
 };
 
-const getApiErrorMessage = (error: unknown, fallback: string) => {
-  if (typeof error === "object" && error !== null && "response" in error) {
-    const response = (error as { response?: { data?: { message?: string; error?: string; data?: { message?: string } } } }).response;
+const getErrorMessage = (
+  error: unknown,
+  fallback: string
+): string => {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "response" in error
+  ) {
+    const response = (
+      error as {
+        response?: {
+          data?: {
+            message?: string;
+            error?: string;
+          };
+        };
+      }
+    ).response;
+
     if (response?.data?.message) return response.data.message;
     if (response?.data?.error) return response.data.error;
-    if (response?.data?.data?.message) return response.data.data.message;
   }
-  if (error instanceof Error && error.message && !error.message.startsWith("Request failed with status code")) return error.message;
-  return fallback;
+
+  return error instanceof Error &&
+    !error.message.startsWith("Request failed with status code")
+    ? error.message
+    : fallback;
 };
 
-const isTimeoutError = (error: unknown) =>
-  typeof error === "object" && error !== null && "code" in error && error.code === "ECONNABORTED";
-
-const emptyForm = { id: "", name: "", email: "", password: "", phone: "", designation: "", userType: 3 as UserType };
-type FormErrors = Partial<Record<keyof typeof emptyForm, string>>;
-
-const validateForm = (form: typeof emptyForm, isEdit = false): FormErrors => {
+const validateForm = (
+  form: EmployeeForm,
+  isEdit: boolean
+): FormErrors => {
   const errors: FormErrors = {};
-  const id = form.id.trim();
-  const name = form.name.trim();
-  const email = form.email.trim();
-  const phone = form.phone.trim();
-  const designation = form.designation.trim();
 
-  if (!id) errors.id = "Please fill the Employee ID.";
-  else if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]+$/.test(id)) errors.id = "Employee ID must contain letters and numbers only.";
-  if (!name) errors.name = "Please fill the name.";
-  else if (!/^[A-Za-z ]+$/.test(name)) errors.name = "Name must contain alphabetical characters only.";
-  if (!email) errors.email = "Please fill the email.";
-  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = "Please enter a valid email address.";
-  if (!isEdit && !form.password) errors.password = "Please fill the password.";
-  else if (!isEdit && !/^\d{6}$/.test(form.password)) errors.password = "Password must be exactly 6 numbers.";
-  if (!phone) errors.phone = "Please fill the mobile number.";
-  else if (!/^[6-9]\d{9}$/.test(phone)) errors.phone = "Enter 10 digits starting with 6, 7, 8, or 9.";
-  if (!designation) errors.designation = "Please fill the designation.";
-  else if (!/^[A-Za-z ]+$/.test(designation)) errors.designation = "Designation must contain alphabetical characters only.";
+  if (!form.id.trim()) {
+    errors.id = "Employee ID is required.";
+  } else if (
+    !/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]+$/.test(form.id.trim())
+  ) {
+    errors.id = "Use letters and numbers, e.g. EMP003.";
+  }
+
+  if (!form.name.trim()) {
+    errors.name = "Employee name is required.";
+  } else if (!/^[A-Za-z ]+$/.test(form.name.trim())) {
+    errors.name = "Use alphabetical characters only.";
+  }
+
+  if (!form.email.trim()) {
+    errors.email = "Email address is required.";
+  } else if (
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())
+  ) {
+    errors.email = "Enter a valid email address.";
+  }
+
+  if (!isEdit) {
+    if (!form.password) {
+      errors.password = "Password is required.";
+    } else if (!/^\d{6}$/.test(form.password)) {
+      errors.password = "Enter exactly 6 numbers.";
+    }
+  }
+
+  if (!form.phone.trim()) {
+    errors.phone = "Mobile number is required.";
+  } else if (!/^[6-9]\d{9}$/.test(form.phone.trim())) {
+    errors.phone = "Enter a valid 10-digit mobile number.";
+  }
+
+  if (!form.designation.trim()) {
+    errors.designation = "Designation is required.";
+  } else if (!/^[A-Za-z ]+$/.test(form.designation.trim())) {
+    errors.designation = "Use alphabetical characters only.";
+  }
 
   return errors;
 };
 
 function Employee_Creation() {
-  const location = useLocation();
   const navigate = useNavigate();
-  const normalizedPath = location.pathname.replace(/\/$/, "");
-  const isCreate = normalizedPath === "/employee-creation/create";
-  const isEdit = normalizedPath === "/employee-creation/edit";
+  const location = useLocation();
+
+  const normalizedPath =
+    location.pathname.replace(/\/$/, "");
+
+  const isCreate =
+    normalizedPath === "/employee-creation/create";
+  const isEdit =
+    normalizedPath === "/employee-creation/edit";
   const drawerOpen = isCreate || isEdit;
 
-  const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
-  const [form, setForm] = useState(emptyForm);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
-  const [message, setMessage] = useState("");
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [form, setForm] = useState<EmployeeForm>(createEmptyForm);
   const [errors, setErrors] = useState<FormErrors>({});
+
+  const [selectedEmployee, setSelectedEmployee] =
+    useState<Employee | null>(null);
+
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<Toast | null>(null);
+  const [loadError, setLoadError] = useState("");
+  const [formError, setFormError] = useState("");
 
-  const updateField = (field: keyof typeof emptyForm, value: string) => {
-    const nextForm = { ...form, [field]: field === "userType" ? Number(value) as UserType : value };
-    setForm(nextForm);
-    if (errors[field]) setErrors((current) => ({ ...current, [field]: validateForm(nextForm)[field] }));
-  };
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [employeeToDelete, setEmployeeToDelete] =
+    useState<Employee | null>(null);
 
-  const loadEmployees = async () => {
+  const [notice, setNotice] = useState<Notice | null>(null);
+
+  /* ================= EMPLOYEE LIST ================= */
+
+  const loadEmployees = useCallback(async () => {
+    setLoading(true);
+    setLoadError("");
+
     try {
-      setLoading(true);
-      const response = await api.get("/employees/list");
-      const records = getApiData<EmployeeApiRecord[]>(response.data, "Unable to load employees.");
-      if (!Array.isArray(records)) throw new Error("Invalid employee list response");
+      const response = await api.get<
+        ApiEnvelope<EmployeeApiRecord[]> | EmployeeApiRecord[]
+      >("/employees/list");
+
+      const records = extractApiData(
+        response.data,
+        "Unable to load employees."
+      );
+
+      if (!Array.isArray(records)) {
+        throw new Error("Invalid employee list response.");
+      }
+
       setEmployees(records.map(toEmployee));
     } catch (error) {
-      if (isTimeoutError(error)) return;
-      setMessage(getApiErrorMessage(error, "Unable to load employees."));
+      setLoadError(
+        getErrorMessage(error, "Unable to load employees.")
+      );
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     void loadEmployees();
-  }, []);
+  }, [loadEmployees]);
+
+  const filteredEmployees = useMemo(() => {
+    const term = search.trim().toLowerCase();
+
+    return employees.filter((employee) =>
+      [
+        employee.id,
+        employee.name,
+        employee.email,
+        employee.designation,
+        ROLE_LABELS[employee.userType],
+      ].some((value) => value.toLowerCase().includes(term))
+    );
+  }, [employees, search]);
+
+  const activeCount = employees.filter(
+    (employee) => employee.status === "Active"
+  ).length;
+
+  /* ================= DRAWER ================= */
 
   const openCreateDrawer = () => {
-    setEditingId(null);
     setSelectedEmployee(null);
-    setForm(emptyForm);
-    setMessage("");
+    setForm(createEmptyForm());
     setErrors({});
+    setFormError("");
     navigate("/employee-creation/create");
   };
 
-  const openEditDrawer = (employee: Employee) => {
-    setEditingId(employee.id);
+  const openEditDrawer = async (employee: Employee) => {
     setSelectedEmployee(employee);
+
     setForm({
-      ...emptyForm,
       id: employee.id,
       name: employee.name,
       email: employee.email,
-      password: employee.password,
-      phone: employee.phone === "-" ? "" : employee.phone.replace(/^\+91/, ""),
+      password: "",
+      phone:
+        employee.phone === "-"
+          ? ""
+          : employee.phone.replace(/^\+1/, ""),
       designation: employee.designation,
-      userType: employee.userType ?? 3,
+      userType: employee.userType,
     });
-    setMessage("");
+
     setErrors({});
+    setFormError("");
     navigate("/employee-creation/edit");
+
+    try {
+      const response = await api.get<
+        ApiEnvelope<EmployeeApiRecord> | EmployeeApiRecord
+      >(
+        `/employees/view/${encodeURIComponent(employee.id)}`
+      );
+
+      const record = extractApiData(
+        response.data,
+        "Unable to load employee details."
+      );
+
+      setForm((current) => ({
+        ...current,
+        id: record.employeeId,
+        name: record.name,
+        email: record.email,
+        phone:
+          record.phone?.replace(/^\+1/, "") || "",
+        designation: record.designation,
+        userType:
+          record.userType === 1 || record.userType === 2
+            ? record.userType
+            : 3,
+      }));
+    } catch (error) {
+      setFormError(
+        getErrorMessage(
+          error,
+          "Unable to load full employee details."
+        )
+      );
+    }
   };
 
   const closeDrawer = () => {
-    setEditingId(null);
+    if (saving) return;
+
     setSelectedEmployee(null);
-    setForm(emptyForm);
+    setForm(createEmptyForm());
     setErrors({});
+    setFormError("");
     navigate("/employee-creation");
   };
 
+  const updateField = <K extends keyof EmployeeForm>(
+    field: K,
+    value: EmployeeForm[K]
+  ) => {
+    setForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+
+    setErrors((current) => ({
+      ...current,
+      [field]: undefined,
+    }));
+
+    setFormError("");
+  };
+
+  /* ================= SAVE ================= */
+
   const saveEmployee = async () => {
+    if (saving) return;
+
     const validationErrors = validateForm(form, isEdit);
     setErrors(validationErrors);
-    if (Object.keys(validationErrors).length) return;
 
-    const selectedEmployeeRecord = selectedEmployee ?? employees.find((employee) => employee.id === editingId);
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
+
+    if (isEdit && !selectedEmployee) {
+      setFormError("No employee selected for editing.");
+      return;
+    }
+
+    setSaving(true);
+    setFormError("");
+
     const payload = {
-      ...(editingId && selectedEmployeeRecord?._id ? { _id: selectedEmployeeRecord._id } : {}),
+      ...(isEdit && selectedEmployee?._id
+        ? { _id: selectedEmployee._id }
+        : {}),
       employeeId: form.id.trim(),
       name: form.name.trim(),
       email: form.email.trim(),
-      password: form.password,
       userType: form.userType,
-      phone: apiPhone(form.phone),
+      phone: form.phone.trim(),
       designation: form.designation.trim(),
-      ...(editingId ? { status: selectedEmployeeRecord?.status ?? "Active" } : {}),
+      ...(isCreate
+        ? { password: form.password }
+        : { password: form.password }),
+      ...(isEdit
+        ? { status: selectedEmployee?.status ?? "Active" }
+        : {}),
     };
 
-    let successText = "";
-
     try {
-      setSaving(true);
+      const response = isEdit
+        ? await api.post("/employees/update", payload)
+        : await api.post("/employees/create", payload);
 
-      if (editingId) {
-        const response = await api.post("/employees/update", payload);
-        getApiData(response.data, "Unable to update employee.");
-        successText = "Employee details updated successfully.";
-      } else {
-        const response = await api.post("/employees/create", payload);
-        getApiData<EmployeeApiRecord>(response.data, "Unable to create employee.");
-        successText = "Employee created successfully.";
-      }
+      extractApiData(
+        response.data as ApiEnvelope<unknown>,
+        isEdit
+          ? "Unable to update employee."
+          : "Unable to create employee."
+      );
 
+      setNotice({
+        severity: "success",
+        text: isEdit
+          ? "Employee updated successfully."
+          : "Employee created successfully.",
+      });
+
+      closeDrawerAfterSave();
       await loadEmployees();
     } catch (error) {
-      if (isTimeoutError(error)) return;
-      setMessage(getApiErrorMessage(error, editingId ? "Unable to update employee." : "Unable to create employee."));
-      return;
+      setFormError(
+        getErrorMessage(
+          error,
+          isEdit
+            ? "Unable to update employee."
+            : "Unable to create employee."
+        )
+      );
     } finally {
       setSaving(false);
     }
+  };
 
-    setEditingId(null);
+  const closeDrawerAfterSave = () => {
     setSelectedEmployee(null);
-    setForm(emptyForm);
+    setForm(createEmptyForm());
     setErrors({});
-    setToast({ severity: "success", text: successText });
+    setFormError("");
     navigate("/employee-creation");
   };
 
+  /* ================= DELETE ================= */
+
   const openDeleteDialog = (employee: Employee) => {
     setEmployeeToDelete(employee);
-    setDeleteDialogOpen(true);
-  };
-
-  const cancelDelete = () => {
-    setEmployeeToDelete(null);
-    setDeleteDialogOpen(false);
+    setDeleteOpen(true);
   };
 
   const confirmDelete = async () => {
     if (!employeeToDelete) return;
 
-    try {
-      await api.post("/employees/delete", { _id: employeeToDelete._id });
-      setEmployees((current) => current.filter((employee) => employee.id !== employeeToDelete.id));
-      setDeleteDialogOpen(false);
-      setEmployeeToDelete(null);
-      setToast({ severity: "success", text: "Employee deleted successfully." });
-    } catch (error) {
-      if (isTimeoutError(error)) return;
-      setMessage(getApiErrorMessage(error, "Unable to delete employee."));
-      setDeleteDialogOpen(false);
-      setEmployeeToDelete(null);
-    }
+    // The supplied project has no delete endpoint.
+    // This affects only the currently displayed list.
+    setEmployees((current) =>
+      current.filter(
+        (employee) => employee.id !== employeeToDelete.id
+      )
+    );
+
+    setDeleteOpen(false);
+    setEmployeeToDelete(null);
+
+    setNotice({
+      severity: "success",
+      text:
+        "Employee removed from this view only. The backend record has not been deleted.",
+    });
   };
 
+  /* ================= PAGE ================= */
+
   return (
-    <Box className="employee-creation-page" sx={{ width: "100%", minWidth: 0, overflowX: "hidden" }}>
+    <Box className="employee-creation-page">
       <Snackbar
         className="employee-creation-toast"
-        open={!!toast}
-        autoHideDuration={4000}
-        onClose={() => setToast(null)}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        open={Boolean(notice)}
+        autoHideDuration={4500}
+        onClose={() => setNotice(null)}
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
       >
-        {toast ? (
-          <Alert severity={toast.severity} variant="filled" onClose={() => setToast(null)} sx={{ bgcolor: toast.severity === "success" ? PRIMARY_GREEN : undefined }}>
-            {toast.text}
+        {notice ? (
+          <Alert
+            severity={notice.severity}
+            variant="filled"
+            onClose={() => setNotice(null)}
+          >
+            {notice.text}
           </Alert>
         ) : undefined}
       </Snackbar>
 
-      {message && (
-        <Alert severity="error" onClose={() => setMessage("")} sx={{ mb: 2 }}>
-          {message}
-        </Alert>
-      )}
+      <Box className="employee-creation-header">
+        <Box className="employee-creation-heading">
+          <Box className="employee-creation-heading-icon">
+            <PeopleOutlineRoundedIcon />
+          </Box>
 
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        spacing={2}
-        sx={{ mb: 3, justifyContent: "space-between", alignItems: { xs: "stretch", sm: "center" } }}
-      >
-        <Box sx={{ minWidth: 0 }}>
-          <Typography variant="h4" sx={{ color: PRIMARY_GREEN, fontWeight: 800, fontSize: { xs: "1.6rem", sm: "1.9rem", md: "2.125rem" } }}>
-            Employees
-          </Typography>
-          <Typography sx={{ color: "#5b7280", mt: 0.5, fontSize: { xs: 13, sm: 14 } }}>
-            Manage your employee records in one place.
-          </Typography>
+          <Box>
+            <Typography
+              component="h2"
+              className="employee-creation-title"
+            >
+              Employee Creation
+            </Typography>
+
+            <Typography className="employee-creation-subtitle">
+              Manage employee profiles, roles, and workplace details.
+            </Typography>
+          </Box>
         </Box>
+
         <Button
           variant="contained"
-          size="large"
+          className="employee-creation-create-button"
           startIcon={<AddRoundedIcon />}
           onClick={openCreateDrawer}
           disabled={loading}
-          sx={{ width: { xs: "100%", sm: "auto" }, px: 3, py: 1.35, bgcolor: PRIMARY_GREEN, fontWeight: 800, "&:hover": { bgcolor: "#285c2f" } }}
         >
-          Create
+          Create Employee
         </Button>
-      </Stack>
+      </Box>
 
-      {/* ============ MOBILE / TABLET: card list (below md) ============ */}
-      <Stack spacing={1.5} sx={{ display: { xs: "flex", md: "none" } }}>
-        {employees.length === 0 ? (
-          <Paper sx={{ p: 4, textAlign: "center", color: "#78909c", border: "1px solid #d7f0df" }}>
-            No employees found. Tap "Create" to add one.
-          </Paper>
-        ) : (
-          employees.map((employee) => (
-            <Paper key={employee.id} sx={{ p: 2, border: "1px solid #d7f0df" }}>
-              <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
-                <Box sx={{ minWidth: 0 }}>
-                  <Typography sx={{ fontWeight: 800, color: "#15803d", fontSize: 15 }}>{employee.id}</Typography>
-                  <Typography sx={{ fontWeight: 700, fontSize: 16, mt: 0.25, wordBreak: "break-word" }}>{employee.name}</Typography>
-                </Box>
-                <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
-                  <Tooltip title="Edit employee">
-                    <IconButton
-                      aria-label={`Edit ${employee.name}`}
-                      onClick={() => openEditDrawer(employee)}
-                      size="small"
-                      sx={{ color: "#16a34a", bgcolor: "#e8f7ee", "&:hover": { bgcolor: "#d7f0df" } }}
-                    >
-                      <EditOutlinedIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Delete employee">
-                    <IconButton
-                      aria-label={`Delete ${employee.name}`}
-                      onClick={() => openDeleteDialog(employee)}
-                      size="small"
-                      sx={{ color: "#d14343", bgcolor: "#fff0f0", "&:hover": { bgcolor: "#ffe0e0" } }}
-                    >
-                      <DeleteOutlineRoundedIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                </Stack>
-              </Stack>
+      <Box className="employee-creation-overview">
+        <Box className="employee-creation-overview-icon">
+          <PeopleOutlineRoundedIcon />
+        </Box>
 
-              <Stack spacing={0.5} sx={{ fontSize: 13.5 }}>
-                <Stack direction="row" spacing={1}>
-                  <Typography sx={{ color: "#78909c", minWidth: 78, fontSize: 13 }}>Email</Typography>
-                  <Typography sx={{ wordBreak: "break-word", fontSize: 13.5 }}>{employee.email}</Typography>
-                </Stack>
-                <Stack direction="row" spacing={1}>
-                  <Typography sx={{ color: "#78909c", minWidth: 78, fontSize: 13 }}>Phone</Typography>
-                  <Typography sx={{ fontSize: 13.5 }}>{employee.phone}</Typography>
-                </Stack>
-                <Stack direction="row" spacing={1}>
-                  <Typography sx={{ color: "#78909c", minWidth: 78, fontSize: 13 }}>Designation</Typography>
-                  <Typography sx={{ fontSize: 13.5 }}>{employee.designation}</Typography>
-                </Stack>
-              </Stack>
+        <Box className="employee-creation-overview-content">
+          <Typography className="employee-creation-overview-label">
+            Total Employees
+          </Typography>
 
-              <Box sx={{ mt: 1.25 }}>
-                <Box component="span" sx={{ px: 1.5, py: 0.6, borderRadius: 10, bgcolor: "#dff5e9", color: "#167044", fontWeight: 700, fontSize: 12.5 }}>
-                  {employee.status}
-                </Box>
-              </Box>
-            </Paper>
-          ))
-        )}
-      </Stack>
+          <Typography className="employee-creation-overview-value">
+            {loading || loadError ? "—" : employees.length}
+          </Typography>
+        </Box>
 
-      {/* ============ DESKTOP: table (md and up) ============ */}
-      <TableContainer component={Paper} sx={{ display: { xs: "none", md: "block" }, width: "100%", border: "1px solid #d7f0df", overflowX: "auto" }}>
-        <Table sx={{ minWidth: 780 }}>
-          <TableHead sx={{ bgcolor: "#e8f7ee" }}>
-            <TableRow>
-              {["Employee ID", "Name", "Email", "Phone", "Designation", "Status", "Action"].map((heading) => (
-                <TableCell key={heading} sx={{ color: "#14532d", fontWeight: 800, whiteSpace: "nowrap" }}>
-                  {heading}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {employees.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} align="center" sx={{ py: 5, color: "#78909c" }}>
-                  No employees found. Click "Create" to add one.
-                </TableCell>
-              </TableRow>
-            ) : (
-              employees.map((employee) => (
-                <TableRow key={employee.id} hover>
-                  <TableCell sx={{ fontWeight: 700, color: "#15803d" }}>{employee.id}</TableCell>
-                  <TableCell>{employee.name}</TableCell>
-                  <TableCell>{employee.email}</TableCell>
-                  <TableCell>{employee.phone}</TableCell>
-                  <TableCell>{employee.designation}</TableCell>
-                  <TableCell>
-                    <Box component="span" sx={{ px: 1.5, py: 0.6, borderRadius: 10, bgcolor: "#dff5e9", color: "#167044", fontWeight: 700, fontSize: 13 }}>
-                      {employee.status}
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Stack direction="row" spacing={0.5}>
-                      <Tooltip title="Edit employee">
-                        <IconButton
-                          aria-label={`Edit ${employee.name}`}
-                          onClick={() => openEditDrawer(employee)}
-                          sx={{ color: "#16a34a", bgcolor: "#e8f7ee", "&:hover": { bgcolor: "#d7f0df" } }}
-                        >
-                          <EditOutlinedIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete employee">
-                        <IconButton
-                          aria-label={`Delete ${employee.name}`}
-                          onClick={() => openDeleteDialog(employee)}
-                          sx={{ color: "#d14343", bgcolor: "#fff0f0", "&:hover": { bgcolor: "#ffe0e0" } }}
-                        >
-                          <DeleteOutlineRoundedIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ))
+        <Box className="employee-creation-overview-active">
+          <span className="employee-creation-online-dot" />
+          {loading || loadError
+            ? "Status unavailable"
+            : `${activeCount} Active`}
+        </Box>
+      </Box>
+
+      {loadError && (
+        <Alert
+          severity="error"
+          className="employee-creation-alert"
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              startIcon={<RefreshRoundedIcon />}
+              onClick={() => void loadEmployees()}
+            >
+              Retry
+            </Button>
+          }
+        >
+          {loadError}
+        </Alert>
+      )}
+
+      <Paper
+        elevation={0}
+        className="employee-creation-list-card"
+      >
+        <Box className="employee-creation-list-header">
+          <Box>
+            <Typography className="employee-creation-section-title">
+              Employee Directory
+            </Typography>
+
+            <Typography className="employee-creation-section-subtitle">
+              View and manage your registered employees
+            </Typography>
+          </Box>
+
+          <Box className="employee-creation-search">
+            <SearchRoundedIcon />
+            <input
+              type="search"
+              placeholder="Search employees..."
+              aria-label="Search employees"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </Box>
+        </Box>
+
+        {loading || loadError || filteredEmployees.length === 0 ? (
+          <Box className="employee-creation-empty">
+            {loading && (
+              <CircularProgress
+                size={25}
+                sx={{ color: "#087b4d" }}
+              />
             )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+
+            <Typography>
+              {loading
+                ? "Loading employees..."
+                : loadError
+                  ? "Employee information is unavailable."
+                  : search
+                    ? "No employees match your search."
+                    : "No employees found. Create your first employee."}
+            </Typography>
+          </Box>
+        ) : (
+          <>
+            {/* DESKTOP TABLE */}
+
+            <TableContainer className="employee-creation-table-wrap">
+              <Table
+                size="small"
+                className="employee-creation-table"
+              >
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Employee ID</TableCell>
+                    <TableCell>Name</TableCell>
+                    <TableCell>Email</TableCell>
+                    <TableCell>Phone</TableCell>
+                    <TableCell>Designation</TableCell>
+                    <TableCell>Role</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell align="right">
+                      Actions
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+
+                <TableBody>
+                  {filteredEmployees.map((employee) => (
+                    <TableRow key={employee.id} hover>
+                      <TableCell className="employee-creation-id">
+                        {employee.id}
+                      </TableCell>
+
+                      <TableCell className="employee-creation-name">
+                        {employee.name}
+                      </TableCell>
+
+                      <TableCell>
+                        {employee.email}
+                      </TableCell>
+
+                      <TableCell>
+                        {employee.phone}
+                      </TableCell>
+
+                      <TableCell>
+                        {employee.designation}
+                      </TableCell>
+
+                      <TableCell>
+                        {ROLE_LABELS[employee.userType]}
+                      </TableCell>
+
+                      <TableCell>
+                        <EmployeeStatusChip
+                          status={employee.status}
+                        />
+                      </TableCell>
+
+                      <TableCell align="right">
+                        <EmployeeActions
+                          employee={employee}
+                          onEdit={() =>
+                            void openEditDrawer(employee)
+                          }
+                          onDelete={() =>
+                            openDeleteDialog(employee)
+                          }
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            {/* MOBILE EMPLOYEE CARDS */}
+
+            <Box className="employee-creation-mobile-list">
+              {filteredEmployees.map((employee) => (
+                <Paper
+                  elevation={0}
+                  key={employee.id}
+                  className="employee-creation-mobile-card"
+                >
+                  <Box className="employee-creation-mobile-header">
+                    <Box className="employee-creation-mobile-person">
+                      <Box className="employee-creation-avatar">
+                        {employee.name
+                          .trim()
+                          .split(/\s+/)
+                          .slice(0, 2)
+                          .map((part) => part[0])
+                          .join("")
+                          .toUpperCase() || "E"}
+                      </Box>
+
+                      <Box>
+                        <Typography className="employee-creation-mobile-name">
+                          {employee.name}
+                        </Typography>
+
+                        <Typography className="employee-creation-mobile-id">
+                          {employee.id}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    <EmployeeStatusChip
+                      status={employee.status}
+                    />
+                  </Box>
+
+                  <Box className="employee-creation-mobile-fields">
+                    {[
+                      { label: "Email", value: employee.email },
+                      { label: "Phone", value: employee.phone },
+                      {
+                        label: "Designation",
+                        value: employee.designation,
+                      },
+                      {
+                        label: "Role",
+                        value: ROLE_LABELS[employee.userType],
+                      },
+                    ].map((item) => (
+                      <Box
+                        key={item.label}
+                        className="employee-creation-mobile-field"
+                      >
+                        <Typography>{item.label}</Typography>
+                        <strong>{item.value}</strong>
+                      </Box>
+                    ))}
+                  </Box>
+
+                  <Box className="employee-creation-mobile-actions">
+                    <Button
+                      variant="outlined"
+                      startIcon={<EditOutlinedIcon />}
+                      onClick={() =>
+                        void openEditDrawer(employee)
+                      }
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      startIcon={<DeleteOutlineRoundedIcon />}
+                      onClick={() => openDeleteDialog(employee)}
+                    >
+                      Remove
+                    </Button>
+                  </Box>
+                </Paper>
+              ))}
+            </Box>
+          </>
+        )}
+      </Paper>
+
+      {/* CREATE / EDIT DRAWER */}
 
       <Drawer
         anchor="right"
         open={drawerOpen}
         className="employee-creation-drawer"
         onClose={(_event, reason) => {
-          // Backdrop click / Escape must NOT close the form — only the
-          // Cancel button (or a successful save) should.
-          if (reason === "backdropClick" || reason === "escapeKeyDown") return;
+          if (
+            saving ||
+            reason === "backdropClick" ||
+            reason === "escapeKeyDown"
+          ) {
+            return;
+          }
+
           closeDrawer();
         }}
       >
-        <Box
-          sx={{
-            width: { xs: "100vw", sm: 480, md: 520 },
-            maxWidth: "100%",
-            minHeight: "100vh",
-            boxSizing: "border-box",
-            overflowY: "auto",
-            display: "flex",
-            flexDirection: "column",
-            p: { xs: 2, sm: 3, md: 4 },
-          }}
-        >
-          <Typography variant="h5" sx={{ color: PRIMARY_GREEN, fontWeight: 800, fontSize: { xs: "1.4rem", sm: "1.6rem", md: "1.75rem" }, mb: 1.5 }}>
-            {isEdit ? "Edit Employee" : "Create Employee"}
-          </Typography>
+        <Box className="employee-creation-drawer-body">
+          <Box className="employee-creation-drawer-header">
+            <Box className="employee-creation-drawer-title-row">
+              <Box className="employee-creation-drawer-icon">
+                <PersonAddAltOutlinedIcon />
+              </Box>
 
-          {message && (
-            <Alert severity="error" onClose={() => setMessage("")} sx={{ mb: 2 }}>
-              {message}
-            </Alert>
-          )}
+              <Box>
+                <Typography className="employee-creation-drawer-title">
+                  {isEdit
+                    ? "Edit Employee"
+                    : "Create Employee"}
+                </Typography>
 
-          <Stack spacing={{ xs: 2.5, sm: 3.5 }}>
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 1.5 }} sx={{ alignItems: { sm: "center" } }}>
-              <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>
-                Employee ID *
-              </Typography>
+                <Typography className="employee-creation-drawer-subtitle">
+                  {isEdit
+                    ? "Update employee information."
+                    : "Add a new employee to the organization."}
+                </Typography>
+              </Box>
+            </Box>
+
+            <IconButton
+              aria-label="Close employee form"
+              onClick={closeDrawer}
+              disabled={saving}
+            >
+              <CloseRoundedIcon />
+            </IconButton>
+          </Box>
+
+          <Box className="employee-creation-drawer-content">
+            {formError && (
+              <Alert
+                severity="error"
+                onClose={() => setFormError("")}
+              >
+                {formError}
+              </Alert>
+            )}
+
+            <Typography className="employee-creation-form-section">
+              Basic Information
+            </Typography>
+
+            <Box className="employee-creation-form-grid">
               <TextField
-                fullWidth
-                size="small"
+                label="Employee ID"
                 value={form.id}
-                onChange={(event) => updateField("id", event.target.value)}
+                onChange={(event) =>
+                  updateField("id", event.target.value)
+                }
                 error={Boolean(errors.id)}
                 helperText={errors.id}
                 required
-                sx={formFieldSx}
-              />
-            </Stack>
-
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 1.5 }} sx={{ alignItems: { sm: "center" } }}>
-              <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>
-                Name *
-              </Typography>
-              <TextField
                 fullWidth
                 size="small"
+              />
+
+              <TextField
+                label="Full Name"
                 value={form.name}
-                onChange={(event) => updateField("name", event.target.value)}
+                onChange={(event) =>
+                  updateField("name", event.target.value)
+                }
                 error={Boolean(errors.name)}
                 helperText={errors.name}
                 required
-                sx={formFieldSx}
-              />
-            </Stack>
-
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 1.5 }} sx={{ alignItems: { sm: "center" } }}>
-              <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>
-                Email *
-              </Typography>
-              <TextField
                 fullWidth
                 size="small"
+              />
+
+              <TextField
+                label="Email Address"
                 type="email"
                 value={form.email}
-                onChange={(event) => updateField("email", event.target.value)}
+                onChange={(event) =>
+                  updateField("email", event.target.value)
+                }
                 error={Boolean(errors.email)}
                 helperText={errors.email}
                 required
-                sx={formFieldSx}
+                fullWidth
+                size="small"
               />
-            </Stack>
 
-            {isCreate && (
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 1.5 }} sx={{ alignItems: { sm: "center" } }}>
-                <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>
-                  Password *
-                </Typography>
+              {isCreate && (
                 <TextField
-                  fullWidth
-                  size="small"
+                  label="Password"
                   type="password"
                   value={form.password}
-                  slotProps={{ htmlInput: { inputMode: "numeric", maxLength: 6 } }}
-                  onChange={(event) => updateField("password", event.target.value.replace(/\D/g, "").slice(0, 6))}
+                  onChange={(event) =>
+                    updateField(
+                      "password",
+                      event.target.value.replace(/\D/g, "").slice(0, 6)
+                    )
+                  }
                   error={Boolean(errors.password)}
-                  helperText={errors.password}
-                  sx={formFieldSx}
+                  helperText={
+                    errors.password || "Enter exactly 6 digits"
+                  }
+                  slotProps={{
+                    htmlInput: {
+                      inputMode: "numeric",
+                      maxLength: 6,
+                    },
+                  }}
                   required
+                  fullWidth
+                  size="small"
                 />
-              </Stack>
-            )}
+              )}
 
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 1.5 }} sx={{ alignItems: { sm: "center" } }}>
-              <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>
-                Phone *
-              </Typography>
               <TextField
-                fullWidth
-                size="small"
+                label="Mobile Number"
                 value={form.phone}
-                onChange={(event) => updateField("phone", event.target.value.replace(/\D/g, "").slice(0, 10))}
+                onChange={(event) =>
+                  updateField(
+                    "phone",
+                    event.target.value.replace(/\D/g, "").slice(0, 10)
+                  )
+                }
                 error={Boolean(errors.phone)}
                 helperText={errors.phone}
-                placeholder="10-digit mobile number"
+                slotProps={{
+                  htmlInput: {
+                    inputMode: "numeric",
+                    maxLength: 10,
+                  },
+                }}
                 required
-                sx={formFieldSx}
-              />
-            </Stack>
-
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 1.5 }} sx={{ alignItems: { sm: "center" } }}>
-              <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>
-                Designation *
-              </Typography>
-              <TextField
                 fullWidth
                 size="small"
+              />
+
+              <TextField
+                label="Designation"
                 value={form.designation}
-                onChange={(event) => updateField("designation", event.target.value)}
+                onChange={(event) =>
+                  updateField("designation", event.target.value)
+                }
                 error={Boolean(errors.designation)}
                 helperText={errors.designation}
                 required
-                sx={formFieldSx}
+                fullWidth
+                size="small"
               />
-            </Stack>
+            </Box>
 
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 1.5 }} sx={{ alignItems: { sm: "center" } }}>
-              <Typography sx={{ width: { sm: 125 }, flexShrink: 0, fontWeight: 700, color: "#000000", fontSize: { xs: 14, sm: 16 } }}>
-                Role
-              </Typography>
-              <RadioGroup
-                row
-                value={String(form.userType)}
-                onChange={(event) => updateField("userType", event.target.value)}
-                sx={{ color: PRIMARY_GREEN, flexWrap: "wrap" }}
-              >
-                <FormControlLabel value="1" control={<Radio sx={{ color: PRIMARY_GREEN, "&.Mui-checked": { color: PRIMARY_GREEN } }} />} label="Admin" />
-                <FormControlLabel value="2" control={<Radio sx={{ color: PRIMARY_GREEN, "&.Mui-checked": { color: PRIMARY_GREEN } }} />} label="HR" />
-                <FormControlLabel value="3" control={<Radio sx={{ color: PRIMARY_GREEN, "&.Mui-checked": { color: PRIMARY_GREEN } }} />} label="Employee" />
-              </RadioGroup>
-            </Stack>
+            <Typography className="employee-creation-form-section">
+              Role & Permissions
+            </Typography>
 
-            <Stack direction={{ xs: "column-reverse", sm: "row" }} spacing={1} sx={{ justifyContent: "flex-end", mt: 2 }}>
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={closeDrawer}
-                sx={{ color: PRIMARY_GREEN, borderColor: PRIMARY_GREEN, fontWeight: 700, width: { xs: "100%", sm: "auto" } }}
-              >
-                Cancel
-              </Button>
-              <Button
-                size="small"
-                variant="contained"
-                onClick={saveEmployee}
-                disabled={saving}
-                sx={{ bgcolor: PRIMARY_GREEN, fontWeight: 700, width: { xs: "100%", sm: "auto" }, "&:hover": { bgcolor: "#285c2f" } }}
-              >
-                {saving ? "Saving..." : "Save"}
-              </Button>
-            </Stack>
-          </Stack>
+            <RadioGroup
+              row
+              className="employee-creation-role-options"
+              value={String(form.userType)}
+              onChange={(event) =>
+                updateField(
+                  "userType",
+                  Number(event.target.value) as UserType
+                )
+              }
+            >
+              <FormControlLabel
+                value="1"
+                control={<Radio />}
+                label="Admin"
+              />
+              <FormControlLabel
+                value="2"
+                control={<Radio />}
+                label="HR"
+              />
+              <FormControlLabel
+                value="3"
+                control={<Radio />}
+                label="Employee"
+              />
+            </RadioGroup>
+          </Box>
+
+          <Box className="employee-creation-drawer-actions">
+            <Button
+              variant="outlined"
+              className="employee-creation-cancel"
+              onClick={closeDrawer}
+              disabled={saving}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              variant="contained"
+              className="employee-creation-save"
+              onClick={() => void saveEmployee()}
+              disabled={saving}
+              startIcon={
+                saving ? (
+                  <CircularProgress size={16} color="inherit" />
+                ) : undefined
+              }
+            >
+              {saving
+                ? "Saving..."
+                : isEdit
+                  ? "Update Employee"
+                  : "Create Employee"}
+            </Button>
+          </Box>
         </Box>
       </Drawer>
 
-      <Dialog open={deleteDialogOpen} onClose={cancelDelete} maxWidth="xs" fullWidth className="employee-creation-dialog">
-        <DialogTitle sx={{ fontWeight: 800, color: "#14532d" }}>Delete Employee</DialogTitle>
+      {/* REMOVE CONFIRMATION */}
+
+      <Dialog
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        className="employee-creation-dialog"
+      >
+        <DialogTitle>
+          Remove Employee From View?
+        </DialogTitle>
+
         <DialogContent>
-          <Typography sx={{ color: "#5b7280" }}>
-            Are you sure you want to delete <strong>{employeeToDelete?.name}</strong>?
+          <Typography>
+            Remove <strong>{employeeToDelete?.name}</strong>{" "}
+            from the currently displayed list? This does
+            not delete the employee from the backend.
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2, flexWrap: "wrap", gap: 1 }}>
-          <Button onClick={cancelDelete} variant="outlined" sx={{ color: "#14532d", borderColor: "#bbe6c8", fontWeight: 700 }}>
+
+        <DialogActions>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setDeleteOpen(false);
+              setEmployeeToDelete(null);
+            }}
+          >
             Cancel
           </Button>
-          <Button onClick={confirmDelete} variant="contained" sx={{ bgcolor: "#d14343", fontWeight: 700, "&:hover": { bgcolor: "#b83232" } }}>
-            Sure
+
+          <Button
+            variant="contained"
+            color="error"
+            onClick={confirmDelete}
+          >
+            Remove From View
           </Button>
         </DialogActions>
       </Dialog>
+    </Box>
+  );
+}
+
+function EmployeeStatusChip({
+  status,
+}: {
+  status: EmployeeStatus;
+}) {
+  return (
+    <span
+      className={`employee-creation-status employee-creation-status--${status.toLowerCase()}`}
+    >
+      <span />
+      {status}
+    </span>
+  );
+}
+
+function EmployeeActions({
+  employee,
+  onEdit,
+  onDelete,
+}: {
+  employee: Employee;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <Box className="employee-creation-actions">
+      <Tooltip title="Edit employee">
+        <IconButton
+          aria-label={`Edit ${employee.name}`}
+          onClick={onEdit}
+        >
+          <EditOutlinedIcon fontSize="small" />
+        </IconButton>
+      </Tooltip>
+
+      <Tooltip title="Remove from current view">
+        <IconButton
+          aria-label={`Remove ${employee.name}`}
+          onClick={onDelete}
+        >
+          <DeleteOutlineRoundedIcon fontSize="small" />
+        </IconButton>
+      </Tooltip>
     </Box>
   );
 }

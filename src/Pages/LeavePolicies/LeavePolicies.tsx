@@ -1,488 +1,989 @@
-import { useEffect, useState } from "react";
+
+import { useCallback, useEffect, useState } from "react";
+
 import {
-	Alert,
-	Box,
-	Button,
-	Card,
-	Dialog,
-	DialogActions,
-	DialogContent,
-	DialogTitle,
-	IconButton,
-	Snackbar,
-	Stack,
-	Table,
-	TableBody,
-	TableCell,
-	TableContainer,
-	TableHead,
-	TableRow,
-	TextField,
-	Tooltip,
-	Typography,
+  Alert,
+  Box,
+  Button,
+  Card,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Snackbar,
+  Stack,
+  TextField,
+  Typography,
 } from "@mui/material";
+
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
-import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
+import HealthAndSafetyOutlinedIcon from "@mui/icons-material/HealthAndSafetyOutlined";
+import WorkHistoryOutlinedIcon from "@mui/icons-material/WorkHistoryOutlined";
+import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
+import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
+import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
+
 import api from "../../api/axiosInstance";
 import { HR, ADMIN } from "../../data/permissions";
+
 import "./LeavePolicies.css";
 
+/* =========================================
+   TYPES
+========================================= */
+
 type LeavePolicy = {
-	_id: string;
-	policyName: string;
-	casualLeave: number;
-	sickLeave: number;
-	compensatoryOff: number;
-	permissionsPerMonth: number;
-	createdAt?: string;
-	updatedAt?: string;
+  _id: string;
+  policyName: string;
+  casualLeave: number;
+  sickLeave: number;
+  compensatoryOff: number;
+  permissionsPerMonth: number;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 type PolicyForm = {
-	policyName: string;
-	casualLeave: string;
-	sickLeave: string;
-	compensatoryOff: string;
-	permissionsPerMonth: string;
+  policyName: string;
+  casualLeave: string;
+  sickLeave: string;
+  compensatoryOff: string;
+  permissionsPerMonth: string;
 };
-type FormErrors = Partial<Record<keyof PolicyForm, string>>;
-type ApiResponse<T> = { success?: boolean; message?: string; data?: T };
+
+type FormErrors = Partial<
+  Record<keyof PolicyForm, string>
+>;
+
+type ApiResponse<T> = {
+  success?: boolean;
+  message?: string;
+  data?: T;
+};
+
+type ToastMessage = {
+  severity: "success" | "error";
+  text: string;
+};
+
+/* =========================================
+   CONSTANTS
+========================================= */
+
+const EMPLOYEE_POLICY_NAME = "Employee Leave";
 
 const emptyForm: PolicyForm = {
-	policyName: "",
-	casualLeave: "",
-	sickLeave: "",
-	compensatoryOff: "",
-	permissionsPerMonth: "",
+  policyName: EMPLOYEE_POLICY_NAME,
+  casualLeave: "",
+  sickLeave: "",
+  compensatoryOff: "",
+  permissionsPerMonth: "",
 };
 
-const numericFields: (keyof PolicyForm)[] = ["casualLeave", "sickLeave", "compensatoryOff", "permissionsPerMonth"];
+const numericFields: (keyof PolicyForm)[] = [
+  "casualLeave",
+  "sickLeave",
+  "compensatoryOff",
+  "permissionsPerMonth",
+];
 
-// The backend's documented /leaves/create and /leaves/update contract requires a
-// "businessYear" field. There's no form field for it, so it's derived automatically
-// and sent silently in the payload for both create and edit.
-/**
- * Calculates the business year based on the current date.
- * If current month is April or later (Month >= 3 in JS 0-indexed months),
- * business year is CurrentYear-NextYear (e.g., 2026-2027).
- * If before April, it is PreviousYear-CurrentYear (e.g., 2025-2026).
- */
-export const getBusinessYear = (date = new Date()) => {
-	const currentYear = date.getFullYear();
-	const month = date.getMonth(); // 0 = Jan, 3 = April
+/* =========================================
+   HELPERS
+========================================= */
 
-	// April (Month 3) or later begins the new business year
-	if (month >= 3) {
-		return `${currentYear}-${currentYear + 1}`;
-	} else {
-		return `${currentYear - 1}-${currentYear}`;
-	}
+export const getBusinessYear = (
+  date = new Date()
+): string => {
+  const year = date.getFullYear();
+
+  return date.getMonth() >= 3
+    ? `${year}-${year + 1}`
+    : `${year - 1}-${year}`;
 };
+
+const getUserType = (): number | null => {
+  try {
+    const stored = localStorage.getItem("loggedInUser");
+
+    if (!stored) return null;
+
+    const parsed: unknown = JSON.parse(stored);
+
+    if (
+      !parsed ||
+      typeof parsed !== "object" ||
+      !("userType" in parsed)
+    ) {
+      return null;
+    }
+
+    const value = Number(parsed.userType);
+
+    return Number.isFinite(value) ? value : null;
+  } catch {
+    return null;
+  }
+};
+
+const getErrorMessage = (
+  error: unknown,
+  fallback: string
+): string => {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "response" in error
+  ) {
+    const response = (
+      error as {
+        response?: {
+          data?: ApiResponse<unknown>;
+        };
+      }
+    ).response;
+
+    if (response?.data?.message) {
+      return response.data.message;
+    }
+  }
+
+  return error instanceof Error
+    ? error.message
+    : fallback;
+};
+
+const formatCount = (
+  value: number | null | undefined
+): number => {
+  const result = Number(value ?? 0);
+
+  return Number.isFinite(result)
+    ? Math.max(0, result)
+    : 0;
+};
+
+const isEmployeeLeavePolicy = (
+  policy: LeavePolicy
+): boolean =>
+  policy.policyName.trim().toLowerCase() ===
+  EMPLOYEE_POLICY_NAME.toLowerCase();
+
+/* =========================================
+   COMPONENT
+========================================= */
 
 const LeavePolicies = () => {
-	// Same real auth source as the rest of the app (Sidebar, Check In/Out, dashboards) —
-	// not the mock UserContext, which always returned a hardcoded HR Manager user
-	// regardless of who was actually logged in.
-	const storedUser = localStorage.getItem("loggedInUser");
-	let userType: number | null = null;
-	if (storedUser) {
-		try {
-			userType = Number(JSON.parse(storedUser).userType);
-		} catch {
-			userType = null;
-		}
-	}
-	const canManage = userType === HR || userType === ADMIN;
+  const userType = getUserType();
 
-	const [policies, setPolicies] = useState<LeavePolicy[]>([]);
-	const [selectedPolicy, setSelectedPolicy] = useState<LeavePolicy | null>(null);
-	const [form, setForm] = useState<PolicyForm>(emptyForm);
-	const [fieldErrors, setFieldErrors] = useState<FormErrors>({});
-	const [dialogError, setDialogError] = useState("");
-	const [editingId, setEditingId] = useState<string | null>(null);
-	const [dialogOpen, setDialogOpen] = useState(false);
-	const [toast, setToast] = useState<{ severity: "success" | "error"; text: string } | null>(null);
-	const [loading, setLoading] = useState(true);
-	const [saving, setSaving] = useState(false);
+  const canManage =
+    userType === HR || userType === ADMIN;
 
-	const getErrorMessage = (error: unknown, fallback: string) => {
-		if (typeof error === "object" && error !== null && "response" in error) {
-			const response = (error as { response?: { data?: ApiResponse<unknown> } }).response;
-			if (response?.data?.message) return response.data.message;
-		}
-		return error instanceof Error ? error.message : fallback;
-	};
+  const [policies, setPolicies] = useState<
+    LeavePolicy[]
+  >([]);
 
-	const loadPolicies = async (): Promise<LeavePolicy[]> => {
-		try {
-			setLoading(true);
-			const response = await api.post<ApiResponse<LeavePolicy[]>>("/leaves/list", {});
-			const data = response.data.data;
-			if (!Array.isArray(data)) throw new Error("Invalid leave policy response.");
-			setPolicies(data);
-			return data;
-		} catch (error) {
-			setToast({ severity: "error", text: getErrorMessage(error, "Unable to load leave policies.") });
-			return [];
-		} finally {
-			setLoading(false);
-		}
-	};
+  const [selectedPolicy, setSelectedPolicy] =
+    useState<LeavePolicy | null>(null);
 
-	useEffect(() => {
-		void loadPolicies();
-	}, []);
+  const [form, setForm] = useState<PolicyForm>({
+    ...emptyForm,
+  });
 
-	const openCreate = () => {
-		setEditingId(null);
-		setForm(emptyForm);
-		setFieldErrors({});
-		setDialogError("");
-		setDialogOpen(true);
-	};
+  const [fieldErrors, setFieldErrors] =
+    useState<FormErrors>({});
 
-	const openEdit = (policy: LeavePolicy) => {
-		setEditingId(policy._id);
-		setForm({
-			policyName: policy.policyName,
-			casualLeave: String(policy.casualLeave),
-			sickLeave: String(policy.sickLeave),
-			compensatoryOff: String(policy.compensatoryOff),
-			permissionsPerMonth: String(policy.permissionsPerMonth),
-		});
-		setFieldErrors({});
-		setDialogError("");
-		setDialogOpen(true);
-	};
+  const [dialogError, setDialogError] = useState("");
+  const [editingId, setEditingId] =
+    useState<string | null>(null);
 
-	const updateField = (field: keyof PolicyForm, value: string) => {
-		const nextValue = numericFields.includes(field) ? value.replace(/[^0-9]/g, "") : value;
-		setForm((current) => ({ ...current, [field]: nextValue }));
-		setFieldErrors((current) => ({ ...current, [field]: undefined }));
-	};
+  const [dialogOpen, setDialogOpen] = useState(false);
 
-	const validateForm = (): FormErrors => {
-		const errors: FormErrors = {};
-		if (!form.policyName.trim()) errors.policyName = "Policy name is required.";
-		if (!form.casualLeave.trim()) errors.casualLeave = "Casual leave days are required.";
-		if (!form.sickLeave.trim()) errors.sickLeave = "Sick leave days are required.";
-		if (!form.compensatoryOff.trim()) errors.compensatoryOff = "Compensatory off days are required.";
-		if (!form.permissionsPerMonth.trim()) errors.permissionsPerMonth = "Permissions per month is required.";
-		return errors;
-	};
+  const [toast, setToast] =
+    useState<ToastMessage | null>(null);
 
-	const savePolicy = async () => {
-		const errors = validateForm();
-		if (Object.keys(errors).length > 0) {
-			setFieldErrors(errors);
-			return;
-		}
-		setDialogError("");
-		const payload = {
-			policyName: form.policyName.trim(),
-			businessYear: getBusinessYear(),
-			casualLeave: Number(form.casualLeave),
-			sickLeave: Number(form.sickLeave),
-			compensatoryOff: Number(form.compensatoryOff),
-			permissionsPerMonth: Number(form.permissionsPerMonth),
-		};
-		try {
-			setSaving(true);
-			if (editingId) {
-				await api.post<ApiResponse<LeavePolicy>>("/leaves/update", { _id: editingId, ...payload });
-				setToast({ severity: "success", text: "Leave policy updated successfully." });
-			} else {
-				await api.post<ApiResponse<LeavePolicy>>("/leaves/create", payload);
-				setToast({ severity: "success", text: "Leave policy created successfully." });
-			}
-			setDialogOpen(false);
-			const refreshed = await loadPolicies();
-			if (editingId) {
-				const updated = refreshed.find((item) => item._id === editingId);
-				if (updated) setSelectedPolicy(updated);
-			}
-		} catch (error) {
-			setDialogError(getErrorMessage(error, "Unable to save leave policy."));
-		} finally {
-			setSaving(false);
-		}
-	};
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-	const deletePolicy = async (policy: LeavePolicy) => {
-		if (!window.confirm(`Delete ${policy.policyName}?`)) return;
-		try {
-			await api.post("/leaves/delete", { _id: policy._id });
-			setSelectedPolicy(null);
-			setToast({ severity: "success", text: "Leave policy deleted successfully." });
-			await loadPolicies();
-		} catch (error) {
-			setToast({ severity: "error", text: getErrorMessage(error, "Unable to delete leave policy.") });
-		}
-	};
+  const [deletingId, setDeletingId] =
+    useState<string | null>(null);
 
-	const viewPolicy = (policy: LeavePolicy) => {
-		setSelectedPolicy(policy);
-	};
+  const [loadError, setLoadError] = useState("");
 
-	const policyDialog = (
-		<Dialog
-			className="leave-policies-dialog"
-			open={dialogOpen}
-			onClose={(_event, reason) => {
-				if (reason === "backdropClick" || reason === "escapeKeyDown") return;
-				setDialogOpen(false);
-			}}
-			fullWidth
-			maxWidth="sm"
-		>
-			<DialogTitle>{editingId ? "Edit leave policy" : "Create leave policy"}</DialogTitle>
-			<DialogContent className="leave-policies__dialog-content">
-				{dialogError && (
-					<Alert severity="error" onClose={() => setDialogError("")}>
-						{dialogError}
-					</Alert>
-				)}
-				<TextField
-					label="Policy name *"
-					value={form.policyName}
-					onChange={(event) => updateField("policyName", event.target.value)}
-					error={!!fieldErrors.policyName}
-					helperText={fieldErrors.policyName}
-					fullWidth
-					autoFocus
-				/>
-				<TextField
-					label="Casual Leave (CL) *"
-					value={form.casualLeave}
-					onChange={(event) => updateField("casualLeave", event.target.value)}
-					error={!!fieldErrors.casualLeave}
-					helperText={fieldErrors.casualLeave}
-					slotProps={{ htmlInput: { inputMode: "numeric" } }}
-					fullWidth
-				/>
-				<TextField
-					label="Sick Leave (SL) *"
-					value={form.sickLeave}
-					onChange={(event) => updateField("sickLeave", event.target.value)}
-					error={!!fieldErrors.sickLeave}
-					helperText={fieldErrors.sickLeave}
-					slotProps={{ htmlInput: { inputMode: "numeric" } }}
-					fullWidth
-				/>
-				<TextField
-					label="Compensatory Off *"
-					value={form.compensatoryOff}
-					onChange={(event) => updateField("compensatoryOff", event.target.value)}
-					error={!!fieldErrors.compensatoryOff}
-					helperText={fieldErrors.compensatoryOff}
-					slotProps={{ htmlInput: { inputMode: "numeric" } }}
-					fullWidth
-				/>
-				<TextField
-					label="Permissions per month *"
-					value={form.permissionsPerMonth}
-					onChange={(event) => updateField("permissionsPerMonth", event.target.value)}
-					error={!!fieldErrors.permissionsPerMonth}
-					helperText={fieldErrors.permissionsPerMonth}
-					slotProps={{ htmlInput: { inputMode: "numeric" } }}
-					fullWidth
-				/>
-			</DialogContent>
-			<DialogActions sx={{ flexWrap: "wrap", gap: 1 }}>
-				<Button className="leave-policies__outlined-button" variant="outlined" onClick={() => setDialogOpen(false)}>
-					Cancel
-				</Button>
-				<Button variant="contained" disabled={saving} onClick={() => void savePolicy()}>
-					{saving ? "Saving..." : "Save policy"}
-				</Button>
-			</DialogActions>
-		</Dialog>
-	);
+  const businessYear = getBusinessYear();
 
-	const toastSnackbar = (
-		<Snackbar
-			className="leave-policies-toast"
-			open={!!toast}
-			autoHideDuration={4000}
-			onClose={() => setToast(null)}
-			anchorOrigin={{ vertical: "top", horizontal: "right" }}
-		>
-			{toast ? (
-				<Alert severity={toast.severity} variant="filled" onClose={() => setToast(null)}>
-					{toast.text}
-				</Alert>
-			) : undefined}
-		</Snackbar>
-	);
+  /* =========================================
+     FETCH POLICIES
+  ========================================= */
 
-	if (selectedPolicy) {
-		return (
-			<Box className="leave-policies">
-				<Button startIcon={<ArrowBackRoundedIcon />} className="leave-policies__back" onClick={() => setSelectedPolicy(null)}>
-					Back to Leave Policies
-				</Button>
-				<Box className="leave-policies__detail-header">
-					<Box>
-						<Typography className="leave-policies__title">{selectedPolicy.policyName}</Typography>
-					</Box>
-					{canManage && (
-						<Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ width: { xs: "100%", sm: "auto" } }}>
-							<Button className="leave-policies__outlined-button" variant="outlined" startIcon={<EditOutlinedIcon />} onClick={() => openEdit(selectedPolicy)} sx={{ width: { xs: "100%", sm: "auto" } }}>
-								Edit
-							</Button>
-							<Button className="leave-policies__outlined-button" variant="outlined" startIcon={<DeleteOutlineRoundedIcon />} onClick={() => void deletePolicy(selectedPolicy)} sx={{ width: { xs: "100%", sm: "auto" } }}>
-								Delete
-							</Button>
-						</Stack>
-					)}
-				</Box>
-				<Card className="leave-policies__detail-card">
-					<Typography className="leave-policies__section-title">Leave entitlement</Typography>
-					<Box className="leave-policies__line-list">
-						<Box className="leave-policies__line">
-							<Typography className="leave-policies__line-label">Casual Leave (CL)</Typography>
-							<Typography className="leave-policies__line-value">{selectedPolicy.casualLeave} days per year</Typography>
-						</Box>
-						<Box className="leave-policies__line">
-							<Typography className="leave-policies__line-label">Sick Leave (SL)</Typography>
-							<Typography className="leave-policies__line-value">{selectedPolicy.sickLeave} days per year</Typography>
-						</Box>
-						<Box className="leave-policies__line">
-							<Typography className="leave-policies__line-label">Compensatory Off</Typography>
-							<Typography className="leave-policies__line-value">{selectedPolicy.compensatoryOff} days per year</Typography>
-						</Box>
-						<Box className="leave-policies__line">
-							<Typography className="leave-policies__line-label">Permissions</Typography>
-							<Typography className="leave-policies__line-value">{selectedPolicy.permissionsPerMonth} per month</Typography>
-						</Box>
-					</Box>
-				</Card>
-				{policyDialog}
-				{toastSnackbar}
-			</Box>
-		);
-	}
+  const loadPolicies = useCallback(
+    async (): Promise<LeavePolicy[] | null> => {
+      setLoading(true);
+      setLoadError("");
 
-	return (
-		<Box className="leave-policies">
-			<Box className="leave-policies__header">
-				<Box>
-					<Typography className="leave-policies__title">Leave Policies</Typography>
-					<Typography className="leave-policies__subtitle">
-						{canManage ? "Create and manage leave entitlements for the company." : "View the leave entitlements available to employees."}
-					</Typography>
-				</Box>
-				{canManage && (
-					<Button variant="contained" startIcon={<AddRoundedIcon />} onClick={openCreate} disabled={loading || policies.length > 0} sx={{ width: { xs: "100%", sm: "auto" } }}>
-						Create Policy
-					</Button>
-				)}
-			</Box>
+      try {
+        const response = await api.post<
+          ApiResponse<LeavePolicy[]>
+        >("/leaves/list", {});
 
-			{/* ============ MOBILE / TABLET: card list (below md) ============ */}
-			<Stack spacing={1.5} className="leave-policies__card-list" sx={{ display: { xs: "flex", md: "none" } }}>
-				{loading ? (
-					<Card className="leave-policies__policy-card">
-						<Typography sx={{ textAlign: "center", color: "#6b756d" }}>Loading leave policies...</Typography>
-					</Card>
-				) : policies.length > 0 ? (
-					policies.map((policy) => (
-						<Card key={policy._id} className="leave-policies__policy-card">
-							<Box className="leave-policies__policy-card-header">
-								<Typography className="leave-policies__policy-name">{policy.policyName}</Typography>
-								<Tooltip title="View policy">
-									<IconButton onClick={() => viewPolicy(policy)}>
-										<VisibilityOutlinedIcon />
-									</IconButton>
-								</Tooltip>
-							</Box>
-							<Box className="leave-policies__policy-card-grid">
-								<Box className="leave-policies__policy-card-field">
-									<Typography className="leave-policies__policy-card-label">CL</Typography>
-									<Typography className="leave-policies__policy-card-value">{policy.casualLeave} days</Typography>
-								</Box>
-								<Box className="leave-policies__policy-card-field">
-									<Typography className="leave-policies__policy-card-label">SL</Typography>
-									<Typography className="leave-policies__policy-card-value">{policy.sickLeave} days</Typography>
-								</Box>
-								<Box className="leave-policies__policy-card-field">
-									<Typography className="leave-policies__policy-card-label">Comp Off</Typography>
-									<Typography className="leave-policies__policy-card-value">{policy.compensatoryOff} days</Typography>
-								</Box>
-								<Box className="leave-policies__policy-card-field">
-									<Typography className="leave-policies__policy-card-label">Permissions</Typography>
-									<Typography className="leave-policies__policy-card-value">{policy.permissionsPerMonth} /month</Typography>
-								</Box>
-							</Box>
-						</Card>
-					))
-				) : (
-					<Card className="leave-policies__policy-card">
-						<Typography sx={{ textAlign: "center", color: "#6b756d" }}>No leave policies found.</Typography>
-					</Card>
-				)}
-			</Stack>
+        if (response.data.success === false) {
+          throw new Error(
+            response.data.message ||
+              "Unable to load leave policies."
+          );
+        }
 
-			{/* ============ DESKTOP: table (md and up) ============ */}
-			<Card className="leave-policies__table-card" sx={{ display: { xs: "none", md: "block" } }}>
-				<Typography className="leave-policies__section-title">Company policies</Typography>
-				<TableContainer>
-					<Table>
-						<TableHead>
-							<TableRow>
-								<TableCell>Policy name</TableCell>
-								<TableCell align="center">CL</TableCell>
-								<TableCell align="center">SL</TableCell>
-								<TableCell align="center">Comp Off</TableCell>
-								<TableCell align="center">Permissions</TableCell>
-								<TableCell align="right">Actions</TableCell>
-							</TableRow>
-						</TableHead>
-						<TableBody>
-							{loading ? (
-								<TableRow>
-									<TableCell colSpan={6} align="center">
-										Loading leave policies...
-									</TableCell>
-								</TableRow>
-							) : policies.length > 0 ? (
-								policies.map((policy) => (
-									<TableRow key={policy._id} hover>
-										<TableCell>
-											<Typography className="leave-policies__policy-name">{policy.policyName}</Typography>
-										</TableCell>
-										<TableCell align="center">{policy.casualLeave} days</TableCell>
-										<TableCell align="center">{policy.sickLeave} days</TableCell>
-										<TableCell align="center">{policy.compensatoryOff} days</TableCell>
-										<TableCell align="center">{policy.permissionsPerMonth} /month</TableCell>
-										<TableCell align="right">
-											<Tooltip title="View policy">
-												<IconButton onClick={() => viewPolicy(policy)}>
-													<VisibilityOutlinedIcon />
-												</IconButton>
-											</Tooltip>
-										</TableCell>
-									</TableRow>
-								))
-							) : (
-								<TableRow>
-									<TableCell colSpan={6} align="center">
-										No leave policies found.
-									</TableCell>
-								</TableRow>
-							)}
-						</TableBody>
-					</Table>
-				</TableContainer>
-			</Card>
+        const data = response.data.data;
 
-			{policyDialog}
-			{toastSnackbar}
-		</Box>
-	);
+        if (!Array.isArray(data)) {
+          throw new Error(
+            "Invalid leave policy response."
+          );
+        }
+
+        setPolicies(data);
+
+        // Directly select Employee Leave.
+        // The listing page is no longer displayed.
+        const employeeLeavePolicy = data.find(
+          isEmployeeLeavePolicy
+        );
+
+        setSelectedPolicy(
+          employeeLeavePolicy ?? null
+        );
+
+        return data;
+      } catch (error) {
+        setPolicies([]);
+        setSelectedPolicy(null);
+
+        setLoadError(
+          getErrorMessage(
+            error,
+            "Unable to load leave policies."
+          )
+        );
+
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    void loadPolicies();
+  }, [loadPolicies]);
+
+  /* =========================================
+     CREATE POLICY
+  ========================================= */
+
+  const openCreate = () => {
+    // Preserve existing one-policy limit.
+    if (
+      !canManage ||
+      policies.length > 0 ||
+      loading
+    ) {
+      return;
+    }
+
+    setEditingId(null);
+    setForm({ ...emptyForm });
+    setFieldErrors({});
+    setDialogError("");
+    setDialogOpen(true);
+  };
+
+  /* =========================================
+     EDIT POLICY
+  ========================================= */
+
+  const openEdit = (policy: LeavePolicy) => {
+    if (!canManage) return;
+
+    setEditingId(policy._id);
+
+    setForm({
+      policyName: policy.policyName,
+      casualLeave: String(policy.casualLeave),
+      sickLeave: String(policy.sickLeave),
+      compensatoryOff: String(
+        policy.compensatoryOff
+      ),
+      permissionsPerMonth: String(
+        policy.permissionsPerMonth
+      ),
+    });
+
+    setFieldErrors({});
+    setDialogError("");
+    setDialogOpen(true);
+  };
+
+  /* =========================================
+     CLOSE DIALOG
+  ========================================= */
+
+  const closeDialog = () => {
+    if (saving) return;
+
+    setDialogOpen(false);
+    setDialogError("");
+    setFieldErrors({});
+  };
+
+  /* =========================================
+     UPDATE FORM FIELDS
+  ========================================= */
+
+  const updateField = (
+    field: keyof PolicyForm,
+    value: string
+  ) => {
+    const nextValue = numericFields.includes(field)
+      ? value.replace(/[^0-9]/g, "")
+      : value;
+
+    setForm((current) => ({
+      ...current,
+      [field]: nextValue,
+    }));
+
+    setFieldErrors((current) => ({
+      ...current,
+      [field]: undefined,
+    }));
+
+    setDialogError("");
+  };
+
+  /* =========================================
+     VALIDATE FORM
+  ========================================= */
+
+  const validateForm = (): FormErrors => {
+    const errors: FormErrors = {};
+
+    if (!form.policyName.trim()) {
+      errors.policyName =
+        "Policy name is required.";
+    }
+
+    if (!form.casualLeave.trim()) {
+      errors.casualLeave =
+        "Casual leave days are required.";
+    }
+
+    if (!form.sickLeave.trim()) {
+      errors.sickLeave =
+        "Sick leave days are required.";
+    }
+
+    if (!form.compensatoryOff.trim()) {
+      errors.compensatoryOff =
+        "Compensatory off days are required.";
+    }
+
+    if (!form.permissionsPerMonth.trim()) {
+      errors.permissionsPerMonth =
+        "Permissions per month is required.";
+    }
+
+    return errors;
+  };
+
+  /* =========================================
+     SAVE POLICY
+  ========================================= */
+
+  const savePolicy = async () => {
+    if (!canManage || saving) return;
+
+    const errors = validateForm();
+
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
+
+    setDialogError("");
+    setSaving(true);
+
+    const currentEditingId = editingId;
+
+    const payload = {
+      policyName: form.policyName.trim(),
+      businessYear: getBusinessYear(),
+      casualLeave: Number(form.casualLeave),
+      sickLeave: Number(form.sickLeave),
+      compensatoryOff: Number(
+        form.compensatoryOff
+      ),
+      permissionsPerMonth: Number(
+        form.permissionsPerMonth
+      ),
+    };
+
+    try {
+      if (currentEditingId) {
+        const response = await api.post<
+          ApiResponse<LeavePolicy>
+        >("/leaves/update", {
+          _id: currentEditingId,
+          ...payload,
+        });
+
+        if (response.data.success === false) {
+          throw new Error(
+            response.data.message ||
+              "Unable to update leave policy."
+          );
+        }
+      } else {
+        const response = await api.post<
+          ApiResponse<LeavePolicy>
+        >("/leaves/create", payload);
+
+        if (response.data.success === false) {
+          throw new Error(
+            response.data.message ||
+              "Unable to create leave policy."
+          );
+        }
+      }
+
+      // Reload policy and its updated entitlements.
+      const refreshed = await loadPolicies();
+
+      if (!refreshed) {
+        throw new Error(
+          "Policy was saved, but the latest details could not be loaded. Please refresh."
+        );
+      }
+
+      setDialogOpen(false);
+      setEditingId(null);
+
+      setToast({
+        severity: "success",
+        text: currentEditingId
+          ? "Leave policy updated successfully."
+          : "Leave policy created successfully.",
+      });
+    } catch (error) {
+      setDialogError(
+        getErrorMessage(
+          error,
+          "Unable to save leave policy."
+        )
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  /* =========================================
+     DELETE POLICY
+  ========================================= */
+
+  const deletePolicy = async (
+    policy: LeavePolicy
+  ) => {
+    if (!canManage || deletingId) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${policy.policyName}"?`
+    );
+
+    if (!confirmed) return;
+
+    setDeletingId(policy._id);
+
+    try {
+      const response = await api.post<
+        ApiResponse<unknown>
+      >("/leaves/delete", {
+        _id: policy._id,
+      });
+
+      if (response.data.success === false) {
+        throw new Error(
+          response.data.message ||
+            "Unable to delete leave policy."
+        );
+      }
+
+      const refreshed = await loadPolicies();
+
+      if (!refreshed) {
+        throw new Error(
+          "Policy was deleted, but the latest details could not be loaded. Please refresh."
+        );
+      }
+
+      setToast({
+        severity: "success",
+        text: "Leave policy deleted successfully.",
+      });
+    } catch (error) {
+      setToast({
+        severity: "error",
+        text: getErrorMessage(
+          error,
+          "Unable to delete leave policy."
+        ),
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  /* =========================================
+     LEAVE ENTITLEMENT VALUES
+  ========================================= */
+
+  const getPolicyValues = (policy: LeavePolicy) => [
+    {
+      label: "Casual Leave",
+      shortLabel: "CL",
+      value: formatCount(policy.casualLeave),
+      unit: "days/year",
+      icon: <CalendarTodayOutlinedIcon />,
+      tone: "green",
+    },
+    {
+      label: "Sick Leave",
+      shortLabel: "SL",
+      value: formatCount(policy.sickLeave),
+      unit: "days/year",
+      icon: <HealthAndSafetyOutlinedIcon />,
+      tone: "blue",
+    },
+    {
+      label: "Compensatory Off",
+      shortLabel: "Comp Off",
+      value: formatCount(
+        policy.compensatoryOff
+      ),
+      unit: "days/year",
+      icon: <WorkHistoryOutlinedIcon />,
+      tone: "orange",
+    },
+    {
+      label: "Permissions",
+      shortLabel: "Permission",
+      value: formatCount(
+        policy.permissionsPerMonth
+      ),
+      unit: "/month",
+      icon: <AccessTimeOutlinedIcon />,
+      tone: "purple",
+    },
+  ];
+
+  /* =========================================
+     CREATE / EDIT DIALOG
+  ========================================= */
+
+  const policyDialog = (
+    <Dialog
+      className="leave-policies-dialog"
+      open={dialogOpen}
+      onClose={closeDialog}
+      fullWidth
+      maxWidth="sm"
+      aria-labelledby="leave-policy-dialog-title"
+    >
+      <DialogTitle id="leave-policy-dialog-title">
+        {editingId
+          ? "Edit Leave Policy"
+          : "Create Leave Policy"}
+
+        <Typography className="leave-policies__dialog-subtitle">
+          Configure the company's employee leave
+          entitlements.
+        </Typography>
+      </DialogTitle>
+
+      <DialogContent className="leave-policies__dialog-content">
+        {dialogError && (
+          <Alert
+            severity="error"
+            onClose={() => setDialogError("")}
+          >
+            {dialogError}
+          </Alert>
+        )}
+
+        <TextField
+          label="Policy Name"
+          value={form.policyName}
+          onChange={(event) =>
+            updateField(
+              "policyName",
+              event.target.value
+            )
+          }
+          error={Boolean(fieldErrors.policyName)}
+          helperText={fieldErrors.policyName}
+          fullWidth
+          required
+          autoFocus
+          disabled={saving}
+        />
+
+        <Box className="leave-policies__form-grid">
+          {(
+            [
+              {
+                key: "casualLeave",
+                label: "Casual Leave (CL)",
+              },
+              {
+                key: "sickLeave",
+                label: "Sick Leave (SL)",
+              },
+              {
+                key: "compensatoryOff",
+                label: "Compensatory Off",
+              },
+              {
+                key: "permissionsPerMonth",
+                label: "Permissions per Month",
+              },
+            ] as const
+          ).map((field) => (
+            <TextField
+              key={field.key}
+              label={field.label}
+              value={form[field.key]}
+              onChange={(event) =>
+                updateField(
+                  field.key,
+                  event.target.value
+                )
+              }
+              error={Boolean(
+                fieldErrors[field.key]
+              )}
+              helperText={fieldErrors[field.key]}
+              slotProps={{
+                htmlInput: {
+                  inputMode: "numeric",
+                  min: 0,
+                },
+              }}
+              disabled={saving}
+              fullWidth
+              required
+            />
+          ))}
+        </Box>
+
+        <Box className="leave-policies__business-year">
+          <CalendarTodayOutlinedIcon />
+
+          <Typography>
+            Business Year:{" "}
+            <strong>{businessYear}</strong>
+          </Typography>
+        </Box>
+      </DialogContent>
+
+      <DialogActions className="leave-policies__dialog-actions">
+        <Button
+          variant="outlined"
+          className="leave-policies__outlined-button"
+          onClick={closeDialog}
+          disabled={saving}
+        >
+          Cancel
+        </Button>
+
+        <Button
+          variant="contained"
+          onClick={() => void savePolicy()}
+          disabled={saving}
+          startIcon={
+            saving ? (
+              <CircularProgress
+                size={16}
+                color="inherit"
+              />
+            ) : undefined
+          }
+        >
+          {saving
+            ? "Saving..."
+            : editingId
+              ? "Update Policy"
+              : "Create Policy"}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+
+  /* =========================================
+     SNACKBAR
+  ========================================= */
+
+  const toastSnackbar = (
+    <Snackbar
+      className="leave-policies-toast"
+      open={Boolean(toast)}
+      autoHideDuration={4000}
+      onClose={() => setToast(null)}
+      anchorOrigin={{
+        vertical: "top",
+        horizontal: "right",
+      }}
+    >
+      {toast ? (
+        <Alert
+          severity={toast.severity}
+          variant="filled"
+          onClose={() => setToast(null)}
+        >
+          {toast.text}
+        </Alert>
+      ) : undefined}
+    </Snackbar>
+  );
+
+  /* =========================================
+     DIRECT EMPLOYEE LEAVE OVERVIEW
+  ========================================= */
+
+  if (!loading && selectedPolicy && !loadError) {
+    const values = getPolicyValues(selectedPolicy);
+
+    return (
+      <Box className="leave-policies">
+
+        {/* HEADER */}
+
+        <Box className="leave-policies__detail-header">
+          <Box className="leave-policies__heading-content">
+            <Box className="leave-policies__heading-icon">
+              <DescriptionOutlinedIcon />
+            </Box>
+
+            <Box>
+              <Typography
+                component="h2"
+                className="leave-policies__title"
+              >
+                {selectedPolicy.policyName}
+              </Typography>
+
+              <Typography className="leave-policies__subtitle">
+                Leave entitlement overview
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* HR / ADMIN ACTIONS */}
+
+          {canManage && (
+            <Stack
+              direction={{
+                xs: "column",
+                sm: "row",
+              }}
+              spacing={1}
+              sx={{
+                width: {
+                  xs: "100%",
+                  sm: "auto",
+                },
+              }}
+            >
+              <Button
+                variant="outlined"
+                className="leave-policies__outlined-button"
+                startIcon={<EditOutlinedIcon />}
+                onClick={() =>
+                  openEdit(selectedPolicy)
+                }
+              >
+                Edit Policy
+              </Button>
+
+              <Button
+                variant="outlined"
+                color="error"
+                className="leave-policies__delete-button"
+                startIcon={
+                  <DeleteOutlineRoundedIcon />
+                }
+                disabled={deletingId !== null}
+                onClick={() =>
+                  void deletePolicy(selectedPolicy)
+                }
+              >
+                {deletingId
+                  ? "Deleting..."
+                  : "Delete Policy"}
+              </Button>
+            </Stack>
+          )}
+        </Box>
+
+        {/* FOUR ENTITLEMENT CARDS */}
+
+        <Box className="leave-policies__detail-stat-grid">
+          {values.map((item) => (
+            <Card
+              key={item.label}
+              className={`leave-policies__stat leave-policies__stat--${item.tone}`}
+            >
+              <Box className="leave-policies__stat-icon">
+                {item.icon}
+              </Box>
+
+              <Typography className="leave-policies__stat-label">
+                {item.label}
+              </Typography>
+
+              <Typography className="leave-policies__stat-value">
+                {item.value}
+              </Typography>
+
+              <Typography className="leave-policies__stat-unit">
+                {item.unit}
+              </Typography>
+            </Card>
+          ))}
+        </Box>
+
+        {/* ENTITLEMENT DETAILS */}
+
+        <Card className="leave-policies__detail-card">
+          <Typography className="leave-policies__section-title">
+            Leave Entitlements
+          </Typography>
+
+          <Typography className="leave-policies__section-description">
+            Entitlements configured under this
+            company leave policy.
+          </Typography>
+
+          <Box className="leave-policies__line-list">
+            {values.map((item) => (
+              <Box
+                key={item.label}
+                className="leave-policies__line"
+              >
+                <Typography className="leave-policies__line-label">
+                  {item.label}
+                </Typography>
+
+                <Typography className="leave-policies__line-value">
+                  {item.value} {item.unit}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Card>
+
+        {policyDialog}
+        {toastSnackbar}
+      </Box>
+    );
+  }
+
+  /* =========================================
+     LOADING / ERROR / NO POLICY
+     NO LISTING PAGE
+  ========================================= */
+
+  return (
+    <Box className="leave-policies">
+
+      <Box className="leave-policies__detail-header">
+        <Box className="leave-policies__heading-content">
+          <Box className="leave-policies__heading-icon">
+            <DescriptionOutlinedIcon />
+          </Box>
+
+          <Box>
+            <Typography
+              component="h2"
+              className="leave-policies__title"
+            >
+              Employee Leave
+            </Typography>
+
+            <Typography className="leave-policies__subtitle">
+              Leave entitlement overview
+            </Typography>
+          </Box>
+        </Box>
+
+        {!loading &&
+          !loadError &&
+          canManage &&
+          policies.length === 0 && (
+            <Button
+              variant="contained"
+              startIcon={<AddRoundedIcon />}
+              onClick={openCreate}
+              className="leave-policies__create-button"
+            >
+              Create Policy
+            </Button>
+          )}
+      </Box>
+
+      {loading ? (
+        <Card className="leave-policies__detail-card">
+          <Box className="leave-policies__loading">
+            <CircularProgress size={28} />
+
+            <Typography>
+              Loading Employee Leave policy...
+            </Typography>
+          </Box>
+        </Card>
+      ) : loadError ? (
+        <Alert
+          severity="error"
+          className="leave-policies__error"
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              startIcon={<RefreshRoundedIcon />}
+              onClick={() => void loadPolicies()}
+            >
+              Retry
+            </Button>
+          }
+        >
+          {loadError}
+        </Alert>
+      ) : (
+        <Alert severity="info">
+          {policies.length > 0
+            ? "The Employee Leave policy was not found. Please contact HR to check the configured policy."
+            : canManage
+              ? "No Employee Leave policy is configured. Click Create Policy to add the leave entitlements."
+              : "No Employee Leave policy is configured. Please contact HR."}
+        </Alert>
+      )}
+
+      {policyDialog}
+      {toastSnackbar}
+    </Box>
+  );
 };
 
 export default LeavePolicies;

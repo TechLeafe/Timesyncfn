@@ -1,4 +1,6 @@
+
 import {
+  useCallback,
   useEffect,
   useState,
 } from "react";
@@ -18,591 +20,432 @@ import {
 
 import "./TaskDetails.css";
 
+const formatDate = (value?: string | null) => {
+  if (!value) return "-";
+
+  const datePart = value.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+  const date = datePart
+    ? new Date(`${datePart}T12:00:00`)
+    : new Date(value);
+
+  if (Number.isNaN(date.getTime())) return value;
+
+  return date.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+const getErrorMessage = (
+  error: unknown,
+  fallback: string
+) => {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "response" in error
+  ) {
+    const response = (
+      error as {
+        response?: {
+          data?: { message?: string };
+        };
+      }
+    ).response;
+
+    if (response?.data?.message) {
+      return response.data.message;
+    }
+  }
+
+  return error instanceof Error ? error.message : fallback;
+};
+
+const getStatusClass = (value?: string) => {
+  const status = value?.toLowerCase().replace(/[\s_]+/g, "-");
+
+  if (status === "completed") return "completed";
+  if (status === "in-progress") return "in-progress";
+
+  return "pending";
+};
 
 function TaskDetails() {
   const navigate = useNavigate();
-
-  const { id } =
-    useParams<{ id: string }>();
+  const { id } = useParams<{ id: string }>();
 
   const [task, setTask] =
     useState<DailyTaskItem | null>(null);
 
-  const [loading, setLoading] =
-    useState(true);
-
-  const [error, setError] =
-    useState("");
-
   const [status, setStatus] =
     useState<TaskStatus>("Pending");
 
-  const [comment, setComment] =
-    useState("");
+  const [comment, setComment] = useState("");
 
-  const [statusLoading, setStatusLoading] =
-    useState(false);
+  const [loading, setLoading] = useState(true);
+  const [statusLoading, setStatusLoading] = useState(false);
+  const [commentLoading, setCommentLoading] = useState(false);
 
-  const [commentLoading, setCommentLoading] =
-    useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-
-  /* =========================================================
-     FORMAT DATE
-  ========================================================= */
-
-  const formatDate = (
-    value?: string | null
-  ) => {
-    if (!value) {
-      return "-";
+  const loadTask = useCallback(async () => {
+    if (!id) {
+      setTask(null);
+      setError("Task ID not found.");
+      setLoading(false);
+      return;
     }
 
-    const date =
-      new Date(value);
+    setLoading(true);
+    setError("");
 
-    if (
-      Number.isNaN(
-        date.getTime()
-      )
-    ) {
-      return value;
+    try {
+      const response = await getTaskById(id);
+      const taskData = response.data?.data;
+
+      if (!taskData) {
+        throw new Error("Task not found.");
+      }
+
+      setTask(taskData);
+      setStatus(taskData.status || "Pending");
+    } catch (err) {
+      setTask(null);
+      setError(
+        getErrorMessage(err, "Unable to load task details.")
+      );
+    } finally {
+      setLoading(false);
     }
-
-    return date.toLocaleDateString(
-      "en-IN",
-      {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      }
-    );
-  };
-
-
-  /* =========================================================
-     LOAD TASK
-  ========================================================= */
-
-  const loadTask =
-    async () => {
-      if (!id) {
-        setError(
-          "Task ID not found."
-        );
-
-        setLoading(false);
-
-        return;
-      }
-
-      try {
-        setLoading(true);
-
-        const response =
-          await getTaskById(id);
-
-        console.log(
-          "Task Details Response:",
-          response
-        );
-
-        const taskData =
-          response.data?.data;
-
-        if (!taskData) {
-          setError(
-            "Task not found."
-          );
-
-          return;
-        }
-
-        setTask(taskData);
-
-        setStatus(
-          taskData.status ||
-            "Pending"
-        );
-
-      } catch (err: any) {
-        console.error(
-          "Task details error:",
-          err
-        );
-
-        setError(
-          err.response?.data?.message ||
-            "Unable to load task details."
-        );
-
-      } finally {
-        setLoading(false);
-      }
-    };
-
-
-  useEffect(() => {
-    loadTask();
   }, [id]);
 
+  useEffect(() => {
+    void loadTask();
+  }, [loadTask]);
 
-  /* =========================================================
-     UPDATE STATUS
-  ========================================================= */
+  const handleStatusUpdate = async () => {
+    if (
+      !id ||
+      !task ||
+      statusLoading ||
+      status === (task.status || "Pending")
+    ) {
+      return;
+    }
 
-  const handleStatusUpdate =
-    async () => {
-      if (!id) {
-        return;
+    setStatusLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await changeTaskStatus(id, status);
+
+      if (response.data?.success === false) {
+        throw new Error(
+          response.data.message ||
+            "Unable to update task status."
+        );
       }
 
-      try {
-        setStatusLoading(true);
+      setTask((previous) =>
+        previous ? { ...previous, status } : previous
+      );
 
-        await changeTaskStatus(
-          id,
-          status
-        );
+      setSuccess("Task status updated successfully.");
+    } catch (err) {
+      setError(
+        getErrorMessage(err, "Unable to update task status.")
+      );
+    } finally {
+      setStatusLoading(false);
+    }
+  };
 
-        setTask((previous) =>
-          previous
-            ? {
-                ...previous,
-                status,
-              }
-            : previous
-        );
+  const handleAddComment = async () => {
+    if (!id || commentLoading) return;
 
-      } catch (err: any) {
-        console.error(
-          "Status update error:",
-          err
-        );
+    if (!comment.trim()) {
+      setError("Please enter a comment.");
+      return;
+    }
 
-        setError(
-          err.response?.data?.message ||
-            "Unable to update status."
-        );
+    setCommentLoading(true);
+    setError("");
+    setSuccess("");
 
-      } finally {
-        setStatusLoading(false);
-      }
-    };
+    try {
+      const response = await addTaskComment(
+        id,
+        comment.trim()
+      );
 
-
-  /* =========================================================
-     ADD COMMENT
-  ========================================================= */
-
-  const handleAddComment =
-    async () => {
-      if (!id) {
-        return;
-      }
-
-      if (!comment.trim()) {
-        return;
-      }
-
-      try {
-        setCommentLoading(true);
-
-        const response =
-          await addTaskComment(
-            id,
-            comment.trim()
-          );
-
-        console.log(
-          "Comment Response:",
-          response.data
-        );
-
-        setComment("");
-
-        await loadTask();
-
-      } catch (err: any) {
-        console.error(
-          "Comment error:",
-          err
-        );
-
-        setError(
-          err.response?.data?.message ||
+      if (response.data?.success === false) {
+        throw new Error(
+          response.data.message ||
             "Unable to add comment."
         );
-
-      } finally {
-        setCommentLoading(false);
       }
-    };
 
+      setComment("");
+      await loadTask();
+      setSuccess("Comment added successfully.");
+    } catch (err) {
+      setError(
+        getErrorMessage(err, "Unable to add comment.")
+      );
+    } finally {
+      setCommentLoading(false);
+    }
+  };
 
-  /* =========================================================
-     LOADING
-  ========================================================= */
-
-  if (loading) {
-    return (
-      <div className="task-details-page">
-        Loading task details...
-      </div>
-    );
-  }
-
-
-  /* =========================================================
-     ERROR / NOT FOUND
-  ========================================================= */
-
-  if (!task) {
-    return (
-      <div className="task-details-page">
-
-        <div className="task-details-header">
-
-          <h1>Task Details</h1>
-
-          <button
-            type="button"
-            className="task-details-back-button"
-            onClick={() =>
-              navigate(-1)
-            }
-          >
-            ← Back
-          </button>
-
-        </div>
-
-        <div className="task-details-error">
-          {error ||
-            "Task not found."}
-        </div>
-
-      </div>
-    );
-  }
-
-
-  /* =========================================================
-     UI
-  ========================================================= */
+  const backToTasks = () =>
+    navigate("/daily-task");
 
   return (
     <div className="task-details-page">
+      <header className="task-details-header">
+        <div className="task-details-heading">
+          <div className="task-details-heading-icon">
+            <svg
+              width="23"
+              height="23"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <rect x="4" y="3" width="16" height="18" rx="2" />
+              <path d="M8 9h8M8 14h8" />
+            </svg>
+          </div>
 
-      {/* HEADER */}
-
-      <div className="task-details-header">
-
-        <div>
-          <h1>
-            Task Details
-          </h1>
-
-          <p>
-            View and manage task information.
-          </p>
+          <div>
+            <h1>Task Details</h1>
+            <p>View task information, progress, and comments.</p>
+          </div>
         </div>
 
         <button
           type="button"
           className="task-details-back-button"
-          onClick={() =>
-            navigate(-1)
-          }
+          onClick={backToTasks}
         >
-          ← Back
+          ← Back to Tasks
         </button>
-
-      </div>
-
+      </header>
 
       {error && (
-        <div className="task-details-error">
-          {error}
+        <div className="task-details-error" role="alert">
+          <span>{error}</span>
+
+          {!task && (
+            <button
+              type="button"
+              onClick={() => void loadTask()}
+              disabled={loading}
+            >
+              Retry
+            </button>
+          )}
         </div>
       )}
 
-
-      {/* TASK INFORMATION */}
-
-      <div className="task-details-card">
-
-        <div className="task-details-title-row">
-
-          <div>
-            <span className="task-small-label">
-              Task Title
-            </span>
-
-            <h2>
-              {task.title}
-            </h2>
-          </div>
-
-          <div className="task-current-status">
-
-            <span
-              className={`details-status-dot ${
-                task.status
-                  ?.toLowerCase()
-                  .replace(
-                    " ",
-                    "-"
-                  ) ||
-                "pending"
-              }`}
-            />
-
-            {task.status ||
-              "Pending"}
-
-          </div>
-
+      {success && (
+        <div className="task-details-success" role="status">
+          {success}
         </div>
+      )}
 
-
-        <div className="task-description">
-
-          <span className="task-small-label">
-            Description
-          </span>
-
-          <p>
-            {task.description ||
-              "No description available."}
-          </p>
-
+      {loading && !task ? (
+        <div className="task-details-card task-details-message">
+          Loading task details...
         </div>
-
-
-        <div className="task-details-info-grid">
-
-          <div>
-            <span>
-              Priority
-            </span>
-
-            <strong>
-              {task.priority}
-            </strong>
-          </div>
-
-          <div>
-            <span>
-              Business Year
-            </span>
-
-            <strong>
-              {task.businessYear ||
-                "-"}
-            </strong>
-          </div>
-
-          <div>
-            <span>
-              From Date
-            </span>
-
-            <strong>
-              {formatDate(
-                task.fromDate
-              )}
-            </strong>
-          </div>
-
-          <div>
-            <span>
-              To Date
-            </span>
-
-            <strong>
-              {formatDate(
-                task.toDate
-              )}
-            </strong>
-          </div>
-
-          <div>
-            <span>
-              Created On
-            </span>
-
-            <strong>
-              {formatDate(
-                task.createdAt
-              )}
-            </strong>
-          </div>
-
-          <div>
-            <span>
-              Completed Date
-            </span>
-
-            <strong>
-              {formatDate(
-                task.completedDate
-              )}
-            </strong>
-          </div>
-
+      ) : !task ? (
+        <div className="task-details-card task-details-message">
+          Task details are unavailable.
         </div>
+      ) : (
+        <>
+          <section className="task-details-card">
+            <div className="task-details-title-row">
+              <div>
+                <span className="task-small-label">Task Title</span>
+                <h2>{task.title}</h2>
+              </div>
 
-      </div>
-
-
-      {/* UPDATE STATUS */}
-
-      <div className="task-status-section">
-
-        <h2>
-          Update Status
-        </h2>
-
-        <div className="task-status-options">
-
-          {(
-            [
-              "Pending",
-              "In Progress",
-              "Completed",
-            ] as TaskStatus[]
-          ).map(
-            (item) => (
-              <label
-                key={item}
-                className="task-status-option"
+              <div
+                className={`task-current-status task-current-status--${getStatusClass(
+                  task.status
+                )}`}
               >
-                <input
-                  type="radio"
-                  name="task-status"
-                  value={item}
-                  checked={
-                    status === item
-                  }
-                  onChange={() =>
-                    setStatus(item)
-                  }
+                <span
+                  className={`details-status-dot ${getStatusClass(
+                    task.status
+                  )}`}
                 />
 
-                {item}
-              </label>
-            )
-          )}
+                {task.status || "Pending"}
+              </div>
+            </div>
 
-        </div>
+            <div className="task-description">
+              <span className="task-small-label">
+                Description
+              </span>
 
-        <button
-          type="button"
-          className="update-status-button"
-          onClick={
-            handleStatusUpdate
-          }
-          disabled={
-            statusLoading
-          }
-        >
-          {statusLoading
-            ? "Updating..."
-            : "Update Status"}
-        </button>
+              <p>
+                {task.description ||
+                  "No description available."}
+              </p>
+            </div>
 
-      </div>
-
-
-      {/* COMMENTS */}
-
-      <div className="task-comments-section">
-
-        <h2>
-          Comments
-        </h2>
-
-        <textarea
-          value={comment}
-          onChange={(event) =>
-            setComment(
-              event.target.value
-            )
-          }
-          placeholder="Write a comment..."
-          rows={4}
-        />
-
-        <button
-          type="button"
-          className="comment-submit-button"
-          onClick={
-            handleAddComment
-          }
-          disabled={
-            commentLoading
-          }
-        >
-          {commentLoading
-            ? "Submitting..."
-            : "Submit Comment"}
-        </button>
-
-
-        <div className="task-comment-list">
-
-          {!task.comments ||
-          task.comments.length === 0 ? (
-
-            <p className="no-comments">
-              No comments yet.
-            </p>
-
-          ) : (
-
-            task.comments.map(
-              (
-                item,
-                index
-              ) => (
-                <div
-                  className="task-comment"
-                  key={
-                    item._id ||
-                    index
-                  }
-                >
-
-                  <div className="task-comment-header">
-
-                    <strong>
-                      {item.updatedBy ||
-                        "User"}
-                    </strong>
-
-                    <span>
-                      {formatDate(
-                        item.commentDate
-                      )}
-                    </span>
-
-                  </div>
-
-                  <p>
-                    {item.text}
-                  </p>
-
+            <div className="task-details-info-grid">
+              {[
+                {
+                  label: "Priority",
+                  value: task.priority || "Medium",
+                },
+                {
+                  label: "Business Year",
+                  value: task.businessYear || "-",
+                },
+                {
+                  label: "From Date",
+                  value: formatDate(task.fromDate),
+                },
+                {
+                  label: "To Date",
+                  value: formatDate(task.toDate),
+                },
+                {
+                  label: "Created On",
+                  value: formatDate(task.createdAt),
+                },
+                {
+                  label: "Completed Date",
+                  value: formatDate(task.completedDate),
+                },
+              ].map((item) => (
+                <div key={item.label}>
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
                 </div>
-              )
-            )
+              ))}
+            </div>
+          </section>
 
-          )}
+          <section className="task-status-section">
+            <div className="task-section-heading">
+              <h2>Update Task Status</h2>
+              <p>Choose the current progress of this task.</p>
+            </div>
 
-        </div>
+            <div className="task-status-options">
+              {(
+                [
+                  "Pending",
+                  "In Progress",
+                  "Completed",
+                ] as TaskStatus[]
+              ).map((item) => (
+                <label
+                  key={item}
+                  className={`task-status-option ${
+                    status === item ? "is-selected" : ""
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="task-status"
+                    value={item}
+                    checked={status === item}
+                    onChange={() => setStatus(item)}
+                    disabled={statusLoading}
+                  />
+                  {item}
+                </label>
+              ))}
+            </div>
 
-      </div>
+            <div className="task-section-actions">
+              <button
+                type="button"
+                className="update-status-button"
+                onClick={() => void handleStatusUpdate()}
+                disabled={
+                  statusLoading ||
+                  status === (task.status || "Pending")
+                }
+              >
+                {statusLoading
+                  ? "Updating..."
+                  : "Update Status"}
+              </button>
+            </div>
+          </section>
 
+          <section className="task-comments-section">
+            <div className="task-section-heading">
+              <h2>Comments</h2>
+              <p>Share updates and review task discussions.</p>
+            </div>
+
+            <textarea
+              aria-label="Write a task comment"
+              value={comment}
+              onChange={(event) =>
+                setComment(event.target.value)
+              }
+              placeholder="Write a comment..."
+              rows={4}
+              disabled={commentLoading}
+            />
+
+            <button
+              type="button"
+              className="comment-submit-button"
+              onClick={() => void handleAddComment()}
+              disabled={
+                commentLoading || !comment.trim()
+              }
+            >
+              {commentLoading
+                ? "Submitting..."
+                : "Submit Comment"}
+            </button>
+
+            <div className="task-comment-list">
+              {!task.comments || task.comments.length === 0 ? (
+                <p className="no-comments">
+                  No comments yet.
+                </p>
+              ) : (
+                task.comments.map((item, index) => (
+                  <article
+                    className="task-comment"
+                    key={item._id || index}
+                  >
+                    <div className="task-comment-header">
+                      <strong>
+                        {item.updatedBy || "User"}
+                      </strong>
+
+                      <span>
+                        {formatDate(item.commentDate)}
+                      </span>
+                    </div>
+
+                    <p>{item.text}</p>
+                  </article>
+                ))
+              )}
+            </div>
+          </section>
+        </>
+      )}
     </div>
   );
 }

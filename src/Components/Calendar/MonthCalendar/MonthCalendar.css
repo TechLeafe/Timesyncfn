@@ -1,203 +1,442 @@
-
+/* =========================================
+   PREMIUM MONTH CALENDAR
+========================================= */
 .month-calendar {
   width: 100%;
-  border: 1px solid var(--card-border);
-  border-radius: 14px;
-  background-color: var(--card-bg);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  min-width: 0;
   overflow: hidden;
-  font-family: var(--font-family);
+  box-sizing: border-box;
+  font-family: var(--font-family, Inter, sans-serif);
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--card-border, #e8edf2);
+  border-radius: 16px;
+  box-shadow: 0 3px 16px rgba(17, 39, 64, 0.04);
 }
 
-/* Month navigation */
+/* =========================================
+   HEADER
+========================================= */
 .month-calendar-header {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 16px;
-  padding: 16px 24px;
-  border-bottom: 1px solid var(--card-border);
+  padding: 22px 24px;
+  border-bottom: 1px solid var(--card-border, #edf0f3);
 }
-
-.month-calendar-nav-button {
-  padding: 4.8px !important;
-  border: 1px solid var(--card-border) !important;
-  border-radius: 8px !important;
-  color: var(--text-primary) !important;
+.month-calendar-title-group {
+  min-width: 0;
 }
-
-.month-calendar-nav-button:hover {
-  background-color: var(--bg-main) !important;
-  border-color: var(--text-secondary) !important;
+.month-calendar-heading.MuiTypography-root {
+  font-family: var(--font-family, Inter, sans-serif);
+  font-size: 17px;
+  font-weight: 750;
+  letter-spacing: -0.3px;
+  color: var(--text-primary, #17263b);
 }
-
-.month-calendar-nav-icon {
-  font-size: 20px !important;
+.month-calendar-subtitle.MuiTypography-root {
+  font-family: var(--font-family, Inter, sans-serif);
+  font-size: 12px;
+  color: var(--text-secondary, #8391a5);
+  margin-top: 4px;
 }
-
-.month-calendar-month-label {
-  font-family: var(--font-family) !important;
-  font-size: 16px !important;
-  font-weight: 700 !important;
-  color: var(--text-primary) !important;
+.month-calendar-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.month-calendar-month-label.MuiTypography-root {
+  font-family: var(--font-family, Inter, sans-serif);
+  font-size: 15px;
+  font-weight: 750;
+  color: var(--text-primary, #17263b);
   text-align: center;
-  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.month-calendar-nav-button.MuiIconButton-root {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border: 1px solid var(--card-border, #e6ebf0);
+  border-radius: 9px;
+  color: var(--text-primary, #526278);
+  background: var(--card-bg, #ffffff);
+  transition: all 0.2s ease;
+}
+.month-calendar-nav-button.MuiIconButton-root:hover {
+  background: #e8f7ee;
+  border-color: #a5dcc0;
+  color: #087b4d;
+}
+.month-calendar-nav-button svg {
+  font-size: 21px;
 }
 
-/* Calendar grid */
+/* =========================================
+   CALENDAR BODY
+========================================= */
 .month-calendar-body {
-  padding: 12px 16px 16px;
+  padding: 20px 24px 22px;
 }
-
 .month-calendar-weekdays {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  margin-bottom: 8px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.month-calendar-weekday.MuiTypography-root {
+  padding: 10px 0;
+  font-family: var(--font-family, Inter, sans-serif);
+  color: var(--text-secondary, #8593a5);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
 }
 
-.month-calendar-weekday {
-  padding: 4px 0;
-  font-family: var(--font-family) !important;
-  font-size: 12.5px !important;
-  font-weight: 600 !important;
-  color: var(--text-secondary) !important;
-  letter-spacing: 0.03em;
-}
-
+/* =========================================
+   WEEK ROWS
+========================================= */
 .month-calendar-rows {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
-
 .month-calendar-row {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+.month-calendar-cell-wrapper {
+  min-width: 0;
+}
+.month-calendar-tooltip-target {
+  display: block;
+  width: 100%;
 }
 
-/* Day cell */
+/* =========================================
+   DATE CELLS
+========================================= */
 .month-calendar-cell {
+  appearance: none;
+  -webkit-appearance: none;
   position: relative;
-  height: 68px;
+  width: 100%;
+  height: 76px;
+  min-width: 0;
+  padding: 8px 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
-  border-radius: 10px;
-  background-color: var(--cell-bg);
+  box-sizing: border-box;
   border: var(--cell-border);
+  border-radius: 11px;
+  background: var(--cell-bg);
   opacity: var(--cell-opacity);
-
-  transition: all 0.12s ease;
+  color: var(--date-color);
+  font-family: var(--font-family, Inter, sans-serif);
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
 }
-
 .month-calendar-cell-clickable {
   cursor: pointer;
 }
-
-.month-calendar-cell:hover {
-  background-color: var(--cell-hover-bg);
+.month-calendar-cell:disabled {
+  cursor: default;
+}
+.month-calendar-cell-clickable:hover {
+  background: var(--cell-hover-bg);
   border-color: var(--cell-hover-border);
   transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
+  box-shadow: 0 3px 12px rgba(16, 48, 32, 0.08);
+}
+.month-calendar-cell:focus-visible {
+  outline: 3px solid #68b98e;
+  outline-offset: 2px;
+  z-index: 1;
+}
+.month-calendar-cell-selected {
+  box-shadow: 0 0 0 2px rgba(8, 123, 77, 0.08);
+}
+.month-calendar-cell-outside {
+  background: transparent;
 }
 
-.month-calendar-date {
-  font-family: var(--font-family) !important;
-  font-size: 15px !important;
-  font-weight: var(--date-weight) !important;
-  color: var(--date-color) !important;
-  line-height: 1 !important;
+/* =========================================
+   DATE NUMBER
+========================================= */
+.month-calendar-date.MuiTypography-root {
+  font-family: var(--font-family, Inter, sans-serif);
+  font-size: 15px;
+  font-weight: var(--date-weight);
+  color: var(--date-color);
+  line-height: 1.2;
 }
 
-/* Dot indicator */
+/* =========================================
+   TODAY MARKER
+========================================= */
+.month-calendar-today-marker {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 14px;
+  height: 3px;
+  background: #0b8854;
+  border-radius: 10px;
+}
+
+/* =========================================
+   STATUS DOT
+========================================= */
 .month-calendar-dot {
   width: 6px;
   height: 6px;
-  margin-top: 6px;
-  border-radius: 50%;
-  background-color: var(--dot-color);
+  margin-top: 7px;
   flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--dot-color);
 }
 
-/* Corner label */
-.month-calendar-corner-label {
+/* =========================================
+   BOTTOM-RIGHT P / A LABEL
+========================================= */
+.month-calendar-corner-label.MuiTypography-root {
   position: absolute;
-  top: 3px;
-  right: 5px;
-
-  font-family: var(--font-family) !important;
-  font-size: 9.5px !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.02em;
-  line-height: 1 !important;
-  color: var(--corner-color) !important;
-  opacity: 0.85;
+  top: auto;
+  right: 7px;
+  bottom: 6px;
+  z-index: 2;
+  font-family: var(--font-family, Inter, sans-serif);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0.2px;
+  color: var(--corner-color);
 }
 
-/* Tooltip */
-.month-calendar-tooltip {
-  background-color: rgba(17, 24, 39, 0.9) !important;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-
-  color: var(--card-bg) !important;
-  border-radius: 9px !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.28) !important;
-
-  padding: 6.8px 12px !important;
+/* =========================================
+   TOOLTIP
+========================================= */
+.month-calendar-tooltip.MuiTooltip-tooltip {
+  background: rgba(17, 31, 47, 0.96);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 9px 13px;
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(17, 31, 47, 0.2);
 }
-
 .month-calendar-tooltip-arrow {
-  color: rgba(17, 24, 39, 0.9) !important;
+  color: rgba(17, 31, 47, 0.96) !important;
+}
+.month-calendar-tooltip-text.MuiTypography-root {
+  color: #ffffff;
+  font-family: var(--font-family, Inter, sans-serif);
+  font-size: 12px;
+  font-weight: 550;
+  line-height: 1.5;
 }
 
-.month-calendar-tooltip-text {
-  font-family: var(--font-family) !important;
-  font-size: 12px !important;
-  font-weight: 600 !important;
-  color: inherit !important;
-  letter-spacing: -0.01em;
-}
-
-/* Responsive calendar */
-@media (max-width: 900px) {
-  .month-calendar-body {
-    padding: 10px 12px 14px;
-  }
-
+/* =========================================
+   LAPTOP
+========================================= */
+@media (max-width: 1199px) {
   .month-calendar-header {
-    padding: 14px 18px;
+    padding: 18px 20px;
   }
-
+  .month-calendar-body {
+    padding: 16px 18px 20px;
+  }
   .month-calendar-cell {
-    height: 60px;
+    height: 68px;
   }
 }
 
+/* =========================================
+   TABLET
+========================================= */
+@media (max-width: 899.98px) {
+  .month-calendar-header {
+    padding: 16px;
+  }
+  .month-calendar-body {
+    padding: 12px 14px 16px;
+  }
+  .month-calendar-cell {
+    height: 64px;
+  }
+  .month-calendar-row,
+  .month-calendar-weekdays {
+    gap: 6px;
+  }
+  .month-calendar-rows {
+    gap: 6px;
+  }
+}
+
+/* =========================================
+   MOBILE
+========================================= */
 @media (max-width: 600px) {
+  .month-calendar {
+    border-radius: 13px;
+  }
   .month-calendar-header {
-    gap: 10px;
-    padding: 12px;
+    gap: 12px;
+    padding: 15px 12px;
   }
-
+  .month-calendar-heading.MuiTypography-root {
+    font-size: 15px;
+  }
+  .month-calendar-subtitle.MuiTypography-root {
+    font-size: 11px;
+  }
+  .month-calendar-controls {
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .month-calendar-month-label.MuiTypography-root {
+    font-size: 14px;
+  }
+  .month-calendar-nav-button.MuiIconButton-root {
+    width: 32px;
+    height: 32px;
+  }
   .month-calendar-body {
-    padding: 8px;
+    padding: 10px 8px 14px;
   }
-
+  .month-calendar-weekdays {
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+  .month-calendar-weekday.MuiTypography-root {
+    font-size: 10px;
+    padding: 8px 0;
+  }
+  .month-calendar-row,
+  .month-calendar-rows {
+    gap: 4px;
+  }
   .month-calendar-cell {
-    height: 50px;
+    height: 51px;
+    padding: 5px 1px;
+    border-radius: 7px;
   }
-
-  .month-calendar-weekday {
-    font-size: 11px !important;
+  .month-calendar-date.MuiTypography-root {
+    font-size: 12px;
   }
-
-  .month-calendar-date {
-    font-size: 13px !important;
+  .month-calendar-dot {
+    width: 5px;
+    height: 5px;
+    margin-top: 4px;
+  }
+  .month-calendar-corner-label.MuiTypography-root {
+    top: auto;
+    right: 4px;
+    bottom: 3px;
+    font-size: 9px;
   }
 }
 
+/* =========================================
+   VERY SMALL MOBILE
+========================================= */
+@media (max-width: 380px) {
+  .month-calendar-body {
+    padding: 8px 5px 12px;
+  }
+  .month-calendar-row,
+  .month-calendar-weekdays {
+    gap: 3px;
+  }
+  .month-calendar-rows {
+    gap: 3px;
+  }
+  .month-calendar-cell {
+    height: 45px;
+    border-radius: 6px;
+  }
+  .month-calendar-date.MuiTypography-root {
+    font-size: 11px;
+  }
+}
+
+/* =========================================
+   REDUCED MOTION
+========================================= */
+@media (prefers-reduced-motion: reduce) {
+  .month-calendar-cell,
+  .month-calendar-nav-button {
+    transition: none !important;
+  }
+  .month-calendar-cell-clickable:hover {
+    transform: none;
+  }
+}
+
+/* Sunday */
+.month-calendar-cell-sunday {
+  background: #e9f1ff;
+  border: 1px solid #b9d4ff;
+  color: #225eb8;
+}
+
+/* Festival icon inside calendar */
+.month-calendar-festival-icon {
+  position: absolute;
+  left: 7px;
+  bottom: 6px;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* Holiday name, for designs showing a short title */
+.month-calendar-festival-name {
+  position: absolute;
+  bottom: 6px;
+  left: 32px;
+  right: 5px;
+  font-size: 9px;
+  font-weight: 650;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .month-calendar-festival-icon {
+    left: 3px;
+    bottom: 3px;
+    width: 15px;
+    height: 15px;
+  }
+  .month-calendar-festival-name {
+    display: none;
+  }
+}
+
+/* Extra-small screens: keep the P/A marker inside the cell */
+@media (max-width: 380px) {
+  .month-calendar-corner-label.MuiTypography-root {
+    right: 3px;
+    bottom: 2px;
+    font-size: 8px;
+  }
+  .month-calendar-festival-icon {
+    width: 13px;
+    height: 13px;
+  }
+}

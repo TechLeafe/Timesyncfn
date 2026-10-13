@@ -1,0 +1,125 @@
+
+/* ==========================================
+   ADMIN DASHBOARD
+   MATCH EMPLOYEE DASHBOARD
+========================================== */
+
+/*
+  Base layout and responsive styling are
+  inherited from EmployeeDashboard.css.
+*/
+
+.admin-employee-match {
+  width: 100%;
+  min-width: 0;
+}
+
+/* ADMIN-SPECIFIC ATTENDANCE PANEL */
+
+.admin-employee-match .admin-match-attendance {
+  min-width: 0;
+}
+
+.admin-employee-match .admin-match-panel-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-employee-match
+  .admin-match-panel-actions
+  .MuiButton-outlined {
+  min-height: 36px;
+  padding: 7px 13px;
+  border: 1px solid #b8ddc9;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #087f55;
+  font-family: Inter, Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: none;
+}
+
+.admin-employee-match
+  .admin-match-panel-actions
+  .MuiButton-outlined:hover {
+  background: #edf9f2;
+  border-color: #087f55;
+}
+
+/* STATUS AND ERROR MESSAGES */
+
+.admin-match-errors {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-match-errors .MuiAlert-root {
+  border-radius: 10px;
+  font-family: Inter, Arial, sans-serif;
+  font-size: 12px;
+}
+
+/* ATTENDANCE TABLE */
+
+.admin-employee-match .emp-attendance-table {
+  min-width: 760px;
+}
+
+.admin-employee-match .emp-attendance-table td,
+.admin-employee-match .emp-attendance-table th {
+  overflow-wrap: anywhere;
+}
+
+.admin-employee-match .emp-attendance-table tbody td:first-child {
+  color: #087f55;
+  font-weight: 750;
+}
+
+/* REFRESH BUTTON DISABLED STATE */
+
+.admin-employee-match
+  .admin-match-panel-actions
+  .MuiButton-outlined.Mui-disabled {
+  color: #8eaaa0;
+  border-color: #e0eae4;
+}
+
+/* TABLET */
+
+@media (max-width: 1024px) {
+  .admin-employee-match .admin-match-attendance {
+    overflow: hidden;
+  }
+}
+
+/* MOBILE */
+
+@media (max-width: 767px) {
+  .admin-employee-match .admin-match-panel-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .admin-employee-match
+    .admin-match-attendance
+    .emp-panel-heading {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-employee-match .admin-match-panel-actions {
+    align-items: stretch;
+  }
+
+  .admin-employee-match
+    .admin-match-panel-actions
+    .MuiButton-root {
+    flex: 1;
+  }
+}

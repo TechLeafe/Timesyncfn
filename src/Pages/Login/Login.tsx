@@ -1,3 +1,4 @@
+
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -20,6 +21,8 @@ type LoginUser = {
   name: string;
   email: string;
   userType: UserType;
+  designation?: string;
+  jobTitle?: string;
 };
 
 type LoginSession = {
@@ -99,9 +102,7 @@ export function Login() {
      3 = Employee
   ========================= */
 
-  const redirectUser = (
-    userType: UserType
-  ) => {
+  const redirectUser = (userType: UserType) => {
     switch (userType) {
       case 1:
         navigate("/hrdashboard");
@@ -116,14 +117,12 @@ export function Login() {
         break;
 
       default:
-        setLoginError(
-          "Invalid user role."
-        );
+        setLoginError("Invalid user role.");
     }
   };
 
   /* =========================
-     LOGIN
+     LOGIN FUNCTION
   ========================= */
 
   const handleSubmit = async (
@@ -137,36 +136,24 @@ export function Login() {
 
     let valid = true;
 
-    const cleanEmail =
-      email.trim().toLowerCase();
+    const cleanEmail = email.trim().toLowerCase();
 
-    /* Email validation */
+    /* EMAIL VALIDATION */
 
     if (!cleanEmail) {
-      setEmailError(
-        "Email is required"
-      );
-
+      setEmailError("Email is required");
       valid = false;
     } else if (
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-        cleanEmail
-      )
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)
     ) {
-      setEmailError(
-        "Enter a valid email address"
-      );
-
+      setEmailError("Enter a valid email address");
       valid = false;
     }
 
-    /* Password validation */
+    /* PASSWORD VALIDATION */
 
     if (!password.trim()) {
-      setPasswordError(
-        "Password is required"
-      );
-
+      setPasswordError("Password is required");
       valid = false;
     }
 
@@ -177,72 +164,50 @@ export function Login() {
     try {
       setLoading(true);
 
-      /* =========================
-         LOGIN API
+      /* LOGIN API */
 
-         Final URL:
-         http://localhost:5000/api/login
-      ========================= */
-
-      const response =
-        await api.post("/login", {
-          email: cleanEmail,
-          password: password,
-        });
+      const response = await api.post("/login", {
+        email: cleanEmail,
+        password: password,
+      });
 
       console.log(
         "Login API response:",
         response.data
       );
 
-      /* =========================
-         CHECK RESPONSE
-      ========================= */
+      /* CHECK RESPONSE */
 
-      if (
-        response.data?.success === false
-      ) {
+      if (response.data?.success === false) {
         throw new Error(
-          response.data?.message ||
-            "Login failed"
+          response.data?.message || "Login failed"
         );
       }
 
-      /* =========================
-         GET USER
-      ========================= */
+      /* GET USER */
 
       const backendUser =
         response.data?.data?.employee;
 
       if (!backendUser) {
-        throw new Error(
-          "User data not found"
-        );
+        throw new Error("User data not found");
       }
 
-      /* =========================
-         USER TYPE
-      ========================= */
+      /* USER TYPE */
 
-      const userType =
-        Number(
-          backendUser.userType
-        ) as UserType;
+      const userType = Number(
+        backendUser.userType
+      ) as UserType;
 
       if (
         userType !== 1 &&
         userType !== 2 &&
         userType !== 3
       ) {
-        throw new Error(
-          "Invalid user role"
-        );
+        throw new Error("Invalid user role");
       }
 
-      /* =========================
-         CREATE USER OBJECT
-      ========================= */
+      /* CREATE USER OBJECT */
 
       const userId =
         backendUser.employeeId ??
@@ -251,9 +216,7 @@ export function Login() {
         backendUser._id;
 
       if (!userId) {
-        throw new Error(
-          "User ID not found"
-        );
+        throw new Error("User ID not found");
       }
 
       const user: LoginUser = {
@@ -268,53 +231,41 @@ export function Login() {
           cleanEmail,
 
         userType,
+
+        designation:
+          typeof backendUser.designation === "string"
+            ? backendUser.designation.trim()
+            : "",
+
+        jobTitle:
+          typeof backendUser.jobTitle === "string"
+            ? backendUser.jobTitle.trim()
+            : "",
       };
 
-      /* =========================
-         SAVE TOKEN
-      ========================= */
+      /* SAVE TOKEN */
 
-      const token =
-        response.data?.data?.token;
+      const token = response.data?.data?.token;
 
       if (token) {
-        localStorage.setItem(
-          "token",
-          token
-        );
+        localStorage.setItem("token", token);
       }
 
-      /* =========================
-         SAVE USER
-      ========================= */
+      /* SAVE USER */
 
       storeLogin(user);
 
-      console.log(
-        "Logged in user:",
-        user
-      );
+      console.log("Logged in user:", user);
+      console.log("User type:", userType);
 
-      console.log(
-        "User type:",
-        userType
-      );
-
-      /* =========================
-         NAVIGATE
-      ========================= */
+      /* NAVIGATE */
 
       redirectUser(userType);
 
     } catch (error: unknown) {
-      console.error(
-        "Login error:",
-        error
-      );
+      console.error("Login error:", error);
 
-      if (
-        axios.isAxiosError(error)
-      ) {
+      if (axios.isAxiosError(error)) {
         console.log(
           "Status:",
           error.response?.status
@@ -329,195 +280,251 @@ export function Login() {
           error.response?.data?.message ||
             "Invalid email or password."
         );
-      } else if (
-        error instanceof Error
-      ) {
-        setLoginError(
-          error.message
-        );
+
+      } else if (error instanceof Error) {
+        setLoginError(error.message);
+
       } else {
         setLoginError(
           "Unable to login. Please try again."
         );
       }
+
     } finally {
       setLoading(false);
     }
   };
 
+  /* =========================
+     LOGIN PAGE UI
+  ========================= */
+
   return (
     <div className="login-page">
-      <div className="login-container">
 
-        {/* Logo */}
+      {/* =========================
+          LEFT SIDE — LOGIN FORM
+      ========================= */}
 
-        <div className="login-logo">
-          <img
-            src="/techleafelogo.png"
-            alt="Tech Leafe Technologies"
-          />
-        </div>
+      <main className="login-panel">
 
-        {/* Heading */}
+        <div className="login-container">
 
-        <div className="login-heading">
-          <h1>Login</h1>
+          {/* LOGO */}
 
-          <p>
-            Enter your email and password
-            to continue.
-          </p>
-        </div>
-
-        {/* Login Error */}
-
-        {loginError && (
-          <div className="login-error-message">
-            {loginError}
+          <div className="login-logo">
+            <img
+              src="/techleafelogo.png"
+              alt="Tech Leafe Technologies"
+            />
           </div>
-        )}
 
-        <form
-          className="login-form"
-          onSubmit={handleSubmit}
-          noValidate
-        >
+          {/* HEADING */}
 
-          {/* Email */}
+          <div className="login-heading">
+            <h1>Login</h1>
 
-          <div className="login-form-group">
+            <p>
+              Enter your email and password
+              to continue.
+            </p>
+          </div>
 
-            <label htmlFor="email">
-              Email ID
-            </label>
+          {/* LOGIN ERROR */}
 
+          {loginError && (
             <div
-              className={`login-input-box ${
-                emailError
-                  ? "login-input-error"
-                  : ""
-              }`}
+              className="login-error-message login-global-error"
+              role="alert"
             >
-              <Mail
-                size={21}
-                className="login-input-icon"
-              />
-
-              <input
-                id="email"
-                type="email"
-                placeholder="name@techleafe.com"
-                value={email}
-                onChange={(event) => {
-                  setEmail(
-                    event.target.value
-                  );
-
-                  setEmailError("");
-                  setLoginError("");
-                }}
-              />
+              {loginError}
             </div>
+          )}
 
-            {emailError && (
-              <span className="login-error-message">
-                {emailError}
-              </span>
-            )}
+          {/* FORM */}
 
-          </div>
-
-          {/* Password */}
-
-          <div className="login-form-group">
-
-            <label htmlFor="password">
-              Password
-            </label>
-
-            <div
-              className={`login-input-box ${
-                passwordError
-                  ? "login-input-error"
-                  : ""
-              }`}
-            >
-              <LockKeyhole
-                size={21}
-                className="login-input-icon"
-              />
-
-              <input
-                id="password"
-                type={
-                  showPassword
-                    ? "text"
-                    : "password"
-                }
-                placeholder="Enter your password"
-                value={password}
-                onChange={(event) => {
-                  setPassword(
-                    event.target.value
-                  );
-
-                  setPasswordError("");
-                  setLoginError("");
-                }}
-              />
-
-              <button
-                type="button"
-                className="login-eye-button"
-                onClick={() =>
-                  setShowPassword(
-                    (value) => !value
-                  )
-                }
-                aria-label="Toggle password visibility"
-              >
-                {showPassword ? (
-                  <EyeOff size={21} />
-                ) : (
-                  <Eye size={21} />
-                )}
-              </button>
-
-            </div>
-
-            {passwordError && (
-              <span className="login-error-message">
-                {passwordError}
-              </span>
-            )}
-
-          </div>
-
-          {/* Login Button */}
-
-          <button
-            type="submit"
-            className="login-submit-button"
-            disabled={loading}
+          <form
+            className="login-form"
+            onSubmit={handleSubmit}
+            noValidate
           >
-            <span>
-              {loading
-                ? "Logging in..."
-                : "Login"}
-            </span>
 
-            {!loading && (
-              <ArrowRight size={23} />
-            )}
-          </button>
+            {/* EMAIL */}
 
-        </form>
+            <div className="login-form-group">
 
-        <p className="login-authorized">
-          Authorized Tech Leafe employees only.
-        </p>
+              <label htmlFor="email">
+                Email ID
+              </label>
 
-      </div>
+              <div
+                className={`login-input-box ${
+                  emailError
+                    ? "login-input-error"
+                    : ""
+                }`}
+              >
+
+                <Mail
+                  size={21}
+                  className="login-input-icon"
+                />
+
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="username"
+                  placeholder="name@techleafe.com"
+                  value={email}
+                  aria-invalid={!!emailError}
+                  onChange={(event) => {
+                    setEmail(event.target.value);
+                    setEmailError("");
+                    setLoginError("");
+                  }}
+                />
+
+              </div>
+
+              {emailError && (
+                <span
+                  className="login-error-message"
+                  role="alert"
+                >
+                  {emailError}
+                </span>
+              )}
+
+            </div>
+
+            {/* PASSWORD */}
+
+            <div className="login-form-group">
+
+              <label htmlFor="password">
+                Password
+              </label>
+
+              <div
+                className={`login-input-box ${
+                  passwordError
+                    ? "login-input-error"
+                    : ""
+                }`}
+              >
+
+                <LockKeyhole
+                  size={21}
+                  className="login-input-icon"
+                />
+
+                <input
+                  id="password"
+                  name="password"
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
+                  autoComplete="current-password"
+                  placeholder="Enter your password"
+                  value={password}
+                  aria-invalid={!!passwordError}
+                  onChange={(event) => {
+                    setPassword(event.target.value);
+                    setPasswordError("");
+                    setLoginError("");
+                  }}
+                />
+
+                <button
+                  type="button"
+                  className="login-eye-button"
+                  onClick={() =>
+                    setShowPassword(
+                      (value) => !value
+                    )
+                  }
+                  aria-label={
+                    showPassword
+                      ? "Hide password"
+                      : "Show password"
+                  }
+                >
+                  {showPassword ? (
+                    <EyeOff size={21} />
+                  ) : (
+                    <Eye size={21} />
+                  )}
+                </button>
+
+              </div>
+
+              {passwordError && (
+                <span
+                  className="login-error-message"
+                  role="alert"
+                >
+                  {passwordError}
+                </span>
+              )}
+
+            </div>
+
+            {/* LOGIN BUTTON */}
+
+            <button
+              type="submit"
+              className="login-submit-button"
+              disabled={loading}
+            >
+
+              <span>
+                {loading
+                  ? "Logging in..."
+                  : "Login"}
+              </span>
+
+              {!loading && (
+                <ArrowRight size={23} />
+              )}
+
+            </button>
+
+          </form>
+
+          {/* AUTHORIZED TEXT */}
+
+          <p className="login-authorized">
+            Authorized Tech Leafe employees only.
+          </p>
+
+        </div>
+
+      </main>
+
+      {/* =========================
+          RIGHT SIDE — TEAM IMAGE
+      ========================= */}
+
+      <aside
+        className="login-visual-panel"
+        aria-label="Tech Leafe team illustration"
+      >
+
+        <div className="login-visual-content">
+
+          <img
+            src="/team-working.png"
+            alt="Tech Leafe employees working together in an office"
+            className="login-team-image"
+          />
+
+        </div>
+
+      </aside>
+
     </div>
   );
 }
