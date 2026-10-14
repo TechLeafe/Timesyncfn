@@ -1,6 +1,6 @@
 
 /* ==========================================
-   PREMIUM HRM SIDEBAR
+   PREMIUM HRMS SIDEBAR
    ADMIN + HR + EMPLOYEE
 ========================================== */
 
@@ -11,6 +11,7 @@
 
 .sidebar-drawer .MuiDrawer-paper {
   width: 256px;
+  height: 100vh;
   height: 100dvh;
   box-sizing: border-box;
   background: #ffffff;
@@ -29,6 +30,7 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  box-sizing: border-box;
 }
 
 /* ==========================================
@@ -37,57 +39,87 @@
 
 .sidebar-logo {
   width: 100%;
-  height: 72px;
-  min-height: 72px;
+  height: 84px;
+  min-height: 84px;
+  flex-shrink: 0;
+
   display: flex;
   align-items: center;
-  gap: 11px;
-  padding: 11px 17px;
+  justify-content: center;
+
+  position: relative;
+
+  padding: 5px 12px;
+
   border-bottom: 1px solid #edf0f4;
   box-sizing: border-box;
 }
 
+/* LOGO WRAPPER */
+
 .sidebar-logo-image {
-  width: 47px;
-  height: 47px;
-  flex-shrink: 0;
+  width: 100%;
+  height: 53px;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
-  background: #f0faf4;
+
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  flex-shrink: 0;
 }
+
+/* FULL HRMS LOGO */
 
 .sidebar-logo-image img {
   display: block;
-  width: 42px;
-  height: 42px;
+  width: 100%;
+  max-width: 205px;
+  height: 53px;
+
   object-fit: contain;
+  object-position: center;
 }
+
+/* BRAND INFO */
 
 .sidebar-brand-info {
+  width: 100%;
   min-width: 0;
+
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  align-items: center;
+  justify-content: center;
+
+  gap: 2px;
 }
 
-.sidebar-brand-title.MuiTypography-root {
-  font-size: 15px;
-  font-weight: 750;
-  color: #17263c;
-  letter-spacing: -0.4px;
-  white-space: nowrap;
-}
+/* EMPLOYEE WORKSPACE */
 
 .sidebar-brand-subtitle.MuiTypography-root {
-  font-size: 10px;
+  font-family: Inter, Arial, sans-serif;
+
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+
   color: #8391a5;
+  letter-spacing: 0.3px;
+
+  text-align: center;
   white-space: nowrap;
 }
 
+/* MOBILE CLOSE BUTTON */
+
 .sidebar-close-button.MuiIconButton-root {
-  margin-left: auto;
+  position: absolute;
+  right: 10px;
+  top: 10px;
+
   color: #596c83;
   background: #f4f6f8;
 }
@@ -99,30 +131,49 @@
 .sidebar-section-title.MuiTypography-root {
   padding: 24px 24px 13px;
   color: #9aa5b5;
+
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 1.6px;
+
+  flex-shrink: 0;
 }
 
 /* ==========================================
-   NAVIGATION
+   NAVIGATION - HIDDEN SCROLLBAR
 ========================================== */
 
 .sidebar-nav.MuiList-root {
   flex: 1;
   min-height: 0;
+
   padding: 0 12px 16px;
+
   overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: #d6e0e7 transparent;
+
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
 }
+
+.sidebar-nav.MuiList-root::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* ==========================================
+   NAVIGATION ITEMS
+========================================== */
 
 .sidebar-nav-item.MuiListItemButton-root {
   width: 100%;
   min-height: 46px;
+
   margin-bottom: 6px;
   padding: 10px 13px;
+
   border-radius: 10px;
   position: relative;
 
@@ -158,6 +209,7 @@
   ) !important;
 
   color: #ffffff !important;
+
   box-shadow: 0 5px 13px rgba(8, 123, 77, 0.15);
 }
 
@@ -168,26 +220,33 @@
   transform: none;
 }
 
+/* ACTIVE INDICATOR */
+
 .sidebar-active-indicator {
   width: 4px;
   height: 18px;
+
   position: absolute;
   right: 10px;
   top: 50%;
+
   transform: translateY(-50%);
   border-radius: 6px;
+
   background: rgba(255, 255, 255, 0.9);
 }
 
 /* ==========================================
-   NAV ICONS
+   NAVIGATION ICONS
 ========================================== */
 
 .sidebar-nav-icon.MuiListItemIcon-root {
   min-width: 37px;
+
   display: flex;
   align-items: center;
   justify-content: flex-start;
+
   color: #73839b;
 }
 
@@ -205,7 +264,7 @@
 }
 
 /* ==========================================
-   NAV TEXT
+   NAVIGATION TEXT
 ========================================== */
 
 .sidebar-nav-text.MuiListItemText-root {
@@ -215,17 +274,19 @@
 
 .sidebar-nav-text .MuiListItemText-primary {
   font-family: Inter, Arial, sans-serif;
+
   font-size: 13px;
   font-weight: 550;
   line-height: 1.5;
+
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .sidebar-nav-item-active
-  .sidebar-nav-text
-  .MuiListItemText-primary {
+.sidebar-nav-text
+.MuiListItemText-primary {
   font-weight: 700;
 }
 
@@ -236,10 +297,15 @@
 .sidebar-bottom {
   margin-top: auto;
   flex-shrink: 0;
+
   width: 100%;
   padding: 12px;
+
   background: #ffffff;
+  box-sizing: border-box;
 }
+
+/* SUPPORT CARD */
 
 .sidebar-support-card {
   background: linear-gradient(
@@ -247,8 +313,10 @@
     #e5f7ec 0%,
     #f3fbf6 100%
   );
+
   border: 1px solid #e0f1e7;
   border-radius: 12px;
+
   padding: 15px;
   margin-bottom: 15px;
 }
@@ -256,11 +324,14 @@
 .sidebar-support-icon {
   width: 32px;
   height: 32px;
+
   background: #cfefdc;
   color: #087b4d;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   border-radius: 9px;
   margin-bottom: 10px;
 }
@@ -272,6 +343,7 @@
 .sidebar-support-title.MuiTypography-root {
   font-size: 12px;
   font-weight: 750;
+
   color: #175a3e;
   margin-bottom: 6px;
 }
@@ -281,6 +353,8 @@
   color: #668675;
   line-height: 1.6;
 }
+
+/* DIVIDER */
 
 .sidebar-divider.MuiDivider-root {
   border-color: #edf0f4;
@@ -294,8 +368,10 @@
 .sidebar-logout.MuiListItemButton-root {
   width: 100%;
   min-height: 46px;
+
   padding: 10px 13px;
   border-radius: 10px;
+
   color: #cb3e36;
 }
 
@@ -339,7 +415,6 @@
 
 /* ==========================================
    TABLET + MOBILE DRAWER
-   Matches the existing 900px layout breakpoint
 ========================================== */
 
 @media (max-width: 899.98px) {
@@ -351,12 +426,19 @@
   .sidebar-drawer .MuiDrawer-paper {
     width: min(85vw, 285px);
     max-width: 285px;
+
     box-shadow: 6px 0 30px rgba(15, 30, 48, 0.15);
   }
 
   .sidebar-logo {
-    height: 70px;
-    min-height: 70px;
+    height: 84px;
+    min-height: 84px;
+    padding: 5px 12px;
+  }
+
+  .sidebar-logo-image img {
+    max-width: 190px;
+    height: 53px;
   }
 
   .sidebar-section-title.MuiTypography-root {
@@ -387,11 +469,13 @@
   }
 
   .sidebar-logo {
-    padding: 10px 13px;
+    height: 84px;
+    min-height: 84px;
+    padding: 5px 10px;
   }
 
-  .sidebar-brand-title.MuiTypography-root {
-    font-size: 14px;
+  .sidebar-brand-subtitle.MuiTypography-root {
+    font-size: 11px;
   }
 
   .sidebar-nav-item.MuiListItemButton-root {
@@ -413,7 +497,7 @@
   }
 
   .sidebar-brand-subtitle.MuiTypography-root {
-    font-size: 9px;
+    font-size: 10px;
   }
 }
 

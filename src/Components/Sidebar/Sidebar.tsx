@@ -27,11 +27,7 @@ import TaskAltOutlinedIcon from "@mui/icons-material/TaskAltOutlined";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import SupportAgentOutlinedIcon from "@mui/icons-material/SupportAgentOutlined";
 
-import {
-  HR,
-  ADMIN,
-  EMPLOYEE,
-} from "../../data/permissions";
+import { HR, ADMIN, EMPLOYEE } from "../../data/permissions";
 
 import "./Sidebar.css";
 
@@ -164,7 +160,6 @@ function Sidebar({
   };
 
   const handleLogout = () => {
-    // Preserve your existing logout behavior.
     localStorage.clear();
     sessionStorage.clear();
     window.location.replace("/login");
@@ -176,7 +171,9 @@ function Sidebar({
       open={isMobile ? mobileOpen : true}
       onClose={onClose}
       className={`sidebar-drawer ${
-        isMobile ? "sidebar-drawer-mobile" : "sidebar-drawer-desktop"
+        isMobile
+          ? "sidebar-drawer-mobile"
+          : "sidebar-drawer-desktop"
       }`}
       ModalProps={
         isMobile ? { keepMounted: true } : undefined
@@ -184,22 +181,22 @@ function Sidebar({
     >
       <Box className="sidebar-container">
 
-        {/* LOGO */}
+        {/* LOGO AND WORKSPACE TITLE */}
         <Box className="sidebar-logo">
-          <Box className="sidebar-logo-image">
-            <img
-              src="/hrms logo.png"
-              alt="HRM company logo"
-            />
-          </Box>
 
           <Box className="sidebar-brand-info">
-            <Typography className="sidebar-brand-title">
-              HRM Portal
-            </Typography>
+
+            <Box className="sidebar-logo-image">
+              <img
+                src="/hrms logo v 1.6.jpg"
+                alt="HRMS Company Logo"
+              />
+            </Box>
+
             <Typography className="sidebar-brand-subtitle">
               Employee Workspace
             </Typography>
+
           </Box>
 
           {isMobile && (
@@ -212,6 +209,7 @@ function Sidebar({
               <CloseRoundedIcon />
             </IconButton>
           )}
+
         </Box>
 
         {/* MENU TITLE */}
@@ -222,7 +220,7 @@ function Sidebar({
           WORKSPACE
         </Typography>
 
-        {/* ROLE-BASED NAVIGATION */}
+        {/* ROLE BASED NAVIGATION */}
         <List
           className="sidebar-nav"
           component="nav"
@@ -268,7 +266,9 @@ function Sidebar({
 
         {/* FOOTER */}
         <Box className="sidebar-bottom">
+
           <Box className="sidebar-support-card">
+
             <Box className="sidebar-support-icon">
               <SupportAgentOutlinedIcon />
             </Box>
@@ -280,6 +280,7 @@ function Sidebar({
             <Typography className="sidebar-support-description">
               Need assistance? Contact your HR team.
             </Typography>
+
           </Box>
 
           <Divider className="sidebar-divider" />
@@ -299,6 +300,7 @@ function Sidebar({
               />
             </ListItemButton>
           </Tooltip>
+
         </Box>
       </Box>
     </Drawer>
