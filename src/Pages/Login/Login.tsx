@@ -464,7 +464,7 @@ export function Login() {
 
           <img
 
-            src="/Team.png"
+            src="/Team meeting login logo.png"
 
             alt="Tech Leafe employees working together in an office"
 
