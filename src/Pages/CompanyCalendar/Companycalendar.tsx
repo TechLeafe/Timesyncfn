@@ -7,7 +7,7 @@ import api from "../../api/axiosInstance";
 
 import "./Companycalendar.css";
 
-type AttendanceMark = "P" | "PL" | "A" | "L" | "LP" | "PD" | "RJ";
+type AttendanceMark = "P" | "A" | "L" | "LP";
 
 type Holiday = {
 
@@ -390,11 +390,11 @@ export default function CompanyCalendar() {
 
       api.post<ApiResponse<AttendanceRecord[]>>("/attendance/history", { user_id: "", date: "" }),
     ]);
-    let holidaysLoaded = false;
-    let attendanceLoaded = false;
-    let leavesLoaded = false;
-    let attendanceRecords: AttendanceRecord[] = [];
-    let permissionHoursByDay: Record<string, number> = {};
+    // let holidaysLoaded = false;
+    // let attendanceLoaded = false;
+    // let leavesLoaded = false;
+    // let attendanceRecords: AttendanceRecord[] = [];
+    // let permissionHoursByDay: Record<string, number> = {};
 
     if (holidayResponse.status === "fulfilled") {
 
