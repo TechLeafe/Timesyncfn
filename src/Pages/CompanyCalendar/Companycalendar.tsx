@@ -27,6 +27,15 @@ type Holiday = {
 
 type AttendanceRecord = Record<string, unknown>;
 type ApiResponse<T> = { success?: boolean; message?: string; data?: T };
+type LeaveRecord = {
+  user_id?: string;
+  employeeId?: string | { _id?: string; email?: string } | null;
+  email?: string;
+  leaveType?: string;
+  fromDate?: string;
+  toDate?: string | null;
+  status?: string;
+};
 
 type LoggedInUser = { userId?: string; employeeId?: string; email?: string };
 
@@ -144,13 +153,51 @@ function belongsToUser(record: AttendanceRecord, user: LoggedInUser): boolean {
 
 }
 
+function leaveBelongsToUser(record: LeaveRecord, user: LoggedInUser): boolean {
+
+  const userIds = [user.userId, user.employeeId].filter(Boolean).map(String);
+
+  const recordEmployeeId = typeof record.employeeId === "string"
+    ? record.employeeId
+    : record.employeeId?._id ?? "";
+
+  const recordUserId = record.user_id ?? recordEmployeeId;
+  const recordEmail = (record.email ?? (record.employeeId && typeof record.employeeId === "object"
+    ? record.employeeId.email
+    : "") ?? "").toLowerCase();
+
+  return userIds.some((id) => id === recordUserId || id === recordEmployeeId) ||
+    Boolean(user.email && user.email.trim().toLowerCase() === recordEmail);
+
+}
+
 function getRecordDate(record: AttendanceRecord): string {
 
   return normalizeDate(readField(record, [
-
     "day", "date", "attendanceDate", "attendance_date", "createdAt", "created_at",
-
   ]));
+
+}
+
+function getLeaveDateKeys(record: LeaveRecord): string[] {
+
+  const start = normalizeDate(record.fromDate);
+  const end = normalizeDate(record.toDate || record.fromDate);
+
+  if (!start || !end || end < start) return [];
+
+  const dates: string[] = [];
+  const [startYear, startMonth, startDay] = start.split("-").map(Number);
+  const [endYear, endMonth, endDay] = end.split("-").map(Number);
+  const cursor = new Date(startYear, startMonth - 1, startDay, 12);
+  const lastDate = new Date(endYear, endMonth - 1, endDay, 12);
+
+  while (cursor <= lastDate) {
+    dates.push(dateKey(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return dates;
 
 }
 
@@ -384,17 +431,20 @@ export default function CompanyCalendar() {
 
     setAttendanceWarning("");
 
-    const [holidayResponse, attendanceResponse] = await Promise.allSettled([
+    const [holidayResponse, attendanceResponse, leaveResponse] = await Promise.allSettled([
 
       api.post<ApiResponse<Holiday[]>>("/holidays/list", { companyYear: "", holidayType: "" }),
 
       api.post<ApiResponse<AttendanceRecord[]>>("/attendance/history", { user_id: "", date: "" }),
+      api.post<ApiResponse<LeaveRecord[] | LeaveRecord>>("/leave-apply/list", {
+        status: "",
+        businessYear: (() => {
+          const now = new Date();
+          const year = now.getFullYear();
+          return now.getMonth() >= 3 ? `${year}-${year + 1}` : `${year - 1}-${year}`;
+        })(),
+      }),
     ]);
-    // let holidaysLoaded = false;
-    // let attendanceLoaded = false;
-    // let leavesLoaded = false;
-    // let attendanceRecords: AttendanceRecord[] = [];
-    // let permissionHoursByDay: Record<string, number> = {};
 
     if (holidayResponse.status === "fulfilled") {
 
@@ -441,51 +491,63 @@ export default function CompanyCalendar() {
 
     }
 
-    if (attendanceResponse.status === "fulfilled") {
+    const marks: Record<string, AttendanceMark> = {};
+    const warnings: string[] = [];
+    const user = loggedInUser();
 
-      const result = attendanceResponse.value.data;
+    if (!user || (!user.userId && !user.employeeId && !user.email)) {
+      warnings.push("Logged-in employee details are unavailable.");
+    } else {
+      if (attendanceResponse.status === "fulfilled") {
+        const result = attendanceResponse.value.data;
 
-      const user = loggedInUser();
+        if (result.success === false || !Array.isArray(result.data)) {
+          warnings.push(result.message || "Attendance records are unavailable.");
+        } else {
+          for (const record of result.data.filter((item) => belongsToUser(item, user))) {
+            const key = getRecordDate(record);
+            const mark = getAttendanceMark(record);
 
-      if (result.success === false || !Array.isArray(result.data)) {
-
-        setAttendanceWarning(result.message || "Attendance records are unavailable.");
-
-        setAttendance({});
-
-      } else if (!user || (!user.userId && !user.employeeId && !user.email)) {
-
-        setAttendanceWarning("Logged-in employee details are unavailable.");
-
-        setAttendance({});
-
-      } else {
-
-        const marks: Record<string, AttendanceMark> = {};
-
-        for (const record of result.data.filter((r) => belongsToUser(r, user))) {
-
-          const key = getRecordDate(record);
-
-          const mark = getAttendanceMark(record);
-
-          if (!key || !mark) continue;
-
-          if (!marks[key] || (mark === "P" && marks[key] === "A")) marks[key] = mark;
-
+            if (!key || !mark) continue;
+            if (!marks[key] || (mark === "P" && marks[key] === "A")) marks[key] = mark;
+          }
         }
-
-        setAttendance(marks);
-
+      } else {
+        warnings.push(errorText(attendanceResponse.reason, "Attendance records are unavailable."));
       }
 
-    } else {
+      if (leaveResponse.status === "fulfilled") {
+        const result = leaveResponse.value.data;
+        const records = Array.isArray(result.data)
+          ? result.data
+          : result.data
+            ? [result.data]
+            : [];
 
-      setAttendanceWarning(errorText(attendanceResponse.reason, "Attendance records are unavailable."));
+        if (result.success === false || !result.data) {
+          warnings.push(result.message || "Approved leave records are unavailable.");
+        } else {
+          for (const record of records) {
+            if (
+              record.status?.trim().toLowerCase() !== "approved" ||
+              record.leaveType?.trim().toUpperCase() === "PERMISSION" ||
+              !leaveBelongsToUser(record, user)
+            ) {
+              continue;
+            }
 
-      setAttendance({});
-
+            for (const key of getLeaveDateKeys(record)) {
+              if (!marks[key] || marks[key] === "A") marks[key] = "L";
+            }
+          }
+        }
+      } else {
+        warnings.push(errorText(leaveResponse.reason, "Approved leave records are unavailable."));
+      }
     }
+
+    setAttendance(marks);
+    setAttendanceWarning(warnings.join(" "));
 
     setLoading(false);
 
