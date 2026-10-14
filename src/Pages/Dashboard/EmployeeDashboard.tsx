@@ -508,7 +508,7 @@ const EmployeeDashboard = () => {
 
         const payload = dashboardResponse.data.data;
 
-        const attendance =
+        let attendance =
 
           payload?.todaysAttendance ??
 
@@ -579,6 +579,15 @@ const EmployeeDashboard = () => {
                 b.day.localeCompare(a.day)
 
               );
+
+            const todayRecord = myHistory.find(
+              (record) => record.day === getTodayDateString()
+            );
+            attendance = {
+              ...attendance,
+              isCheckedIn: Boolean(todayRecord?.checkInTime),
+              isCheckedOut: Boolean(todayRecord?.checkOutTime),
+            };
 
             workingHours = computeWorkingHours(
 
@@ -910,7 +919,7 @@ const EmployeeDashboard = () => {
 
     : todaysAttendance.isCheckedIn
 
-      ? "Checked In"
+      ? "Check In"
 
       : "Not Checked In";
 
@@ -1486,7 +1495,7 @@ const EmployeeDashboard = () => {
 
                       : record.checkInTime
 
-                        ? "Checked In"
+                        ? "Check In"
 
                         : "Not Checked In";
 
@@ -1538,7 +1547,7 @@ const EmployeeDashboard = () => {
 
                                 ? "complete"
 
-                                : status === "Checked In"
+                                : status === "Check In"
 
                                   ? "active"
 

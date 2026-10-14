@@ -14,6 +14,7 @@ import {
   Snackbar,
   Typography,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import LoginRoundedIcon from "@mui/icons-material/LoginRounded";
@@ -182,6 +183,7 @@ const getApiError = (
 };
 
 const EmployeeCheckInOut = () => {
+  const navigate = useNavigate();
   const [employee, setEmployee] = useState<Employee>(
     () => makeEmployee(initialUser)
   );
@@ -472,6 +474,7 @@ const EmployeeCheckInOut = () => {
         severity: "success",
         text: "Checked in successfully.",
       });
+      navigate("/employeedashboard", { replace: true });
     } catch (err) {
       setToast({
         severity: "error",
