@@ -17,7 +17,6 @@ import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import HealthAndSafetyOutlinedIcon from "@mui/icons-material/HealthAndSafetyOutlined";
 
 import {
-  useLocation,
   useNavigate,
   useParams,
 } from "react-router-dom";
@@ -167,22 +166,9 @@ const mapRequest = (item: LeaveApiData): LeaveRequest => ({
   rejectionReason: item.rejectionReason,
 });
 
-interface NavigationRequest {
-  id?: string;
-  status?: RequestStatus;
-  rejectionReason?: string | null;
-}
-
 function Details() {
   const { id } = useParams<{ id: string }>();
-  const location = useLocation();
   const navigate = useNavigate();
-
-  const navigationRequest = (
-    location.state as {
-      request?: NavigationRequest;
-    } | null
-  )?.request;
 
   const [request, setRequest] =
     useState<LeaveRequest | null>(null);

@@ -489,7 +489,7 @@ function Employee_Creation() {
     setDeleteOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!employeeToDelete) return;
 
     // The supplied project has no delete endpoint.

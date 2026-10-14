@@ -1,5 +1,5 @@
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 import {
@@ -45,6 +45,8 @@ interface AttendanceRecord {
   checkInTime: string | null;
   checkOutTime: string | null;
   totalWorkingSeconds: number | null;
+  attendanceStatus?: string;
+  approvalStatus?: "Pending" | "Approved" | "Rejected";
 }
 
 type AttendanceStatus =
@@ -237,6 +239,12 @@ function AdminCheckinout() {
 
   const [dailyRefresh, setDailyRefresh] = useState(0);
   const [historyRefresh, setHistoryRefresh] = useState(0);
+  const [approvalRecords, setApprovalRecords] = useState<
+    AttendanceRecord[]
+  >([]);
+  const [approvalLoading, setApprovalLoading] = useState(true);
+  const [approvalError, setApprovalError] = useState("");
+  const [reviewingId, setReviewingId] = useState("");
 
   /* =========================================
      DAILY ATTENDANCE
@@ -356,6 +364,61 @@ function AdminCheckinout() {
       cancelled = true;
     };
   }, [historyRefresh]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchApprovals = async () => {
+      setApprovalLoading(true);
+      setApprovalError("");
+      try {
+        const response = await api.post<AttendanceApiResponse>(
+          "/attendance/approvals",
+          {}
+        );
+        const records = getAttendanceRecords(response);
+        if (!cancelled) setApprovalRecords(records);
+      } catch (error) {
+        if (!cancelled) {
+          setApprovalError(
+            getErrorMessage(error, "Unable to load attendance approvals.")
+          );
+        }
+      } finally {
+        if (!cancelled) setApprovalLoading(false);
+      }
+    };
+
+    void fetchApprovals();
+    return () => {
+      cancelled = true;
+    };
+  }, [dailyRefresh, historyRefresh]);
+
+  const handleAttendanceReview = async (
+    record: AttendanceRecord,
+    decision: "Approved" | "Rejected"
+  ) => {
+    setReviewingId(record._id);
+    setApprovalError("");
+    try {
+      await api.post("/attendance/review", {
+        attendanceId: record._id,
+        decision,
+      });
+      setApprovalRecords((current) =>
+        current.filter((item) => item._id !== record._id)
+      );
+      setDailyRefresh((value) => value + 1);
+      setHistoryRefresh((value) => value + 1);
+    } catch (error) {
+      setApprovalError(
+        getErrorMessage(error, "Unable to review attendance.")
+      );
+    } finally {
+      setReviewingId("");
+    }
+  };
 
   /* =========================================
      DAILY SUMMARY
@@ -531,6 +594,116 @@ function AdminCheckinout() {
           tone="amber"
         />
       </Box>
+
+      <Paper
+        elevation={0}
+        className="admin-checkinout__section"
+        sx={{ p: 2 }}
+      >
+        <Box className="admin-checkinout__section-heading">
+          <Box>
+            <Typography className="admin-checkinout__section-title">
+              Previous Day Attendance Approval
+            </Typography>
+            <Typography className="admin-checkinout__section-subtitle">
+              Review attendance calculated after the workday is complete.
+            </Typography>
+          </Box>
+          <Button
+            variant="outlined"
+            startIcon={<RefreshRoundedIcon />}
+            disabled={approvalLoading}
+            onClick={() => setHistoryRefresh((value) => value + 1)}
+          >
+            Refresh
+          </Button>
+        </Box>
+
+        {approvalError && (
+          <Alert severity="error" sx={{ mt: 1 }}>
+            {approvalError}
+          </Alert>
+        )}
+
+        {approvalLoading ? (
+          <Box className="admin-checkinout__empty">
+            <CircularProgress size={24} />
+            <Typography>Loading pending approvals...</Typography>
+          </Box>
+        ) : approvalRecords.length === 0 ? (
+          <Box className="admin-checkinout__empty">
+            <Typography>No attendance approvals are pending.</Typography>
+          </Box>
+        ) : (
+          <TableContainer sx={{ mt: 1 }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Date</TableCell>
+                  <TableCell>Employee ID</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Check In</TableCell>
+                  <TableCell>Hours</TableCell>
+                  <TableCell>Suggested Status</TableCell>
+                  <TableCell align="right">Action</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {approvalRecords.map((record) => (
+                  <TableRow key={record._id}>
+                    <TableCell>{formatDay(record.day)}</TableCell>
+                    <TableCell>{record.employeeId}</TableCell>
+                    <TableCell>{record.email}</TableCell>
+                    <TableCell>
+                      {formatDateTime(record.checkInTime)}
+                    </TableCell>
+                    <TableCell>
+                      {formatDuration(record.totalWorkingSeconds)}
+                    </TableCell>
+                    <TableCell>
+                      {record.attendanceStatus || "Pending"}
+                    </TableCell>
+                    <TableCell align="right">
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "flex-end",
+                          gap: 1,
+                        }}
+                      >
+                        <Button
+                          size="small"
+                          variant="contained"
+                          color="success"
+                          disabled={Boolean(reviewingId)}
+                          onClick={() =>
+                            void handleAttendanceReview(record, "Approved")
+                          }
+                        >
+                          {reviewingId === record._id
+                            ? "Saving..."
+                            : "Approve"}
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="error"
+                          disabled={Boolean(reviewingId)}
+                          onClick={() =>
+                            void handleAttendanceReview(record, "Rejected")
+                          }
+                        >
+                          Reject
+                        </Button>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </Paper>
 
       {/* DAILY RECORDS */}
 

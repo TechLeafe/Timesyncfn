@@ -5,9 +5,9 @@ import { CalendarDays, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react
 
 import api from "../../api/axiosInstance";
 
-import "./CompanyCalendar.css";
+import "./Companycalendar.css";
 
-type AttendanceMark = "P" | "A" | "L" | "LP";
+type AttendanceMark = "P" | "PL" | "A" | "L" | "LP" | "PD" | "RJ";
 
 type Holiday = {
 
@@ -26,7 +26,6 @@ type Holiday = {
 };
 
 type AttendanceRecord = Record<string, unknown>;
-
 type ApiResponse<T> = { success?: boolean; message?: string; data?: T };
 
 type LoggedInUser = { userId?: string; employeeId?: string; email?: string };
@@ -36,13 +35,11 @@ const DAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const MARK_NAMES: Record<AttendanceMark, string> = {
 
   P: "Present",
-
   A: "Absent",
 
   L: "Leave",
 
   LP: "Loss of Pay",
-
 };
 
 function dateKey(date: Date): string {
@@ -220,13 +217,11 @@ function errorText(error: unknown, fallback: string): string {
 const PEEL_COLORS: Record<AttendanceMark, { back: [string, string, string]; flap: [string, string, string] }> = {
 
   P:  { back: ["#06600e", "#0e9a1b", "#0a7a15"], flap: ["#74cf80", "#4aa052", "#62bd6c"] },
-
   A:  { back: ["#111111", "#3a3a3a", "#222222"], flap: ["#b5b5b5", "#7a7a7a", "#9a9a9a"] },
 
   L:  { back: ["#1424a2", "#3659e5", "#2a45c4"], flap: ["#a9b6ff", "#6f85f0", "#8d9eff"] },
 
   LP: { back: ["#4e1495", "#8b48cc", "#6b2fb0"], flap: ["#d3b4f5", "#a574d9", "#bd94ec"] },
-
 };
 
 const FLAP_PATH = "M243 0 L0 195 C40 220 78 240 72 285 Z";
@@ -373,7 +368,6 @@ export default function CompanyCalendar() {
   const [holidays, setHolidays] = useState<Holiday[]>(COMPANY_HOLIDAYS_2026);
 
   const [attendance, setAttendance] = useState<Record<string, AttendanceMark>>({});
-
   const [loading, setLoading] = useState(true);
 
   const [error, setError] = useState("");
@@ -395,8 +389,12 @@ export default function CompanyCalendar() {
       api.post<ApiResponse<Holiday[]>>("/holidays/list", { companyYear: "", holidayType: "" }),
 
       api.post<ApiResponse<AttendanceRecord[]>>("/attendance/history", { user_id: "", date: "" }),
-
     ]);
+    let holidaysLoaded = false;
+    let attendanceLoaded = false;
+    let leavesLoaded = false;
+    let attendanceRecords: AttendanceRecord[] = [];
+    let permissionHoursByDay: Record<string, number> = {};
 
     if (holidayResponse.status === "fulfilled") {
 
