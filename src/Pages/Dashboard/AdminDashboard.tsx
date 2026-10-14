@@ -275,10 +275,10 @@ function AdminDashboard() {
 
   const greeting =
     now.getHours() < 12
-      ? "GOOD MORNING"
+      ? "Good Morning 🌅😍"
       : now.getHours() < 17
-        ? "GOOD AFTERNOON"
-        : "GOOD EVENING";
+        ? "Good Afternoon ☀️😊"
+        : "Good Evening 🌆✨";
 
   const todayDate = now.toLocaleDateString("en-IN", {
     weekday: "long",

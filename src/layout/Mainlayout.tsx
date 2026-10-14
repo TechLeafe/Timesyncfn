@@ -34,7 +34,7 @@ const pageTitles: Record<string, string> = {
   "/calendar": "Company Calendar",
   "/attendance": "Attendance",
   "/leaves-permissions": "Leaves and Permissions",
-  "/checkinout": "Check In / Check Out",
+  "/checkinout": "Time Checker",
   "/employee-management": "Employee Management",
   "/leave-policies": "Leave Policies",
   "/holiday": "Holidays",

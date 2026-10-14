@@ -325,24 +325,6 @@ const getLoggedInUserName = (
   }
 };
 
-const getLoggedInUserId = (): string => {
-  try {
-    const stored =
-      localStorage.getItem("loggedInUser");
-
-    if (!stored) return "";
-
-    const user = JSON.parse(stored) as {
-      userId?: string;
-      employeeId?: string;
-    };
-
-    return user.userId || user.employeeId || "";
-  } catch {
-    return "";
-  }
-};
-
 const mapApiRequest = (
   item: LeaveApiData,
   employeeName: string
@@ -441,9 +423,11 @@ function EmployeeLeavesPermissions() {
   /* ================= LOAD REQUESTS ================= */
 
   const fetchLeaveRequests = useCallback(
-    async () => {
-      setListLoading(true);
-      setListError("");
+    async (backgroundRefresh = false) => {
+      if (!backgroundRefresh) {
+        setListLoading(true);
+        setListError("");
+      }
 
       try {
         const response = await api.post<
@@ -468,26 +452,8 @@ function EmployeeLeavesPermissions() {
             ? [data]
             : [];
 
-        /*
-         * Use the authenticated user's records.
-         * The backend must also enforce request
-         * ownership for this endpoint.
-         */
-        const loggedInId =
-          getLoggedInUserId();
-
-        const userId =
-          loggedInId ||
-          String(currentUser.id || "");
-
-        const ownRecords = userId
-          ? records.filter(
-              (item) => item.user_id === userId
-            )
-          : records;
-
         setRequests(
-          ownRecords.map((item) =>
+          records.map((item) =>
             mapApiRequest(item, employeeName)
           )
         );
@@ -499,10 +465,12 @@ function EmployeeLeavesPermissions() {
           )
         );
       } finally {
-        setListLoading(false);
+        if (!backgroundRefresh) {
+          setListLoading(false);
+        }
       }
     },
-    [currentUser.id, employeeName]
+    [employeeName]
   );
 
   /* ================= LOAD POLICY ================= */
@@ -567,6 +535,33 @@ function EmployeeLeavesPermissions() {
     void fetchLeaveRequests();
     void fetchLeavePolicy();
   }, [fetchLeaveRequests, fetchLeavePolicy]);
+
+  useEffect(() => {
+    const refreshRequests = () => {
+      if (document.visibilityState === "visible") {
+        void fetchLeaveRequests(true);
+      }
+    };
+
+    document.addEventListener(
+      "visibilitychange",
+      refreshRequests
+    );
+    window.addEventListener("focus", refreshRequests);
+    const refreshInterval = window.setInterval(
+      refreshRequests,
+      30_000
+    );
+
+    return () => {
+      document.removeEventListener(
+        "visibilitychange",
+        refreshRequests
+      );
+      window.removeEventListener("focus", refreshRequests);
+      window.clearInterval(refreshInterval);
+    };
+  }, [fetchLeaveRequests]);
 
   /* ================= FILTERED REQUESTS ================= */
 

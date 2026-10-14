@@ -56,9 +56,9 @@ interface LeaveBalance {
 
   sickLeave: LeaveValue;
 
-  earnedLeave: LeaveValue;
+  compensatoryOff: LeaveValue;
 
-  permission: LeaveValue;
+  permissions: LeaveValue;
 
 }
 
@@ -174,9 +174,9 @@ const EMPTY_DATA: EmployeeDashboardData = {
 
     sickLeave: 0,
 
-    earnedLeave: 0,
+    compensatoryOff: 0,
 
-    permission: 0,
+    permissions: 0,
 
   },
 
@@ -484,11 +484,15 @@ const EmployeeDashboard = () => {
 
     let cancelled = false;
 
-    const loadDashboard = async () => {
+    const loadDashboard = async (backgroundRefresh = false) => {
 
-      setLoading(true);
+      if (!backgroundRefresh) {
+        setLoading(true);
+      }
 
-      setError("");
+      if (!backgroundRefresh) {
+        setError("");
+      }
 
       try {
 
@@ -686,7 +690,7 @@ const EmployeeDashboard = () => {
 
       } finally {
 
-        if (!cancelled) {
+        if (!cancelled && !backgroundRefresh) {
 
           setLoading(false);
 
@@ -696,11 +700,39 @@ const EmployeeDashboard = () => {
 
     };
 
+    const refreshDashboardWhenVisible = () => {
+      if (document.visibilityState === "visible") {
+        void loadDashboard(true);
+      }
+    };
+
+    document.addEventListener(
+      "visibilitychange",
+      refreshDashboardWhenVisible
+    );
+    window.addEventListener(
+      "focus",
+      refreshDashboardWhenVisible
+    );
+    const refreshInterval = window.setInterval(
+      () => void loadDashboard(true),
+      30_000
+    );
+
     void loadDashboard();
 
     return () => {
 
       cancelled = true;
+      document.removeEventListener(
+        "visibilitychange",
+        refreshDashboardWhenVisible
+      );
+      window.removeEventListener(
+        "focus",
+        refreshDashboardWhenVisible
+      );
+      window.clearInterval(refreshInterval);
 
     };
 
@@ -748,9 +780,9 @@ const EmployeeDashboard = () => {
 
     {
 
-      label: "Earned Leave",
+      label: "Compensatory Off",
 
-      value: getAvailableLeave(leaveBalance.earnedLeave),
+      value: getAvailableLeave(leaveBalance.compensatoryOff),
 
       color: "#F9B23D",
 
@@ -760,7 +792,7 @@ const EmployeeDashboard = () => {
 
       label: "Permission",
 
-      value: getAvailableLeave(leaveBalance.permission),
+      value: getAvailableLeave(leaveBalance.permissions),
 
       color: "#2697E8",
 
@@ -902,13 +934,13 @@ const EmployeeDashboard = () => {
 
     hour < 12
 
-      ? "GOOD MORNING"
+      ? "Good Morning 🌅😍"
 
       : hour < 17
 
-        ? "GOOD AFTERNOON"
+        ? "Good Afternoon ☀️😊"
 
-        : "GOOD EVENING";
+        : "Good Evening 🌆✨";
 
   const recentAttendance = history.slice(0, 5);
 

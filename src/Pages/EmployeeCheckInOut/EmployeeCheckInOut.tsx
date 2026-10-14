@@ -612,7 +612,7 @@ const EmployeeCheckInOut = () => {
             component="h2"
             className="attendance-page-title"
           >
-            Check In / Check Out
+            Check In / Out
           </Typography>
 
           <Typography className="attendance-page-description">

@@ -254,6 +254,8 @@ function Employee_Creation() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] =
     useState<Employee | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   const [notice, setNotice] = useState<Notice | null>(null);
 
@@ -486,28 +488,47 @@ function Employee_Creation() {
 
   const openDeleteDialog = (employee: Employee) => {
     setEmployeeToDelete(employee);
+    setDeleteError("");
     setDeleteOpen(true);
   };
 
   const confirmDelete = async () => {
-    if (!employeeToDelete) return;
+    if (!employeeToDelete || deleting) return;
 
-    // The supplied project has no delete endpoint.
-    // This affects only the currently displayed list.
-    setEmployees((current) =>
-      current.filter(
-        (employee) => employee.id !== employeeToDelete.id
-      )
-    );
+    if (!employeeToDelete._id) {
+      setDeleteError("This employee is missing its database ID and cannot be deleted.");
+      return;
+    }
 
-    setDeleteOpen(false);
-    setEmployeeToDelete(null);
+    setDeleting(true);
+    setDeleteError("");
 
-    setNotice({
-      severity: "success",
-      text:
-        "Employee removed from this view only. The backend record has not been deleted.",
-    });
+    try {
+      const response = await api.post<ApiEnvelope<unknown>>(
+        "/employees/delete",
+        { _id: employeeToDelete._id }
+      );
+
+      extractApiData(response.data, "Unable to delete employee.");
+
+      setEmployees((current) =>
+        current.filter(
+          (employee) => employee._id !== employeeToDelete._id
+        )
+      );
+      setDeleteOpen(false);
+      setEmployeeToDelete(null);
+      setNotice({
+        severity: "success",
+        text: "Employee deleted successfully.",
+      });
+    } catch (error) {
+      setDeleteError(
+        getErrorMessage(error, "Unable to delete employee.")
+      );
+    } finally {
+      setDeleting(false);
+    }
   };
 
   /* ================= PAGE ================= */
@@ -1049,29 +1070,40 @@ function Employee_Creation() {
 
       <Dialog
         open={deleteOpen}
-        onClose={() => setDeleteOpen(false)}
+        onClose={() => {
+          if (deleting) return;
+          setDeleteOpen(false);
+          setEmployeeToDelete(null);
+          setDeleteError("");
+        }}
         maxWidth="xs"
         fullWidth
         className="employee-creation-dialog"
       >
         <DialogTitle>
-          Remove Employee From View?
+          Delete Employee?
         </DialogTitle>
 
         <DialogContent>
           <Typography>
             Remove <strong>{employeeToDelete?.name}</strong>{" "}
-            from the currently displayed list? This does
-            not delete the employee from the backend.
+            permanently from the employee records? This action cannot be undone.
           </Typography>
+          {deleteError && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {deleteError}
+            </Alert>
+          )}
         </DialogContent>
 
         <DialogActions>
           <Button
             variant="outlined"
+            disabled={deleting}
             onClick={() => {
               setDeleteOpen(false);
               setEmployeeToDelete(null);
+              setDeleteError("");
             }}
           >
             Cancel
@@ -1080,9 +1112,17 @@ function Employee_Creation() {
           <Button
             variant="contained"
             color="error"
+            disabled={deleting}
+            startIcon={
+              deleting ? (
+                <CircularProgress size={16} color="inherit" />
+              ) : (
+                <DeleteOutlineRoundedIcon />
+              )
+            }
             onClick={confirmDelete}
           >
-            Remove From View
+            {deleting ? "Deleting..." : "Delete Employee"}
           </Button>
         </DialogActions>
       </Dialog>
