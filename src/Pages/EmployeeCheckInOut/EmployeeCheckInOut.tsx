@@ -32,6 +32,7 @@ import api from "../../api/axiosInstance";
 import "./EmployeeCheckInOut.css";
 
 interface Employee {
+  [x: string]: string;
   name: string;
   designation: string;
   employeeId: string;
@@ -834,8 +835,8 @@ const EmployeeCheckInOut = () => {
 
                   <DetailItem
                     icon={<BusinessCenterOutlinedIcon />}
-                    label="Department"
-                    value={employee.department}
+                    label="Team"
+                    value={employee.team}
                   />
                 </Box>
 
@@ -861,7 +862,7 @@ const EmployeeCheckInOut = () => {
                   <DetailItem
                     icon={<GroupsOutlinedIcon />}
                     label="Reporting Manager"
-                    value={employee.reportingManager}
+                    value="Dhamini"
                   />
                 </Box>
               </Box>

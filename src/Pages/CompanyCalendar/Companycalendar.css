@@ -102,12 +102,6 @@
 
 .cc-day-selected { outline: 2px solid #078d4b; outline-offset: -3px; }
 
-.cc-day-today:not(.cc-day-selected) { box-shadow: inset 0 0 0 2px #a86dd0; }
-
-.cc-day-today .cc-day-number { color: #8d32bc; }
-
-.cc-today-dot { position: absolute; right: 7px; top: 7px; width: 6px; height: 6px; border-radius: 50%; background: #922dba; }
-
 /* Festival art is centered and never stretches the calendar row */
 
 .cc-holiday-content { position: absolute; top: 22px; bottom: 5px; left: 4px; right: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 0; overflow: hidden; text-align: center; }
@@ -748,6 +742,10 @@
 
 .company-calendar-page .cc-day-mark-lp { border-color: #8b48cc; }
 
+.company-calendar-page .cc-day-today { background: #d8efce; border-color: #a8d296; }
+
+.company-calendar-page .cc-day-today .cc-day-number { color: #267c13; }
+
 @media (max-width: 600px) {
 
   .company-calendar-page .cc-corner > span { font-size: 8px; }
@@ -1002,4 +1000,14 @@
   .company-calendar-page .cc-day .cc-holiday-content { top: 17px; right: 1px; bottom: 2px; left: 1px; gap: 1px; }
   .company-calendar-page .cc-day .cc-holiday-symbol { width: 24px; height: 24px; flex-basis: 24px; }
   .company-calendar-page .cc-day .cc-holiday-name { font-size: 7px; line-height: 1.08; }
+}
+
+.company-calendar-page .cc-day .cc-holiday-symbol--uzhavar-thirunal { width: 45px; height: 45px; flex-basis: 45px; }
+
+@media (max-width: 1100px) {
+  .company-calendar-page .cc-day .cc-holiday-symbol--uzhavar-thirunal { width: 43px; height: 43px; flex-basis: 43px; }
+}
+
+@media (max-width: 650px) {
+  .company-calendar-page .cc-day .cc-holiday-symbol--uzhavar-thirunal { width: 29px; height: 29px; flex-basis: 29px; }
 }

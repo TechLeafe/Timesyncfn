@@ -943,13 +943,13 @@ const EmployeeDashboard = () => {
 
     hour < 12
 
-      ? "Good Morning 🌅😍"
+      ? "Good Morning "
 
       : hour < 17
 
-        ? "Good Afternoon ☀️😊"
+        ? "Good Afternoon "
 
-        : "Good Evening 🌆✨";
+        : "Good Evening ";
 
   const recentAttendance = history.slice(0, 5);
 
