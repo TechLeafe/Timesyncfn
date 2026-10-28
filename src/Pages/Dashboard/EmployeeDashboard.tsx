@@ -114,7 +114,18 @@ interface WorkingHours {
 
 }
 
+interface DashboardEmployee {
+  user_id: string;
+  employeeId: string;
+  name: string;
+  email: string;
+  designation: string;
+  team?: string;
+  status?: string;
+}
 interface EmployeeDashboardData {
+
+  employee?: DashboardEmployee;
 
   workingHours: WorkingHours;
 
