@@ -14,6 +14,7 @@ import {
   Snackbar,
   Typography,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import LoginRoundedIcon from "@mui/icons-material/LoginRounded";
@@ -31,6 +32,7 @@ import api from "../../api/axiosInstance";
 import "./EmployeeCheckInOut.css";
 
 interface Employee {
+  [x: string]: string;
   name: string;
   designation: string;
   employeeId: string;
@@ -182,6 +184,7 @@ const getApiError = (
 };
 
 const EmployeeCheckInOut = () => {
+  const navigate = useNavigate();
   const [employee, setEmployee] = useState<Employee>(
     () => makeEmployee(initialUser)
   );
@@ -472,6 +475,7 @@ const EmployeeCheckInOut = () => {
         severity: "success",
         text: "Checked in successfully.",
       });
+      navigate("/employeedashboard", { replace: true });
     } catch (err) {
       setToast({
         severity: "error",
@@ -831,8 +835,8 @@ const EmployeeCheckInOut = () => {
 
                   <DetailItem
                     icon={<BusinessCenterOutlinedIcon />}
-                    label="Department"
-                    value={employee.department}
+                    label="Team"
+                    value={employee.team}
                   />
                 </Box>
 
@@ -858,7 +862,7 @@ const EmployeeCheckInOut = () => {
                   <DetailItem
                     icon={<GroupsOutlinedIcon />}
                     label="Reporting Manager"
-                    value={employee.reportingManager}
+                    value="Dhamini"
                   />
                 </Box>
               </Box>

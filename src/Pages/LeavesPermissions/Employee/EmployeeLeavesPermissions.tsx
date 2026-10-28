@@ -154,6 +154,22 @@ const TYPE_LABELS: Record<LeaveType, string> = {
   PERMISSION: "Permission",
 };
 
+const LEAVE_TYPE_OPTIONS: {
+  value: LeaveType;
+  label: string;
+}[] = [
+  { value: "CL", label: "Casual Leave (CL)" },
+  { value: "SL", label: "Sick Leave (SL)" },
+  { value: "COMP_OFF", label: "Compensatory Off" },
+];
+
+const PERMISSION_TYPE_OPTIONS: {
+  value: LeaveType;
+  label: string;
+}[] = [
+  { value: "PERMISSION", label: "Permission" },
+];
+
 /* ================= HELPERS ================= */
 
 export const getBusinessYear = (
@@ -1033,7 +1049,7 @@ function EmployeeLeavesPermissions() {
 
               <Box>
                 <Typography className="form-title">
-                  {form.leaveType === "PERMISSION"
+                  {requestType === "permission"
                     ? "Permission Application"
                     : "Leave Application"}
                 </Typography>
@@ -1077,29 +1093,16 @@ function EmployeeLeavesPermissions() {
                       event.target.value as LeaveType;
 
                     updateField("leaveType", value);
-
-                    setRequestType(
-                      value === "PERMISSION"
-                        ? "permission"
-                        : "leave"
-                    );
                   }}
                 >
-                  <MenuItem value="CL">
-                    Casual Leave (CL)
-                  </MenuItem>
-
-                  <MenuItem value="SL">
-                    Sick Leave (SL)
-                  </MenuItem>
-
-                  <MenuItem value="COMP_OFF">
-                    Compensatory Off
-                  </MenuItem>
-
-                  <MenuItem value="PERMISSION">
-                    Permission
-                  </MenuItem>
+                  {(requestType === "permission"
+                    ? PERMISSION_TYPE_OPTIONS
+                    : LEAVE_TYPE_OPTIONS
+                  ).map(({ value, label }) => (
+                    <MenuItem key={value} value={value}>
+                      {label}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </FieldRow>

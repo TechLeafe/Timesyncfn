@@ -337,11 +337,12 @@ function PagePeel({ mark }: { mark: AttendanceMark }) {
 
 /* Local holiday artwork: keep exact filenames in public/calendar-icons/. */
 const HOLIDAY_ART: Array<{ terms: string[]; file: string }> = [
-  { terms: ["uzhavar", "mattu pongal"], file: "mattu pongal.png" },
+  { terms: ["mattu pongal"], file: "mattu pongal.png" },
   { terms: ["thiruvalluvar"], file: "thiruvalluvar.png" },
+  { terms: ["uzhavar thirunal", "uzhavar thirunaal"], file: "Uzhavar-Thirunal.png" },
   { terms: ["tamil new year", "puthandu"], file: "tamil new year.png" },
   { terms: ["telugu new year", "ugadi"], file: "ugadi.png" },
-  { terms: ["new year"], file: "New Year.png" },
+  { terms: ["new year"], file: "new-year.png" },
   { terms: ["pongal", "sankranti"], file: "Pongal.png" },
   { terms: ["republic"], file: "republic-day.png" },
   { terms: ["independence"], file: "independence-day.png" },
@@ -362,11 +363,12 @@ function HolidayIcon({ name }: { name: string }) {
   const normalized = name.toLowerCase().replace(/[-_]/g, " ").replace(/\s+/g, " ");
   const image = HOLIDAY_ART.find(({ terms }) => terms.some((term) => normalized.includes(term)));
   const [imageFailed, setImageFailed] = useState(false);
+  const isUzhavarThirunal = image?.file === "Uzhavar-Thirunal.png";
 
   useEffect(() => setImageFailed(false), [name]);
 
   return (
-    <span className="cc-holiday-symbol" aria-hidden="true">
+    <span className={`cc-holiday-symbol${isUzhavarThirunal ? " cc-holiday-symbol--uzhavar-thirunal" : ""}`} aria-hidden="true">
       {image && !imageFailed ? (
         <img
           src={`/calendar-icons/${encodeURIComponent(image.file)}`}
@@ -389,7 +391,7 @@ const COMPANY_HOLIDAYS_2026: Holiday[] = [
   ["2026-01-26", "Republic Day"],
   ["2026-03-19", "Telugu New Year's Day"],
   ["2026-03-21", "Ramzan"],
-  ["2026-04-14", "Tamil New Year"],
+  ["2026-04-14", "Amdedkar Birthday Tamil New Year"],
   ["2026-05-01", "May Day (HALF DAY)"],
   ["2026-05-28", "Bakrid (Idul Azha)"],
   ["2026-06-26", "Muharram"],
@@ -738,8 +740,6 @@ export default function CompanyCalendar() {
                     </span>
 
                   )}
-
-                  {key === today && <span className="cc-today-dot" aria-hidden="true" />}
 
                 </button>
 
