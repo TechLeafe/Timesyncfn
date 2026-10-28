@@ -129,6 +129,20 @@
   flex-shrink: 0;
 }
 
+/* ===== DASHBOARD CONTENT ===== */
+
+.emp-dashboard-top {
+  display: block;
+  min-width: 0;
+}
+
+.emp-dashboard-main {
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+  min-width: 0;
+}
+
 /* ===== ERROR MESSAGE ===== */
 
 .emp-error {
@@ -786,6 +800,10 @@
     gap: 15px;
   }
 
+  .emp-dashboard-main {
+    gap: 15px;
+  }
+
   .emp-welcome {
     padding: 23px;
     flex-direction: column;
@@ -916,6 +934,7 @@
     padding: 8px;
     font-size: 10px;
   }
+
 }
 
 /* ===== REDUCE MOTION ===== */
@@ -925,5 +944,6 @@
   .emp-premium-dashboard *::before,
   .emp-premium-dashboard *::after {
     transition: none !important;
+    animation: none !important;
   }
 }
