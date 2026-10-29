@@ -87,7 +87,7 @@ function BirthdayFooter() {
       </div>
 
       <div className="birthday-footer-person">
-        <strong>{employeeName}</strong>
+        <strong>Jerlin Renisa J</strong>
         <span>Wishing you a wonderful year</span>
       </div>
 
