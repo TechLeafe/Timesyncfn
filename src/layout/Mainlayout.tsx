@@ -133,7 +133,7 @@ const MainLayout = () => {
 
       </Box>
 
-      <BirthdayFooter />
+      {/* <BirthdayFooter /> */}
     </Box>
   );
 };
