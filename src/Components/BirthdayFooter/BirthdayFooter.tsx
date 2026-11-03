@@ -43,6 +43,7 @@ const getEmployeeName = (): string => {
 function BirthdayFooter() {
   const [posterOpen, setPosterOpen] = useState(false);
   const employeeName = getEmployeeName();
+  console.log("BirthdayFooter: employeeName:", employeeName);
   const confettiPieces = [
     { x: -250, y: -170, rotate: 240 },
     { x: -190, y: 120, rotate: 420 },
