@@ -116,7 +116,7 @@ function BirthdayFooter() {
             alt="Diwali illustration with families, fireworks, and traditional lamps"
           />
           <div className="diwali-popup-message">
-            <strong lang="ta">தீபாவளிப் பரிசு காத்திருக்குது!</strong>
+            <strong lang="ta">தீபாவளிப் பரிசு காத்திருக்கிறது!!!</strong>
             <p>
               Tomorrow, we are celebrating Diwali at our office! 🎁 Exciting
               gifts and surprises are waiting for everyone. Get ready for a
