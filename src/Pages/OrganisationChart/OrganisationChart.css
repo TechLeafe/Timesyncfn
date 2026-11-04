@@ -1,0 +1,541 @@
+.organisation-chart-page {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 100%;
+  padding: 20px 16px;
+  box-sizing: border-box;
+  background: #f8fafc;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.organisation-chart-header {
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.organisation-chart-header h1 {
+  margin: 0;
+  color: #17243a;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.organisation-chart-header p {
+  margin-top: 5px;
+  color: #718096;
+  font-size: 12px;
+}
+
+.organisation-chart-content {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 12px 35px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.organisation-chart-header {
+  margin-bottom: 20px;
+}
+
+.organisation-chart-header h1 {
+  margin: 0;
+  color: #17243a;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.organisation-chart-header p {
+  margin-top: 8px;
+  color: #718096;
+  font-size: 14px;
+}
+
+/* Main chart */
+
+.organisation-chart-content {
+  width: 100%;
+  min-width: 1000px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px 20px 45px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+/* Employee cards */
+
+.org-employee-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  flex-shrink: 0;
+}
+
+.org-profile-placeholder {
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 4px solid #b8ad43;
+  color: #17243a;
+  font-size: 23px;
+  font-weight: 700;
+  box-sizing: border-box;
+}
+
+.org-employee-details {
+  width: 135px;
+  text-align: center;
+}
+
+.org-employee-name {
+  margin: 8px 0 0;
+  color: #26354b;
+  font-size: 13px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.org-employee-designation {
+  margin: 8px 0 0;
+  color: #718096;
+  font-size: 12px;
+}
+
+/* Directors */
+
+.org-leadership {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 45px;
+  position: relative;
+  z-index: 1;
+}
+
+.leadership-card .org-profile-placeholder {
+  border-color: #b8ad43;
+  box-shadow: 0 0 0 6px #f8f6e9;
+}
+
+/* Directors to HR connector */
+
+.org-leadership-connector {
+  width: 280px;
+  height: 45px;
+  position: relative;
+}
+
+.org-leadership-horizontal {
+  position: absolute;
+  top: 10%;
+  left: 25%;
+  width: 50%;
+  height: 2px;
+  background: #b8ad43;
+}
+
+.org-leadership-vertical {
+  position: absolute;
+  top: 8%;
+  left: 50%;
+  width: 2px;
+  height: 36px;
+  background: #b8ad43;
+  transform: translateX(-50%);
+}
+
+/* HR */
+
+.hr-card .org-profile-placeholder {
+  border-color: #ed65bd;
+  box-shadow: 0 0 0 6px #fff0fa;
+}
+
+/* HR to Team Leader */
+
+.org-connector {
+  top: 5%;
+  left: 50%;
+  width: 2px;
+  height: 45px;
+  background: #ed65bd;
+}
+
+.tl-card .org-profile-placeholder {
+  border-color: #ed6565;
+  box-shadow: 0 0 0 6px #fff0f0;
+}
+
+/* Team reporting branches */
+
+.org-team-branches {
+  width: 100%;
+  min-width: 0;
+  position: relative;
+  margin-top: 55px;
+  padding-top: 25px;
+  box-sizing: border-box;
+}
+
+
+/* Team Leader connects to the shared horizontal line */
+
+.org-team-branches::before {
+  content: "";
+  position: absolute;
+  width: 2px;
+  height: 65px;
+  background: #ed6565;
+  top: 65px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Shared horizontal line across all five teams */
+
+.org-team-horizontal-connector {
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: #293e91;
+}
+
+/* Five teams */
+
+.org-regular-teams {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  align-items: start;
+}
+
+.org-team-card {
+  min-width: 0;
+  width: 100%;
+  position: relative;
+  padding: 12px 7px;
+  border: 2px solid #dce5f2;
+  border-radius: 18px;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.org-team-card h3 {
+  margin: 0 0 15px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  padding: 10px 4px;
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+}
+
+.org-team-members {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px 6px;
+}
+
+.team-member-card .org-profile-placeholder,
+.intern-card .org-profile-placeholder {
+  width: 54px;
+  height: 54px;
+  border-width: 3px;
+}
+
+.team-member-card .org-employee-details,
+.intern-card .org-employee-details {
+  width: 90px;
+}
+
+.org-employee-name {
+  font-size: 11px;
+}
+
+.org-employee-designation {
+  font-size: 10px;
+}
+
+.org-team-branches {
+  width: 100%;
+  margin-top: 35px;
+  padding-top: 22px;
+}
+
+/* Individual team cards */
+
+.org-team-card {
+  min-width: 0;
+  position: relative;
+  padding: 14px 8px;
+  border: 2px solid #dce5f2;
+  border-radius: 20px;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+/* Each team connects to the same horizontal line */
+
+.org-team-vertical-connector {
+  position: absolute;
+  width: 2px;
+  height: 30px;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #293e91;
+}
+
+/* Team headings */
+
+.org-team-card h3 {
+  min-height: 42px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 0 16px;
+  padding: 8px 5px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+  box-sizing: border-box;
+}
+
+/* Team-specific colours */
+
+.impl-team h3 {
+  background: #293e91;
+}
+
+.coinstep-team h3 {
+  background: #1882b5;
+}
+
+.impl_website-team h3 {
+  background: #16763c;
+}
+
+.designer-team h3 {
+  background: #9342c5;
+}
+
+.hrms-team h3 {
+  background: #16763c;
+}
+
+/* Team card border colours */
+
+.impl-team {
+  border-color: #c9d1f2;
+}
+
+.coinstep-team {
+  border-color: #c9e9f8;
+}
+
+.impl_website-team {
+  border-color: #b8dfc5;
+}
+
+.designer-team {
+  border-color: #e4c9f7;
+}
+
+.hrms-team {
+  border-color: #b8dfc5;
+}
+
+/* Team members */
+
+.org-team-members {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 20px 6px;
+}
+
+.team-member-card .org-profile-placeholder {
+  width: 55px;
+  height: 55px;
+  border-width: 3px;
+  border-color: #2585df;
+  box-shadow: 0 0 0 5px #e7f3ff;
+  font-size: 20px;
+}
+
+.intern-card .org-profile-placeholder {
+  width: 55px;
+  height: 55px;
+  border-width: 3px;
+  border-color: #168d32;
+  box-shadow: 0 0 0 5px #e7f7e9;
+  font-size: 20px;
+}
+
+.team-member-card .org-employee-details,
+.intern-card .org-employee-details {
+  width: 105px;
+}
+
+.team-member-card .org-employee-name,
+.intern-card .org-employee-name {
+  font-size: 12px;
+}
+
+/* Medium screens */
+
+@media (max-width: 1100px) {
+  .organisation-chart-content {
+    min-width: 1050px;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 768px) {
+  .organisation-chart-page {
+    padding: 12px;
+  }
+
+  .organisation-chart-header h1 {
+    font-size: 22px;
+  }
+
+  .organisation-chart-content {
+    min-width: 1000px;
+  }
+}
+
+.org-profile-placeholder {
+  width: 52px;
+  height: 52px;
+  font-size: 18px;
+  border-width: 3px;
+}
+
+.org-employee-card {
+  gap: 5px;
+}
+
+.org-employee-details {
+  width: 105px;
+}
+
+.org-employee-name {
+  font-size: 11px;
+}
+
+.org-employee-designation {
+  font-size: 10px;
+  margin-top: 2px;
+}
+
+/* Final organisation chart layout adjustment */
+
+.organisation-chart-page {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 12px 8px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.organisation-chart-content {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 24px 8px 30px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Use the available width for all five teams */
+.org-team-branches {
+  width: 100%;
+  min-width: 0;
+  margin-top: 35px;
+  padding-top: 25px;
+  box-sizing: border-box;
+}
+
+/* Five equal-width team columns */
+.org-regular-teams {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  box-sizing: border-box;
+}
+
+/* Keep every team card inside its column */
+.org-team-card {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 5px;
+  box-sizing: border-box;
+}
+
+.org-team-card h3 {
+  font-size: 12px;
+  padding: 10px 3px;
+  overflow-wrap: anywhere;
+}
+
+.org-team-members {
+  justify-content: center;
+  gap: 15px 4px;
+}
+
+.team-member-card .org-employee-details,
+.intern-card .org-employee-details {
+  width: 85px;
+  max-width: 100%;
+}
+
+/* Fix the connector overlapping the Team Leader's name */
+.org-team-branches::before {
+  top: -35px;
+  height: 35px;
+}
+
+/* Keep the branch lines aligned */
+.org-team-horizontal-connector {
+  top: 0;
+  left: 10%;
+  right: 10%;
+}
+
+.org-team-vertical-connector {
+  top: -25px;
+  height: 25px;
+}

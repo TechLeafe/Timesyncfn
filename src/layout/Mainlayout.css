@@ -287,3 +287,29 @@
     transition: none !important;
   }
 }
+
+/* ==========================================
+   EMPLOYEE CREATION - PAGE SCROLL CONTROL
+========================================== */
+
+.app-main-content:has(.employee-creation-page) {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.app-page-content:has(.employee-creation-page) {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.app-page-content:has(.employee-creation-page)
+  .employee-creation-page {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}

@@ -843,3 +843,48 @@
     padding: 14px 16px;
   }
 }
+
+/* ==========================================
+   EMPLOYEE CREATION - PRESERVE ORIGINAL SPACING
+========================================== */
+
+.employee-creation-fixed-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+/* ==========================================
+   EMPLOYEE DIRECTORY - VERTICAL SCROLL
+========================================== */
+
+/* Keep the original header and overview dimensions */
+.employee-creation-fixed-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+/* Directory takes the remaining available height */
+.employee-creation-list-card.MuiPaper-root {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Only employee records scroll */
+.employee-creation-directory-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Preserve horizontal table scrolling */
+.employee-creation-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}

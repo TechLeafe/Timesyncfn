@@ -10,6 +10,8 @@ import Admin from "../Pages/Dashboard/AdminDashboard";
 import EmployeeDashboard from "../Pages/Dashboard/EmployeeDashboard";
 import HRDashboard from "../Pages/Dashboard/HRDashboard";
 import { Login } from "../Pages/Login/Login";
+import OrganisationChart from "../Pages/OrganisationChart/OrganisationChart";
+
 
 import Employee_Creation from "../Pages/Employee_Creation/Employee_Creation";
 // import Employee_Creation from "../Pages/Employee_Creation";
@@ -36,6 +38,7 @@ import TaskDetails from "../Pages/DailyTask/TaskDetails";
 import {
   ADMIN,
   HR,
+  EMPLOYEE,
 } from "../data/permissions";
 
 
@@ -186,6 +189,12 @@ export const route = createBrowserRouter([
             {
               path : "leave-policies",
               element: <LeavePolicies />
+            },
+            { path: "organisation-chart",
+              element: ( <ProtectedRoute allowedRoles={[EMPLOYEE, HR, ADMIN]}>
+                         <OrganisationChart />
+                         </ProtectedRoute>
+                      ),
             },
         ],
     },

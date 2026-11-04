@@ -595,7 +595,8 @@ function AdminCheckinout() {
         />
       </Box>
 
-      <Paper
+      {/* PREVIOUS DAY ATTENDANCE APPROVAL */}
+      {/* <Paper
         elevation={0}
         className="admin-checkinout__section"
         sx={{ p: 2 }}
@@ -703,7 +704,7 @@ function AdminCheckinout() {
             </Table>
           </TableContainer>
         )}
-      </Paper>
+      </Paper>*/}
 
       {/* DAILY RECORDS */}
 

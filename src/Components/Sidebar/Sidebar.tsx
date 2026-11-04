@@ -1,5 +1,5 @@
-
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom"
+import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import type { ReactNode } from "react";
 
 import {
@@ -117,6 +117,15 @@ const navItems: NavItem[] = [
     path: "/employee-leaves-permissions",
     roles: [EMPLOYEE],
   },
+  // {
+  // label: "Organisation Chart",
+  // icon: <AccountTreeIcon />,
+  // path: "/organisation-chart",
+  // roles: [EMPLOYEE, HR, ADMIN],
+  // },
+
+
+
 ];
 
 function Sidebar({

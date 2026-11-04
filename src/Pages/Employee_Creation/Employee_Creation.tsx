@@ -572,6 +572,8 @@ function Employee_Creation() {
         ) : undefined}
       </Snackbar>
 
+    <Box className="employee-creation-fixed-section">  {/* Added fixed section here */}
+
       <Box className="employee-creation-header">
         <Box className="employee-creation-heading">
           <Box className="employee-creation-heading-icon">
@@ -645,6 +647,8 @@ function Employee_Creation() {
         </Alert>
       )}
 
+    </Box>  {/* Closed fixed section here */}
+
       <Paper
         elevation={0}
         className="employee-creation-list-card"
@@ -671,6 +675,9 @@ function Employee_Creation() {
             />
           </Box>
         </Box>
+
+      
+      <Box className="employee-creation-directory-scroll"> { /* Added a Box wrapper here to ensure the content is scrollable and not fixed */ }
 
         {loading || loadError || filteredEmployees.length === 0 ? (
           <Box className="employee-creation-empty">
@@ -848,6 +855,7 @@ function Employee_Creation() {
             </Box>
           </>
         )}
+      </Box>  {/* Closed Box wrapper here to ensure the content is scrollable and not fixed */ }
       </Paper>
 
       {/* CREATE / EDIT DRAWER */}

@@ -264,8 +264,7 @@ function errorText(error: unknown, fallback: string): string {
 const PEEL_COLORS: Record<AttendanceMark, { back: [string, string, string]; flap: [string, string, string] }> = {
 
   P:  { back: ["#06600e", "#0e9a1b", "#0a7a15"], flap: ["#74cf80", "#4aa052", "#62bd6c"] },
-  A:  { back: ["#111111", "#3a3a3a", "#222222"], flap: ["#b5b5b5", "#7a7a7a", "#9a9a9a"] },
-
+  A: { back: ["#555555", "#747474", "#626262"], flap: ["#CCCCCC", "#AAAAAA", "#BBBBBB"],},
   L:  { back: ["#1424a2", "#3659e5", "#2a45c4"], flap: ["#a9b6ff", "#6f85f0", "#8d9eff"] },
 
   LP: { back: ["#4e1495", "#8b48cc", "#6b2fb0"], flap: ["#d3b4f5", "#a574d9", "#bd94ec"] },
@@ -317,7 +316,7 @@ function PagePeel({ mark }: { mark: AttendanceMark }) {
 
       {/* soft shadow the flap casts on the white page */}
 
-      <path d={FLAP_PATH} transform="translate(-6 -5)" fill="#000" opacity=".4" filter={`url(#${id}-blur)`} />
+      <path d={FLAP_PATH} transform="translate(-6 -5)" fill="#777777" opacity=".28" filter={`url(#${id}-blur)`} />
 
       <path d={BACK_PATH} fill={`url(#${id}-back)`} />
 
