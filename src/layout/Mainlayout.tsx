@@ -18,7 +18,7 @@ import {
 
 import Sidebar from "../Components/Sidebar/Sidebar";
 import ProfileDropdown from "../Components/ProfileDropdown/ProfileDropdown";
-// import BirthdayFooter from "../Components/BirthdayFooter/BirthdayFooter";
+import BirthdayFooter from "../Components/BirthdayFooter/BirthdayFooter";
 
 import "./Mainlayout.css";
 
@@ -133,7 +133,7 @@ const MainLayout = () => {
 
       </Box>
 
-      {/* <BirthdayFooter /> */}
+      <BirthdayFooter />
     </Box>
   );
 };

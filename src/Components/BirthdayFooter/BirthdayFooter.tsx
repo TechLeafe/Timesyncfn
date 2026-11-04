@@ -2,8 +2,8 @@ import { useState, type CSSProperties } from "react";
 
 import {
   AutoAwesomeRounded,
-  CakeRounded,
   CloseRounded,
+  LocalFireDepartmentRounded,
 } from "@mui/icons-material";
 import {
   Dialog,
@@ -11,39 +11,10 @@ import {
   IconButton,
 } from "@mui/material";
 
-import birthdayPost from "../../assets/brithdaypost.png";
-
 import "./BirthdayFooter.css";
-
-interface StoredUser {
-  name?: string;
-  fullName?: string;
-  employeeName?: string;
-  firstName?: string;
-}
-
-const getEmployeeName = (): string => {
-  try {
-    const storedUser = localStorage.getItem("loggedInUser");
-    if (!storedUser) return "Employee";
-
-    const user = JSON.parse(storedUser) as StoredUser;
-    return (
-      user.name ||
-      user.fullName ||
-      user.employeeName ||
-      user.firstName ||
-      "Employee"
-    );
-  } catch {
-    return "Employee";
-  }
-};
 
 function BirthdayFooter() {
   const [posterOpen, setPosterOpen] = useState(false);
-  const employeeName = getEmployeeName();
-  console.log("BirthdayFooter: employeeName:", employeeName);
   const confettiPieces = [
     { x: -250, y: -170, rotate: 240 },
     { x: -190, y: 120, rotate: 420 },
@@ -70,7 +41,7 @@ function BirthdayFooter() {
   return (
     <footer
       className="birthday-footer"
-      aria-label="Birthday wishes"
+      aria-label="Diwali celebration"
       onClick={(event) => {
         if (!event.currentTarget.contains(event.target as Node)) return;
         setPosterOpen(true);
@@ -78,22 +49,22 @@ function BirthdayFooter() {
     >
       <img
         className="birthday-footer-image"
-        src={birthdayPost}
-        alt="Birthday poster for Jerlin Renisa J, Application Developer"
+        src="/calendar-icons/deepavali.png"
+        alt="Diwali illustration with fireworks and traditional lamps"
       />
 
       <div className="birthday-footer-title">
-        <span>Make today special</span>
-        <strong>Happy Birthday!</strong>
+        <span>Celebrate the Festival of Lights</span>
+        <strong>Happy Diwali!</strong>
       </div>
 
       <div className="birthday-footer-person">
-        <strong>Jerlin Renisa J</strong>
-        <span>Wishing you a wonderful year</span>
+        <strong>Wishing you joy and prosperity</strong>
+        <span>May your days shine bright</span>
       </div>
 
       <div className="birthday-footer-message">
-        Wishing you a day filled with happiness, success, and good health!
+        May this Diwali fill your home with happiness, light, and prosperity. Wishing you and your loved ones a joyful celebration!
       </div>
 
       <div className="birthday-footer-sparkles" aria-hidden="true">
@@ -105,24 +76,21 @@ function BirthdayFooter() {
       <button
         className="birthday-footer-button"
         type="button"
-        aria-label="Open the birthday poster"
+        aria-label="Open the Diwali celebration"
         onClick={(event) => {
           event.stopPropagation();
           setPosterOpen(true);
         }}
       >
         <span className="birthday-footer-mascot" aria-hidden="true">
-          <span className="birthday-footer-mascot-arm" />
-          <span className="birthday-footer-mascot-body" />
-          <img src={birthdayPost} alt="" />
-          <span className="birthday-footer-mascot-cake">
-            <CakeRounded />
+          <span className="birthday-footer-diya">
+            <LocalFireDepartmentRounded />
           </span>
         </span>
-        <span className="birthday-footer-button-label">Open Birthday</span>
+        <span className="birthday-footer-button-label">Celebrate Diwali</span>
       </button>
 
-      <CakeRounded
+      <LocalFireDepartmentRounded
         className="birthday-footer-cake"
         aria-hidden="true"
       />
@@ -131,22 +99,30 @@ function BirthdayFooter() {
         open={posterOpen}
         onClose={() => setPosterOpen(false)}
         className="birthday-poster-dialog"
-        aria-label="Birthday poster"
+        aria-label="Diwali celebration"
         maxWidth={false}
       >
         <DialogContent className="birthday-poster-content">
           <IconButton
             className="birthday-poster-close"
-            aria-label="Close birthday poster"
+            aria-label="Close Diwali celebration"
             onClick={() => setPosterOpen(false)}
           >
             <CloseRounded />
           </IconButton>
           <img
             className="birthday-poster-full-image"
-            src={birthdayPost}
-            alt="Happy birthday poster for Jerlin Renisa J, Application Developer"
+            src="/calendar-icons/deepavali.png"
+            alt="Diwali illustration with families, fireworks, and traditional lamps"
           />
+          <div className="diwali-popup-message">
+            <strong lang="ta">தீபாவளிப் பரிசு காத்திருக்குது!</strong>
+            <p>
+              Tomorrow, we are celebrating Diwali at our office! 🎁 Exciting
+              gifts and surprises are waiting for everyone. Get ready for a
+              joyful celebration!
+            </p>
+          </div>
           <div className="birthday-poster-confetti" aria-hidden="true">
             {confettiPieces.map((piece, index) => (
               <span
