@@ -162,10 +162,14 @@
   overflow-x: clip;
 }
 
+.app-main-layout-birthday-footer .app-page-content {
+  padding-bottom: 118px;
+}
+
 /* Employee dashboard has its own spacing */
 
 .app-page-content:has(.emp-premium-dashboard) {
-  padding: 0;
+  padding: 0 0 118px;
 }
 
 /* ==========================================
@@ -182,7 +186,7 @@
   }
 
   .app-page-content:has(.emp-premium-dashboard) {
-    padding: 0;
+    padding: 0 0 126px;
   }
 }
 
@@ -214,8 +218,12 @@
     padding: 16px;
   }
 
+  .app-main-layout-birthday-footer .app-page-content {
+    padding-bottom: 112px;
+  }
+
   .app-page-content:has(.emp-premium-dashboard) {
-    padding: 0;
+    padding: 0 0 112px;
   }
 }
 
@@ -246,8 +254,12 @@
     padding: 12px;
   }
 
+  .app-main-layout-birthday-footer .app-page-content {
+    padding-bottom: 126px;
+  }
+
   .app-page-content:has(.emp-premium-dashboard) {
-    padding: 0;
+    padding: 0 0 126px;
   }
 }
 
@@ -273,8 +285,12 @@
     padding: 10px;
   }
 
+  .app-main-layout-birthday-footer .app-page-content {
+    padding-bottom: 126px;
+  }
+
   .app-page-content:has(.emp-premium-dashboard) {
-    padding: 0;
+    padding: 0 0 126px;
   }
 }
 
