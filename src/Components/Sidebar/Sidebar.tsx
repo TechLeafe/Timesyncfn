@@ -1,5 +1,4 @@
 import { useLocation, useNavigate } from "react-router-dom"
-import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import type { ReactNode } from "react";
 
 import {

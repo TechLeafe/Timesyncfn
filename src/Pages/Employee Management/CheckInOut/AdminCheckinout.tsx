@@ -239,12 +239,6 @@ function AdminCheckinout() {
 
   const [dailyRefresh, setDailyRefresh] = useState(0);
   const [historyRefresh, setHistoryRefresh] = useState(0);
-  const [approvalRecords, setApprovalRecords] = useState<
-    AttendanceRecord[]
-  >([]);
-  const [approvalLoading, setApprovalLoading] = useState(true);
-  const [approvalError, setApprovalError] = useState("");
-  const [reviewingId, setReviewingId] = useState("");
 
   /* =========================================
      DAILY ATTENDANCE
@@ -364,61 +358,6 @@ function AdminCheckinout() {
       cancelled = true;
     };
   }, [historyRefresh]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchApprovals = async () => {
-      setApprovalLoading(true);
-      setApprovalError("");
-      try {
-        const response = await api.post<AttendanceApiResponse>(
-          "/attendance/approvals",
-          {}
-        );
-        const records = getAttendanceRecords(response);
-        if (!cancelled) setApprovalRecords(records);
-      } catch (error) {
-        if (!cancelled) {
-          setApprovalError(
-            getErrorMessage(error, "Unable to load attendance approvals.")
-          );
-        }
-      } finally {
-        if (!cancelled) setApprovalLoading(false);
-      }
-    };
-
-    void fetchApprovals();
-    return () => {
-      cancelled = true;
-    };
-  }, [dailyRefresh, historyRefresh]);
-
-  const handleAttendanceReview = async (
-    record: AttendanceRecord,
-    decision: "Approved" | "Rejected"
-  ) => {
-    setReviewingId(record._id);
-    setApprovalError("");
-    try {
-      await api.post("/attendance/review", {
-        attendanceId: record._id,
-        decision,
-      });
-      setApprovalRecords((current) =>
-        current.filter((item) => item._id !== record._id)
-      );
-      setDailyRefresh((value) => value + 1);
-      setHistoryRefresh((value) => value + 1);
-    } catch (error) {
-      setApprovalError(
-        getErrorMessage(error, "Unable to review attendance.")
-      );
-    } finally {
-      setReviewingId("");
-    }
-  };
 
   /* =========================================
      DAILY SUMMARY
