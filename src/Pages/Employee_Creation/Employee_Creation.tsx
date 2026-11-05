@@ -14,6 +14,8 @@ import {
   Drawer,
   FormControlLabel,
   IconButton,
+  Menu,
+  MenuItem,
   Paper,
   Radio,
   RadioGroup,
@@ -30,19 +32,29 @@ import {
 } from "@mui/material";
 
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
+import FilterListRoundedIcon from "@mui/icons-material/FilterListRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import PeopleOutlineRoundedIcon from "@mui/icons-material/PeopleOutlineRounded";
-import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import PersonAddAltOutlinedIcon from "@mui/icons-material/PersonAddAltOutlined";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
+import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 
 import api from "../../api/axiosInstance";
+import { downloadExcelFile } from "../../utils/excel";
 import "./Employee_Creation.css";
 
 type UserType = 1 | 2 | 3;
 type EmployeeStatus = "Active" | "Inactive";
+type EmployeeFilterField =
+  | "all"
+  | "id"
+  | "name"
+  | "email"
+  | "designation"
+  | "role";
 
 interface Employee {
   _id?: string;
@@ -245,7 +257,15 @@ function Employee_Creation() {
   const [selectedEmployee, setSelectedEmployee] =
     useState<Employee | null>(null);
 
-  const [search, setSearch] = useState("");
+  const [filterAnchor, setFilterAnchor] =
+    useState<HTMLElement | null>(null);
+  const [filterField, setFilterField] =
+    useState<EmployeeFilterField>("id");
+  const [filterValue, setFilterValue] = useState("");
+  const [appliedFilter, setAppliedFilter] = useState<{
+    field: EmployeeFilterField;
+    value: string;
+  }>({ field: "id", value: "" });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -294,22 +314,66 @@ function Employee_Creation() {
   }, [loadEmployees]);
 
   const filteredEmployees = useMemo(() => {
-    const term = search.trim().toLowerCase();
+    const term = appliedFilter.value.trim().toLowerCase();
 
-    return employees.filter((employee) =>
-      [
-        employee.id,
-        employee.name,
-        employee.email,
-        employee.designation,
-        ROLE_LABELS[employee.userType],
-      ].some((value) => value.toLowerCase().includes(term))
-    );
-  }, [employees, search]);
+    return employees.filter((employee) => {
+      if (!term) return true;
+
+      const searchableValues: Record<EmployeeFilterField, string[]> = {
+        all: [
+          employee.id,
+          employee.name,
+          employee.email,
+          employee.designation,
+          ROLE_LABELS[employee.userType],
+        ],
+        id: [employee.id],
+        name: [employee.name],
+        email: [employee.email],
+        designation: [employee.designation],
+        role: [ROLE_LABELS[employee.userType]],
+      };
+
+      return searchableValues[appliedFilter.field].some((value) =>
+        value.toLowerCase().includes(term)
+      );
+    });
+  }, [appliedFilter, employees]);
 
   const activeCount = employees.filter(
     (employee) => employee.status === "Active"
   ).length;
+
+  const downloadEmployeeExcel = () => {
+    const rows = [
+      [
+        "Employee ID",
+        "Name",
+        "Email",
+        "Phone",
+        "Designation",
+        "Role",
+        "Status",
+        "Action",
+      ],
+      ...filteredEmployees.map((employee) => [
+        employee.id,
+        employee.name,
+        employee.email,
+        employee.phone,
+        employee.designation,
+        ROLE_LABELS[employee.userType],
+        employee.status,
+        "Edit / Delete",
+      ]),
+    ];
+    downloadExcelFile({
+      rows,
+      fileName: "employee-directory.xlsx",
+      sheetName: "Employees",
+      columnWidths: [16, 24, 32, 16, 22, 14, 14, 18],
+    });
+  };
 
   /* ================= DRAWER ================= */
 
@@ -576,15 +640,131 @@ function Employee_Creation() {
           </Box>
         </Box>
 
-        <Button
-          variant="contained"
-          className="employee-creation-create-button"
-          startIcon={<AddRoundedIcon />}
-          onClick={openCreateDrawer}
-          disabled={loading}
-        >
-          Create Employee
-        </Button>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Button
+            variant="outlined"
+            className="employee-creation-filter-button"
+            startIcon={<FilterListRoundedIcon />}
+            endIcon={<ExpandMoreRoundedIcon />}
+            aria-haspopup="menu"
+            aria-expanded={Boolean(filterAnchor)}
+            onClick={(event) => setFilterAnchor(event.currentTarget)}
+            sx={{
+              minHeight: 42,
+              borderRadius: "10px",
+              textTransform: "none",
+              fontWeight: 700,
+            }}
+          >
+            <span className="employee-creation-filter-label">Filter</span>
+          </Button>
+          <Menu
+            anchorEl={filterAnchor}
+            open={Boolean(filterAnchor)}
+            onClose={() => setFilterAnchor(null)}
+            slotProps={{
+              paper: {
+                sx: { minWidth: 240, p: 1 },
+              },
+            }}
+          >
+            <Typography
+              variant="subtitle2"
+              sx={{ px: 1.5, py: 1, fontWeight: 700 }}
+            >
+              Filter By
+            </Typography>
+            <MenuItem
+              selected={filterField === "id"}
+              onClick={() => setFilterField("id")}
+            >
+              Employee ID
+            </MenuItem>
+            <MenuItem
+              selected={filterField === "name"}
+              onClick={() => setFilterField("name")}
+            >
+              Name
+            </MenuItem>
+            <MenuItem
+              selected={filterField === "email"}
+              onClick={() => setFilterField("email")}
+            >
+              Email
+            </MenuItem>
+            <MenuItem
+              selected={filterField === "designation"}
+              onClick={() => setFilterField("designation")}
+            >
+              Designation
+            </MenuItem>
+            <MenuItem
+              selected={filterField === "role"}
+              onClick={() => setFilterField("role")}
+            >
+              Role
+            </MenuItem>
+            <Box
+              sx={{ p: 1.5, width: 260 }}
+              onKeyDown={(event) => event.stopPropagation()}
+            >
+              <TextField
+                fullWidth
+                size="small"
+                label="Search"
+                value={filterValue}
+                onChange={(event) => setFilterValue(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    setAppliedFilter({
+                      field: filterField,
+                      value: filterValue,
+                    });
+                    setFilterAnchor(null);
+                  }
+                }}
+              />
+              <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
+                <Button
+                  variant="outlined"
+                  className="employee-creation-filter-clear-button"
+                  onClick={() => {
+                    setFilterValue("");
+                    setAppliedFilter({
+                      field: filterField,
+                      value: "",
+                    });
+                    setFilterAnchor(null);
+                  }}
+                >
+                  Clear
+                </Button>
+                <Button
+                  variant="contained"
+                  className="employee-creation-filter-apply-button"
+                  onClick={() => {
+                    setAppliedFilter({
+                      field: filterField,
+                      value: filterValue,
+                    });
+                    setFilterAnchor(null);
+                  }}
+                >
+                  Apply
+                </Button>
+              </Box>
+            </Box>
+          </Menu>
+          <Button
+            variant="contained"
+            className="employee-creation-create-button"
+            startIcon={<AddRoundedIcon />}
+            onClick={openCreateDrawer}
+            disabled={loading}
+          >
+            Create Employee
+          </Button>
+        </Box>
       </Box>
 
       <Box className="employee-creation-overview">
@@ -634,26 +814,27 @@ function Employee_Creation() {
         className="employee-creation-list-card"
       >
         <Box className="employee-creation-list-header">
-          <Box>
-            <Typography className="employee-creation-section-title">
-              Employee Directory
-            </Typography>
+          <Box className="employee-creation-directory-heading">
+            <Box>
+              <Typography className="employee-creation-section-title">
+                Employee Directory
+              </Typography>
 
-            <Typography className="employee-creation-section-subtitle">
-              View and manage your registered employees
-            </Typography>
+              <Typography className="employee-creation-section-subtitle">
+                View and manage your registered employees
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              className="employee-creation-download-button"
+              startIcon={<FileDownloadOutlinedIcon />}
+              onClick={downloadEmployeeExcel}
+              disabled={loading || Boolean(loadError)}
+            >
+              Download 
+            </Button>
           </Box>
 
-          <Box className="employee-creation-search">
-            <SearchRoundedIcon />
-            <input
-              type="search"
-              placeholder="Search employees..."
-              aria-label="Search employees"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-            />
-          </Box>
         </Box>
 
         {loading || loadError || filteredEmployees.length === 0 ? (
@@ -670,7 +851,7 @@ function Employee_Creation() {
                 ? "Loading employees..."
                 : loadError
                   ? "Employee information is unavailable."
-                  : search
+                  : appliedFilter.value.trim()
                     ? "No employees match your search."
                     : "No employees found. Create your first employee."}
             </Typography>

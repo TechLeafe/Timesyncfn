@@ -134,17 +134,7 @@ interface Toast {
 
 }
 
-const getCompanyYear = (date = new Date()) => {
-
-  const year = date.getFullYear();
-
-  return date.getMonth() >= 3
-
-    ? `${year}-${year + 1}`
-
-    : `${year - 1}-${year}`;
-
-};
+const COMPANY_YEAR = "2026-2027";
 
 const createEmptyForm = (): HolidayFormData => ({
 
@@ -154,7 +144,7 @@ const createEmptyForm = (): HolidayFormData => ({
 
   holidayType: "",
 
-  companyYear: getCompanyYear(),
+  companyYear: COMPANY_YEAR,
 
   description: "",
 
@@ -399,7 +389,7 @@ export default function Holiday() {
 
       holidayType: holiday.holidayType,
 
-      companyYear: holiday.companyYear,
+      companyYear: COMPANY_YEAR,
 
       description: holiday.description || "",
 
@@ -479,7 +469,7 @@ export default function Holiday() {
 
     }
 
-    if (!["Public", "Company"].includes(formData.holidayType)) {
+    if (!["Public", "Company", "Working Day" ].includes(formData.holidayType)) {
 
       return "Please select a holiday type.";
 
@@ -549,7 +539,7 @@ export default function Holiday() {
 
       holidayType: formData.holidayType,
 
-      companyYear: formData.companyYear.trim(),
+      companyYear: COMPANY_YEAR,
 
       description: formData.description.trim(),
 
@@ -880,6 +870,7 @@ export default function Holiday() {
               <Box className="holiday-details-section-heading">
 
                 <Box className="holiday-details-section-symbol">
+                  
 
                   <FileText size={23} />
 
@@ -1787,6 +1778,12 @@ function HolidayModal({
 
               disabled={saving}
 
+              slotProps={{
+
+                inputLabel: { shrink: true },
+
+              }}
+
             />
 
           </Box>
@@ -1861,6 +1858,12 @@ function HolidayModal({
 
                   </MenuItem>
 
+                  <MenuItem value="Working Day">
+
+                    Working Day
+
+                  </MenuItem>
+
                 </Select>
 
               </FormControl>
@@ -1877,10 +1880,6 @@ function HolidayModal({
 
                 value={formData.companyYear}
 
-                onChange={onTextFieldChange}
-
-                placeholder="2026-2027"
-
                 fullWidth
 
                 required
@@ -1892,6 +1891,8 @@ function HolidayModal({
                   htmlInput: {
 
                     pattern: "[0-9]{4}-[0-9]{4}",
+
+                    readOnly: true,
 
                   },
 

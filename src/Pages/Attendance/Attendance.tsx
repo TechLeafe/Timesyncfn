@@ -1,7 +1,13 @@
 
-import { useMemo, useState, type CSSProperties } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+} from "react";
 
 import {
+  Alert,
   Box,
   Chip,
   Typography,
@@ -22,6 +28,7 @@ import {
   LATE_CORNER_LABEL,
   resolveAttendanceDay,
   summarizeAttendanceMonth,
+  type AttendanceStatus,
 } from "../../data/attendance";
 
 import type {
@@ -36,7 +43,8 @@ import {
 import { useCalendarEvents } from "../../context/CalendarEventsContext";
 import { toDateKey } from "../../data/calendarEvents";
 
-import { HR, ADMIN, EMPLOYEE } from "../../data/permissions";
+import { EMPLOYEE } from "../../data/permissions";
+import api from "../../api/axiosInstance";
 
 import "./Attendance.css";
 
@@ -50,6 +58,91 @@ interface StoredUser {
   employeeId?: string;
   userId?: string;
 }
+
+interface AttendanceApiRecord {
+  day: string;
+  employeeName?: string;
+  employeeId?: string;
+  attendanceStatus?: string;
+  finalizedAt?: string | null;
+  checkInTime?: string | null;
+  checkOutTime?: string | null;
+  actualWorkingSeconds?: number;
+  approvedPermissionHours?: number;
+  approvedPermissionRequestedHours?: number;
+  requestedPermissionHours?: number;
+  permissionStatus?: string | null;
+  permissionRequests?: {
+    totalHours: number;
+    fromTime: string | null;
+    toTime: string | null;
+    status: string;
+  }[];
+  totalCreditedWorkingSeconds?: number;
+  monthlyPermissionUsedHours?: number;
+  monthlyPermissionRemainingHours?: number;
+}
+
+const getTodayInIndia = (): string =>
+  new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+
+const formatAttendanceTime = (value?: string | null): string => {
+  if (!value) return "Not recorded";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? "Not recorded"
+    : date.toLocaleTimeString("en-IN", {
+        timeZone: "Asia/Kolkata",
+        hour: "numeric",
+        minute: "2-digit",
+      });
+};
+
+const formatWorkingDuration = (seconds?: number): string => {
+  const totalMinutes = Math.floor(Math.max(0, seconds || 0) / 60);
+  return `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m`;
+};
+
+const formatPermissionHours = (hours?: number): string => {
+  const totalMinutes = Math.round(Math.max(0, hours || 0) * 60);
+  return `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m`;
+};
+
+const formatPermissionRequests = (
+  requests?: AttendanceApiRecord["permissionRequests"]
+): string =>
+  requests?.length
+    ? requests
+        .map(
+          (request) =>
+            `${formatPermissionHours(request.totalHours)} ${request.status}`
+        )
+        .join(", ")
+    : "None";
+
+const toCalendarStatus = (
+  status: string | undefined
+): AttendanceStatus | null => {
+  switch (status) {
+    case "Present":
+      return "present";
+    case "Half-Day Present":
+      return "halfDay";
+    case "Late Present":
+    case "Present Late":
+      return "present";
+    case "Early Departure":
+    case "Absent":
+      return "absent";
+    default:
+      return null;
+  }
+};
 
 const readLoggedInUser = (): StoredUser | null => {
   try {
@@ -79,6 +172,7 @@ const readLoggedInUser = (): StoredUser | null => {
 
 function Attendance() {
   const today = useMemo(() => new Date(), []);
+  const todayInIndia = getTodayInIndia();
 
   const loggedInUser = useMemo(
     () => readLoggedInUser(),
@@ -91,14 +185,69 @@ function Attendance() {
     loggedInUser?.name || "Employee";
 
   const isEmployee = userType === EMPLOYEE;
-  const canViewAllAttendance =
-    userType === HR || userType === ADMIN;
 
   /* ==========================================
      COMPANY CALENDAR EVENTS
   ========================================== */
 
   const { events } = useCalendarEvents();
+  const [liveAttendance, setLiveAttendance] =
+    useState<AttendanceApiRecord[]>([]);
+  const [attendanceLoading, setAttendanceLoading] =
+    useState(isEmployee);
+  const [attendanceError, setAttendanceError] = useState("");
+
+  useEffect(() => {
+    if (!isEmployee) return;
+
+    let cancelled = false;
+    setAttendanceLoading(true);
+    setAttendanceError("");
+
+    const loadAttendance = async () => {
+      try {
+        const response = await api.post<{ data?: AttendanceApiRecord[] }>(
+          "/attendance/history",
+          { user_id: "", date: "" }
+        );
+        const records = response.data?.data;
+        if (!Array.isArray(records)) {
+          throw new Error("Attendance history response was invalid.");
+        }
+        if (!cancelled) setLiveAttendance(records);
+      } catch (error: unknown) {
+        console.error("Unable to load attendance calendar:", error);
+        if (!cancelled) {
+          setAttendanceError(
+            "Unable to load live attendance. Please refresh the page and try again."
+          );
+        }
+      } finally {
+        if (!cancelled) setAttendanceLoading(false);
+      }
+    };
+
+    const refreshOnFocus = () => {
+      if (document.visibilityState === "visible") {
+        void loadAttendance();
+      }
+    };
+
+    void loadAttendance();
+    const refreshInterval = window.setInterval(
+      () => void loadAttendance(),
+      30_000
+    );
+    window.addEventListener("focus", refreshOnFocus);
+    document.addEventListener("visibilitychange", refreshOnFocus);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(refreshInterval);
+      window.removeEventListener("focus", refreshOnFocus);
+      document.removeEventListener("visibilitychange", refreshOnFocus);
+    };
+  }, [isEmployee]);
 
   /* ==========================================
      CALENDAR STATE
@@ -147,6 +296,72 @@ function Attendance() {
     [holidayTitles]
   );
 
+  const attendanceStatusByDate = useMemo(
+    () =>
+      Object.fromEntries(
+        liveAttendance
+          .filter(
+            (record) =>
+              record.attendanceStatus &&
+              (record.day !== todayInIndia || record.finalizedAt)
+          )
+          .map((record) => [record.day, record.attendanceStatus as string])
+      ) as Record<string, string>,
+    [liveAttendance, todayInIndia]
+  );
+
+  const attendanceRecordByDate = useMemo(
+    () =>
+      Object.fromEntries(
+        liveAttendance.map((record) => [record.day, record])
+      ) as Record<string, AttendanceApiRecord>,
+    [liveAttendance]
+  );
+
+  const selectedAttendanceRecord = selectedDate
+    ? attendanceRecordByDate[toDateKey(selectedDate)]
+    : undefined;
+
+  const liveAttendanceRecords = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(attendanceStatusByDate).flatMap(([day, status]) => {
+          const calendarStatus = toCalendarStatus(status);
+          return calendarStatus ? [[day, calendarStatus]] : [];
+        })
+      ) as Record<string, AttendanceStatus>,
+    [attendanceStatusByDate]
+  );
+
+  const liveLateKeys = useMemo(
+    () =>
+      new Set(
+        Object.entries(attendanceStatusByDate)
+          .filter(([, status]) =>
+            ["Late Present", "Present Late"].includes(status)
+          )
+          .map(([day]) => day)
+      ),
+    [attendanceStatusByDate]
+  );
+
+  const attendanceLookupOptions = useMemo(
+    () => ({
+      holidayKeys,
+      today,
+      fillPastWorkingDays: !isEmployee,
+      attendanceRecords: isEmployee ? liveAttendanceRecords : undefined,
+      lateKeys: liveLateKeys,
+    }),
+    [
+      holidayKeys,
+      today,
+      isEmployee,
+      liveAttendanceRecords,
+      liveLateKeys,
+    ]
+  );
+
   /* ==========================================
      MONTH LABEL
   ========================================== */
@@ -177,12 +392,9 @@ function Attendance() {
       summarizeAttendanceMonth(
         visibleMonth.getFullYear(),
         visibleMonth.getMonth(),
-        {
-          holidayKeys,
-          today,
-        }
+        attendanceLookupOptions
       ),
-    [visibleMonth, holidayKeys, today]
+    [visibleMonth, attendanceLookupOptions]
   );
 
   const monthlyHolidayCount = useMemo(() => {
@@ -233,10 +445,7 @@ function Attendance() {
     date: Date
   ): CalendarDayInfo | undefined => {
     const { status, isHoliday, late } =
-      resolveAttendanceDay(date, {
-        holidayKeys,
-        today,
-      });
+      resolveAttendanceDay(date, attendanceLookupOptions);
 
     if (isHoliday) {
       const title =
@@ -256,8 +465,8 @@ function Attendance() {
     return {
       tone: meta.tone,
       tooltip: late
-        ? `${meta.label} ${meta.note} · ${LATE_CORNER_LABEL} (late arrival)`
-        : `${meta.label} ${meta.note}`,
+        ? `${attendanceStatusByDate[toDateKey(date)] || meta.label} ${meta.note} · ${LATE_CORNER_LABEL} (late arrival)`
+        : `${attendanceStatusByDate[toDateKey(date)] || meta.label} ${meta.note}`,
       cornerLabel: late
         ? LATE_CORNER_LABEL
         : undefined,
@@ -273,15 +482,13 @@ function Attendance() {
 
     const resolved = resolveAttendanceDay(
       selectedDate,
-      {
-        holidayKeys,
-        today,
-      }
+      attendanceLookupOptions
     );
 
     const holidayTitle =
       holidayTitles.get(toDateKey(selectedDate));
-
+    const savedStatus =
+      attendanceStatusByDate[toDateKey(selectedDate)];
     if (resolved.isHoliday) {
       return {
         title: holidayTitle || "Company Holiday",
@@ -294,10 +501,16 @@ function Attendance() {
       const meta = ATTENDANCE_META[resolved.status];
 
       return {
-        title: meta.label,
-        description: resolved.late
-          ? `${meta.note} · Late arrival`
-          : meta.note,
+        title:
+          savedStatus === "Early Departure"
+            ? "Early Departure"
+            : savedStatus || meta.label,
+        description:
+          savedStatus === "Early Departure"
+            ? "Checkout was before 4:30 PM without approved permission covering the missed time."
+            : resolved.late
+              ? `${meta.note} · Late arrival`
+              : meta.note,
         tone: meta.tone,
       };
     }
@@ -308,7 +521,12 @@ function Attendance() {
         "No status is available for the selected date.",
       tone: null,
     };
-  }, [selectedDate, holidayKeys, holidayTitles, today]);
+  }, [
+    selectedDate,
+    attendanceLookupOptions,
+    holidayTitles,
+    attendanceStatusByDate,
+  ]);
 
   /* ==========================================
      RENDER
@@ -377,14 +595,19 @@ function Attendance() {
         <InfoOutlinedIcon />
 
         <Typography className="attendance-role-text">
-          This calendar currently displays statuses
-          from the configured attendance data.
-          Live employee-specific attendance is not
-          connected on this page.
-          {canViewAllAttendance &&
-            " HR/Admin access to individual records requires an attendance API and employee selection."}
+          {isEmployee
+            ? attendanceLoading
+              ? "Loading your live attendance records..."
+              : "Today's attendance is finalized by the 10:00 PM IST job and appears in the calendar after it runs."
+            : "This calendar displays configured attendance data. HR/Admin individual attendance selection is not available here."}
         </Typography>
       </Box>
+
+      {attendanceError && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {attendanceError}
+        </Alert>
+      )}
 
       {/* MAIN LAYOUT */}
 
@@ -503,6 +726,33 @@ function Attendance() {
                   <Typography className="attendance-selected-status-description">
                     {selectedDayInfo.description}
                   </Typography>
+                </Box>
+              )}
+
+              {isEmployee && selectedAttendanceRecord && (
+                <Box className="attendance-calculation-details">
+                  {[
+                    ["Employee Name", selectedAttendanceRecord.employeeName || employeeName],
+                    ["Employee ID", selectedAttendanceRecord.employeeId || loggedInUser?.employeeId || "Not recorded"],
+                    ["Actual Check-In", formatAttendanceTime(selectedAttendanceRecord.checkInTime)],
+                    ["Actual Check-Out", formatAttendanceTime(selectedAttendanceRecord.checkOutTime)],
+                    ["Total Actual Working Hours", formatWorkingDuration(selectedAttendanceRecord.actualWorkingSeconds)],
+                    ["Requested Permission Duration", formatPermissionHours(selectedAttendanceRecord.requestedPermissionHours)],
+                    ["Permission Requests", formatPermissionRequests(selectedAttendanceRecord.permissionRequests)],
+                    ["Permission Status", selectedAttendanceRecord.permissionStatus || "None"],
+                    ["Approved Permission Hours", formatPermissionHours(selectedAttendanceRecord.approvedPermissionRequestedHours)],
+                    ["Eligible Approved Permission Hours", formatPermissionHours(selectedAttendanceRecord.approvedPermissionHours)],
+                    ["Total Credited Working Hours", formatWorkingDuration(selectedAttendanceRecord.totalCreditedWorkingSeconds)],
+                    ["Monthly Permission Allowance", "4h 0m"],
+                    ["Monthly Permission Used", formatPermissionHours(selectedAttendanceRecord.monthlyPermissionUsedHours)],
+                    ["Monthly Permission Remaining", formatPermissionHours(selectedAttendanceRecord.monthlyPermissionRemainingHours)],
+                    ["Final Attendance Status", selectedAttendanceRecord.attendanceStatus || "Pending"],
+                  ].map(([label, value]) => (
+                    <Box className="attendance-detail-row" key={label}>
+                      <Typography>{label}</Typography>
+                      <Typography>{value}</Typography>
+                    </Box>
+                  ))}
                 </Box>
               )}
             </Box>

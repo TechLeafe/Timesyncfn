@@ -17,7 +17,6 @@ import {
   Typography,
 } from "@mui/material";
 
-import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
@@ -39,6 +38,7 @@ import "./LeavePolicies.css";
 type LeavePolicy = {
   _id: string;
   policyName: string;
+  businessYear: string;
   casualLeave: number;
   sickLeave: number;
   compensatoryOff: number;
@@ -75,13 +75,23 @@ type ToastMessage = {
 ========================================= */
 
 const EMPLOYEE_POLICY_NAME = "Employee Leave";
+const MONTHLY_PERMISSION_LIMIT_HOURS = 4;
+const DEFAULT_EMPLOYEE_ENTITLEMENTS = {
+  _id: "",
+  policyName: EMPLOYEE_POLICY_NAME,
+  businessYear: "",
+  casualLeave: 11,
+  sickLeave: 12,
+  compensatoryOff: 0,
+  permissionsPerMonth: MONTHLY_PERMISSION_LIMIT_HOURS,
+};
 
 const emptyForm: PolicyForm = {
   policyName: EMPLOYEE_POLICY_NAME,
   casualLeave: "",
   sickLeave: "",
   compensatoryOff: "",
-  permissionsPerMonth: "",
+  permissionsPerMonth: String(MONTHLY_PERMISSION_LIMIT_HOURS),
 };
 
 const numericFields: (keyof PolicyForm)[] = [
@@ -175,7 +185,6 @@ const isEmployeeLeavePolicy = (
 /* =========================================
    COMPONENT
 ========================================= */
-
 const LeavePolicies = () => {
   const userType = getUserType();
 
@@ -211,9 +220,27 @@ const LeavePolicies = () => {
   const [deletingId, setDeletingId] =
     useState<string | null>(null);
 
+  const [pendingDeletePolicy, setPendingDeletePolicy] =
+    useState<LeavePolicy | null>(null);
+
+  const [policyDeleted, setPolicyDeleted] = useState(false);
+
   const [loadError, setLoadError] = useState("");
 
   const businessYear = getBusinessYear();
+  const currentEmployeePolicy = policies.find(
+    (policy) =>
+      isEmployeeLeavePolicy(policy) &&
+      policy.businessYear === businessYear
+  );
+  const employeePolicy =
+    currentEmployeePolicy ??
+    selectedPolicy ??
+    policies[0] ??
+    null;
+  const displayPolicy =
+    employeePolicy ??
+    { ...DEFAULT_EMPLOYEE_ENTITLEMENTS, businessYear };
 
   /* =========================================
      FETCH POLICIES
@@ -246,14 +273,20 @@ const LeavePolicies = () => {
 
         setPolicies(data);
 
-        // Directly select Employee Leave.
-        // The listing page is no longer displayed.
-        const employeeLeavePolicy = data.find(
+        const currentPolicy = data.find(
+          (policy) =>
+            isEmployeeLeavePolicy(policy) &&
+            policy.businessYear === businessYear
+        );
+        const latestEmployeePolicy = data.find(
           isEmployeeLeavePolicy
         );
 
         setSelectedPolicy(
-          employeeLeavePolicy ?? null
+          currentPolicy ??
+            latestEmployeePolicy ??
+            data[0] ??
+            null
         );
 
         return data;
@@ -273,33 +306,12 @@ const LeavePolicies = () => {
         setLoading(false);
       }
     },
-    []
+    [businessYear]
   );
 
   useEffect(() => {
     void loadPolicies();
   }, [loadPolicies]);
-
-  /* =========================================
-     CREATE POLICY
-  ========================================= */
-
-  const openCreate = () => {
-    // Preserve existing one-policy limit.
-    if (
-      !canManage ||
-      policies.length > 0 ||
-      loading
-    ) {
-      return;
-    }
-
-    setEditingId(null);
-    setForm({ ...emptyForm });
-    setFieldErrors({});
-    setDialogError("");
-    setDialogOpen(true);
-  };
 
   /* =========================================
      EDIT POLICY
@@ -318,7 +330,7 @@ const LeavePolicies = () => {
         policy.compensatoryOff
       ),
       permissionsPerMonth: String(
-        policy.permissionsPerMonth
+        MONTHLY_PERMISSION_LIMIT_HOURS
       ),
     });
 
@@ -393,7 +405,7 @@ const LeavePolicies = () => {
 
     if (!form.permissionsPerMonth.trim()) {
       errors.permissionsPerMonth =
-        "Permissions per month is required.";
+        "Monthly permission allowance is fixed at 4 hours.";
     }
 
     return errors;
@@ -496,22 +508,21 @@ const LeavePolicies = () => {
 
   const deletePolicy = async (
     policy: LeavePolicy
-  ) => {
-    if (!canManage || deletingId) return;
+  ): Promise<boolean> => {
+    if (!canManage || deletingId !== null) return false;
 
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${policy.policyName}"?`
-    );
-
-    if (!confirmed) return;
-
-    setDeletingId(policy._id);
+    setDeletingId(policy._id || "pending");
 
     try {
       const response = await api.post<
         ApiResponse<unknown>
       >("/leaves/delete", {
-        _id: policy._id,
+        ...(policy._id
+          ? { _id: policy._id }
+          : {
+              policyName: policy.policyName,
+              businessYear: policy.businessYear,
+            }),
       });
 
       if (response.data.success === false) {
@@ -521,18 +532,37 @@ const LeavePolicies = () => {
         );
       }
 
-      const refreshed = await loadPolicies();
+      const updatedPolicies = policies.filter(
+        (currentPolicy) => {
+          if (policy._id) {
+            return currentPolicy._id !== policy._id;
+          }
 
-      if (!refreshed) {
-        throw new Error(
-          "Policy was deleted, but the latest details could not be loaded. Please refresh."
-        );
-      }
+          return !(
+            currentPolicy.policyName === policy.policyName &&
+            currentPolicy.businessYear === policy.businessYear
+          );
+        }
+      );
+      setPolicies(updatedPolicies);
+
+      const nextPolicy =
+        updatedPolicies.find(
+          (currentPolicy) =>
+            isEmployeeLeavePolicy(currentPolicy) &&
+            currentPolicy.businessYear === businessYear
+        ) ??
+        updatedPolicies.find(isEmployeeLeavePolicy) ??
+        updatedPolicies[0] ??
+        null;
+      setSelectedPolicy(nextPolicy);
+      setPolicyDeleted(updatedPolicies.length === 0);
 
       setToast({
         severity: "success",
         text: "Leave policy deleted successfully.",
       });
+      return true;
     } catch (error) {
       setToast({
         severity: "error",
@@ -541,9 +571,17 @@ const LeavePolicies = () => {
           "Unable to delete leave policy."
         ),
       });
+      return false;
     } finally {
       setDeletingId(null);
     }
+  };
+
+  const confirmDeletePolicy = async () => {
+    if (!pendingDeletePolicy || deletingId) return;
+
+    const deleted = await deletePolicy(pendingDeletePolicy);
+    if (deleted) setPendingDeletePolicy(null);
   };
 
   /* =========================================
@@ -578,12 +616,10 @@ const LeavePolicies = () => {
       tone: "orange",
     },
     {
-      label: "Permissions",
+      label: "Permissions ",
       shortLabel: "Permission",
-      value: formatCount(
-        policy.permissionsPerMonth
-      ),
-      unit: "/month",
+      value: formatCount(MONTHLY_PERMISSION_LIMIT_HOURS),
+      unit: "hours/month",
       icon: <AccessTimeOutlinedIcon />,
       tone: "purple",
     },
@@ -623,22 +659,28 @@ const LeavePolicies = () => {
           </Alert>
         )}
 
-        <TextField
-          label="Policy Name"
-          value={form.policyName}
-          onChange={(event) =>
-            updateField(
-              "policyName",
-              event.target.value
-            )
-          }
-          error={Boolean(fieldErrors.policyName)}
-          helperText={fieldErrors.policyName}
-          fullWidth
-          required
-          autoFocus
-          disabled={saving}
-        />
+        <Box className="leave-policies__policy-name-field">
+          <TextField
+            className="leave-policies__policy-name"
+            label="Policy Name"
+            value={form.policyName}
+            onChange={(event) =>
+              updateField(
+                "policyName",
+                event.target.value
+              )
+            }
+            error={Boolean(fieldErrors.policyName)}
+            helperText={fieldErrors.policyName}
+            fullWidth
+            required
+            autoFocus
+            disabled={saving}
+            slotProps={{
+              inputLabel: { shrink: true },
+            }}
+          />
+        </Box>
 
         <Box className="leave-policies__form-grid">
           {(
@@ -657,7 +699,7 @@ const LeavePolicies = () => {
               },
               {
                 key: "permissionsPerMonth",
-                label: "Permissions per Month",
+                label: "Permission Allowance (hours/month)",
               },
             ] as const
           ).map((field) => (
@@ -665,6 +707,10 @@ const LeavePolicies = () => {
               key={field.key}
               label={field.label}
               value={form[field.key]}
+              disabled={
+                saving ||
+                field.key === "permissionsPerMonth"
+              }
               onChange={(event) =>
                 updateField(
                   field.key,
@@ -674,14 +720,18 @@ const LeavePolicies = () => {
               error={Boolean(
                 fieldErrors[field.key]
               )}
-              helperText={fieldErrors[field.key]}
+              helperText={
+                fieldErrors[field.key] ||
+                (field.key === "permissionsPerMonth"
+                  ? "Fixed monthly allowance"
+                  : undefined)
+              }
               slotProps={{
                 htmlInput: {
                   inputMode: "numeric",
                   min: 0,
                 },
               }}
-              disabled={saving}
               fullWidth
               required
             />
@@ -758,12 +808,56 @@ const LeavePolicies = () => {
     </Snackbar>
   );
 
+  const deleteConfirmationDialog = (
+    <Dialog
+      className="leave-policies-dialog"
+      open={Boolean(pendingDeletePolicy)}
+      onClose={() => {
+        if (!deletingId) setPendingDeletePolicy(null);
+      }}
+      aria-labelledby="delete-policy-dialog-title"
+      aria-describedby="delete-policy-dialog-description"
+    >
+      <DialogTitle id="delete-policy-dialog-title">
+        Delete Leave Policy?
+      </DialogTitle>
+
+      <DialogContent>
+        <Typography id="delete-policy-dialog-description">
+          Are you sure you want to delete
+          {" "}
+          '{pendingDeletePolicy?.policyName}'?
+        </Typography>
+      </DialogContent>
+
+      <DialogActions className="leave-policies__dialog-actions">
+        <Button
+          variant="outlined"
+          className="leave-policies__outlined-button"
+          onClick={() => setPendingDeletePolicy(null)}
+          disabled={deletingId !== null}
+        >
+          Cancel
+        </Button>
+
+        <Button
+          variant="contained"
+          color="error"
+          onClick={() => void confirmDeletePolicy()}
+          disabled={deletingId !== null}
+        >
+          {deletingId ? "Deleting..." : "OK"}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+
   /* =========================================
      DIRECT EMPLOYEE LEAVE OVERVIEW
   ========================================= */
 
-  if (!loading && selectedPolicy && !loadError) {
-    const values = getPolicyValues(selectedPolicy);
+  if (!loading && !loadError && (!policyDeleted || employeePolicy)) {
+    const values = getPolicyValues(displayPolicy);
 
     return (
       <Box className="leave-policies">
@@ -781,7 +875,7 @@ const LeavePolicies = () => {
                 component="h2"
                 className="leave-policies__title"
               >
-                {selectedPolicy.policyName}
+                {displayPolicy.policyName}
               </Typography>
 
               <Typography className="leave-policies__subtitle">
@@ -811,7 +905,7 @@ const LeavePolicies = () => {
                 className="leave-policies__outlined-button"
                 startIcon={<EditOutlinedIcon />}
                 onClick={() =>
-                  openEdit(selectedPolicy)
+                  openEdit(employeePolicy ?? displayPolicy)
                 }
               >
                 Edit Policy
@@ -826,7 +920,9 @@ const LeavePolicies = () => {
                 }
                 disabled={deletingId !== null}
                 onClick={() =>
-                  void deletePolicy(selectedPolicy)
+                  setPendingDeletePolicy(
+                    employeePolicy ?? displayPolicy
+                  )
                 }
               >
                 {deletingId
@@ -835,6 +931,7 @@ const LeavePolicies = () => {
               </Button>
             </Stack>
           )}
+
         </Box>
 
         {/* FOUR ENTITLEMENT CARDS */}
@@ -872,8 +969,7 @@ const LeavePolicies = () => {
           </Typography>
 
           <Typography className="leave-policies__section-description">
-            Entitlements configured under this
-            company leave policy.
+            Employee leave entitlements.
           </Typography>
 
           <Box className="leave-policies__line-list">
@@ -895,6 +991,7 @@ const LeavePolicies = () => {
         </Card>
 
         {policyDialog}
+        {deleteConfirmationDialog}
         {toastSnackbar}
       </Box>
     );
@@ -928,19 +1025,6 @@ const LeavePolicies = () => {
           </Box>
         </Box>
 
-        {!loading &&
-          !loadError &&
-          canManage &&
-          policies.length === 0 && (
-            <Button
-              variant="contained"
-              startIcon={<AddRoundedIcon />}
-              onClick={openCreate}
-              className="leave-policies__create-button"
-            >
-              Create Policy
-            </Button>
-          )}
       </Box>
 
       {loading ? (
@@ -970,17 +1054,14 @@ const LeavePolicies = () => {
         >
           {loadError}
         </Alert>
-      ) : (
-        <Alert severity="info">
-          {policies.length > 0
-            ? "The Employee Leave policy was not found. Please contact HR to check the configured policy."
-            : canManage
-              ? "No Employee Leave policy is configured. Click Create Policy to add the leave entitlements."
-              : "No Employee Leave policy is configured. Please contact HR."}
+      ) : policyDeleted ? (
+        <Alert severity="info" className="leave-policies__error">
+          No leave policy available.
         </Alert>
-      )}
+      ) : null}
 
       {policyDialog}
+      {deleteConfirmationDialog}
       {toastSnackbar}
     </Box>
   );

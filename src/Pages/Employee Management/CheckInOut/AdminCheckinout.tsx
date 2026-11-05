@@ -8,6 +8,8 @@ import {
   Button,
   CircularProgress,
   IconButton,
+  Menu,
+  MenuItem,
   Paper,
   Table,
   TableBody,
@@ -15,6 +17,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TextField,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -28,8 +31,11 @@ import PeopleOutlineOutlinedIcon from "@mui/icons-material/PeopleOutlineOutlined
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import EventBusyOutlinedIcon from "@mui/icons-material/EventBusyOutlined";
+import FilterListRoundedIcon from "@mui/icons-material/FilterListRounded";
+import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 
 import api from "../../../api/axiosInstance";
+import { downloadExcelFile } from "../../../utils/excel";
 import "./AdminCheckinout.css";
 
 /* =========================================
@@ -45,6 +51,20 @@ interface AttendanceRecord {
   checkInTime: string | null;
   checkOutTime: string | null;
   totalWorkingSeconds: number | null;
+  actualWorkingSeconds?: number;
+  requestedPermissionHours?: number;
+  approvedPermissionRequestedHours?: number;
+  approvedPermissionHours?: number;
+  permissionStatus?: string | null;
+  totalCreditedWorkingSeconds?: number;
+  monthlyPermissionAllowanceHours?: number;
+  monthlyPermissionUsedHours?: number;
+  monthlyPermissionRemainingHours?: number;
+  employeeName?: string;
+  permissionRequests?: {
+    totalHours: number;
+    status: string;
+  }[];
   attendanceStatus?: string;
   approvalStatus?: "Pending" | "Approved" | "Rejected";
 }
@@ -62,6 +82,18 @@ interface AttendanceApiResponse {
 
 type AttendanceCardField = {
   label: string;
+  value: string;
+};
+
+type AttendanceFilterField =
+  | "date"
+  | "employeeId"
+  | "email"
+  | "checkIn"
+  | "checkOut";
+
+type AttendanceFilter = {
+  field: AttendanceFilterField;
   value: string;
 };
 
@@ -134,6 +166,23 @@ const formatDuration = (
 
   return `${hours}h ${minutes}m`;
 };
+
+const formatPermissionHours = (hours?: number): string =>
+  formatDuration(
+    Number.isFinite(hours) ? Number(hours) * 3600 : null
+  );
+
+const formatPermissionRequests = (
+  requests?: AttendanceRecord["permissionRequests"]
+): string =>
+  requests?.length
+    ? requests
+        .map(
+          (request) =>
+            `${formatPermissionHours(request.totalHours)} ${request.status}`
+        )
+        .join(", ")
+    : "-";
 
 const attendanceStatus = (
   record: AttendanceRecord
@@ -881,13 +930,125 @@ function AttendanceSection({
   showDay: boolean;
   emptyMessage: string;
 }) {
+  const [filterAnchor, setFilterAnchor] =
+    useState<HTMLElement | null>(null);
+  const [filterField, setFilterField] =
+    useState<AttendanceFilterField>(
+      showDay ? "date" : "employeeId"
+    );
+  const [filterValue, setFilterValue] = useState("");
+  const [appliedFilter, setAppliedFilter] =
+    useState<AttendanceFilter>({
+      field: showDay ? "date" : "employeeId",
+      value: "",
+    });
+
+  const filterOptions: {
+    field: AttendanceFilterField;
+    label: string;
+  }[] = showDay
+    ? [
+        { field: "date", label: "Date" },
+        { field: "employeeId", label: "Employee ID" },
+        { field: "email", label: "Email" },
+      ]
+    : [
+        { field: "employeeId", label: "Employee ID" },
+        { field: "email", label: "Email" },
+      ];
+
+  const filteredRecords = useMemo(() => {
+    const term = appliedFilter.value.trim().toLowerCase();
+    if (!term) return records;
+
+    return records.filter((record) => {
+      const value = {
+        date: record.day?.slice(0, 10) || "",
+        employeeId: record.employeeId || "",
+        email: record.email || "",
+        checkIn: formatDateTime(record.checkInTime),
+        checkOut: formatDateTime(record.checkOutTime),
+      }[appliedFilter.field];
+
+      return value.toLowerCase().includes(term);
+    });
+  }, [appliedFilter, records]);
+
+  const downloadAttendanceExcel = () => {
+    const headers = [
+      ...(showDay ? ["Date"] : []),
+      "Employee ID",
+      "Employee Name",
+      "Email",
+      "Check In",
+      "Check Out",
+      "Working Hours",
+      "Requested Permission",
+      "Permission Requests",
+      "Permission Status",
+      "Approved Permission",
+      "Eligible Permission",
+      "Credited Working Hours",
+      "Monthly Allowance",
+      "Monthly Used",
+      "Monthly Remaining",
+      "Final Attendance Status",
+      "Approval Status",
+    ];
+    const rows = [
+      headers,
+      ...filteredRecords.map((record) => [
+        ...(showDay ? [formatDay(record.day)] : []),
+        record.employeeId || "-",
+        record.employeeName || "-",
+        record.email || "-",
+        formatDateTime(record.checkInTime),
+        formatDateTime(record.checkOutTime),
+        formatDuration(record.actualWorkingSeconds ?? record.totalWorkingSeconds),
+        formatPermissionHours(record.requestedPermissionHours),
+        formatPermissionRequests(record.permissionRequests),
+        record.permissionStatus || "-",
+        formatPermissionHours(record.approvedPermissionRequestedHours),
+        formatPermissionHours(record.approvedPermissionHours),
+        formatDuration(record.totalCreditedWorkingSeconds ?? null),
+        formatPermissionHours(record.monthlyPermissionAllowanceHours),
+        formatPermissionHours(record.monthlyPermissionUsedHours),
+        formatPermissionHours(record.monthlyPermissionRemainingHours),
+        record.attendanceStatus || "Pending",
+        record.approvalStatus || "-",
+      ]),
+    ];
+
+    downloadExcelFile({
+      rows,
+      fileName: showDay
+        ? "attendance-history.xlsx"
+        : "daily-attendance.xlsx",
+      sheetName: showDay ? "Attendance History" : "Daily Attendance",
+      columnWidths: showDay
+        ? [18, 18, 24, 32, 18, 18, 18, 16, 28, 20, 18, 18, 18, 18, 18, 18, 22, 18]
+        : [18, 24, 32, 18, 18, 18, 16, 28, 20, 18, 18, 18, 18, 18, 18, 22, 18],
+    });
+  };
+
+  const applyFilter = () => {
+    setAppliedFilter({ field: filterField, value: filterValue });
+    setFilterAnchor(null);
+  };
+
+  const clearFilter = () => {
+    setFilterValue("");
+    setAppliedFilter({ field: filterField, value: "" });
+    setFilterAnchor(null);
+  };
+
   return (
     <Paper
       elevation={0}
       className="admin-checkinout__section"
     >
       <Box className="admin-checkinout__section-heading">
-        <Box>
+        <Box className="admin-checkinout__section-heading-copy">
           <Typography className="admin-checkinout__section-title">
             {title}
           </Typography>
@@ -897,17 +1058,97 @@ function AttendanceSection({
           </Typography>
         </Box>
 
+        <Box className="admin-checkinout__section-actions">
+          <Button
+            variant="outlined"
+            className="admin-checkinout__filter-button"
+            startIcon={<FilterListRoundedIcon />}
+            aria-haspopup="menu"
+            aria-expanded={Boolean(filterAnchor)}
+            onClick={(event) => setFilterAnchor(event.currentTarget)}
+          >
+            Filter
+          </Button>
+          <Menu
+            anchorEl={filterAnchor}
+            open={Boolean(filterAnchor)}
+            onClose={() => setFilterAnchor(null)}
+            slotProps={{ paper: { sx: { minWidth: 250, p: 1 } } }}
+          >
+            <Typography
+              variant="subtitle2"
+              sx={{ px: 1.5, py: 1, fontWeight: 700 }}
+            >
+              Filter By
+            </Typography>
+            {filterOptions.map(({ field, label }) => (
+              <MenuItem
+                key={field}
+                selected={filterField === field}
+                onClick={() => setFilterField(field)}
+              >
+                {label}
+              </MenuItem>
+            ))}
+            <Box
+              sx={{ p: 1.5, width: 270 }}
+              onKeyDown={(event) => event.stopPropagation()}
+            >
+              <TextField
+                fullWidth
+                size="small"
+                type={filterField === "date" ? "date" : "text"}
+                label={filterField === "date" ? undefined : "Search"}
+                value={filterValue}
+                onChange={(event) => setFilterValue(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") applyFilter();
+                }}
+                slotProps={
+                  filterField === "date"
+                    ? { inputLabel: { shrink: true } }
+                    : undefined
+                }
+              />
+              <Box className="admin-checkinout__filter-actions">
+                <Button
+                  variant="outlined"
+                  className="admin-checkinout__filter-clear"
+                  onClick={clearFilter}
+                >
+                  Clear
+                </Button>
+                <Button
+                  variant="contained"
+                  className="admin-checkinout__filter-apply"
+                  onClick={applyFilter}
+                >
+                  Apply
+                </Button>
+              </Box>
+            </Box>
+          </Menu>
+          <Button
+            variant="outlined"
+            className="admin-checkinout__excel-button"
+            startIcon={<FileDownloadOutlinedIcon />}
+            disabled={loading || Boolean(error)}
+            onClick={downloadAttendanceExcel}
+          >
+            Download
+          </Button>
         {!loading && !error && (
           <Box className="admin-checkinout__record-count">
             <FactCheckOutlinedIcon />
             <span>
-              {records.length}{" "}
-              {records.length === 1
+              {filteredRecords.length}{" "}
+              {filteredRecords.length === 1
                 ? "record"
                 : "records"}
             </span>
           </Box>
         )}
+        </Box>
       </Box>
 
       {loading ? (
@@ -927,11 +1168,15 @@ function AttendanceSection({
             Attendance information is unavailable.
           </Typography>
         </Box>
-      ) : records.length === 0 ? (
+      ) : filteredRecords.length === 0 ? (
         <Box className="admin-checkinout__empty">
           <EventBusyOutlinedIcon />
 
-          <Typography>{emptyMessage}</Typography>
+          <Typography>
+            {records.length > 0
+              ? "No attendance records match this filter."
+              : emptyMessage}
+          </Typography>
         </Box>
       ) : (
         <>
@@ -947,16 +1192,26 @@ function AttendanceSection({
                     <TableCell>Date</TableCell>
                   )}
                   <TableCell>Employee ID</TableCell>
+                  <TableCell>Employee Name</TableCell>
                   <TableCell>Email</TableCell>
                   <TableCell>Check In</TableCell>
                   <TableCell>Check Out</TableCell>
-                  <TableCell>Working Hours</TableCell>
-                  <TableCell>Status</TableCell>
+                  <TableCell>Actual Hours</TableCell>
+                  <TableCell>Requested Permission</TableCell>
+                  <TableCell>Permission Requests</TableCell>
+                  <TableCell>Permission Status</TableCell>
+                  <TableCell>Approved Permission</TableCell>
+                  <TableCell>Eligible Permission</TableCell>
+                  <TableCell>Credited Hours</TableCell>
+                  <TableCell>Monthly Allowance</TableCell>
+                  <TableCell>Monthly Used</TableCell>
+                  <TableCell>Monthly Remaining</TableCell>
+                  <TableCell>Final Status</TableCell>
                 </TableRow>
               </TableHead>
 
               <TableBody>
-                {records.map((record, index) => (
+                {filteredRecords.map((record, index) => (
                   <TableRow
                     key={
                       record._id ||
@@ -973,6 +1228,8 @@ function AttendanceSection({
                     <TableCell className="admin-checkinout__employee-cell">
                       {record.employeeId || "-"}
                     </TableCell>
+
+                    <TableCell>{record.employeeName || "-"}</TableCell>
 
                     <TableCell className="admin-checkinout__email-cell">
                       {record.email || "-"}
@@ -991,13 +1248,45 @@ function AttendanceSection({
                     </TableCell>
 
                     <TableCell>
-                      {formatDuration(
-                        record.totalWorkingSeconds
-                      )}
+                      {formatDuration(record.actualWorkingSeconds ?? record.totalWorkingSeconds)}
                     </TableCell>
 
                     <TableCell>
-                      <StatusPill record={record} />
+                      {formatPermissionHours(record.requestedPermissionHours)}
+                    </TableCell>
+
+                    <TableCell>
+                      {formatPermissionRequests(record.permissionRequests)}
+                    </TableCell>
+
+                    <TableCell>{record.permissionStatus || "-"}</TableCell>
+
+                    <TableCell>
+                      {formatPermissionHours(record.approvedPermissionRequestedHours)}
+                    </TableCell>
+
+                    <TableCell>
+                      {formatPermissionHours(record.approvedPermissionHours)}
+                    </TableCell>
+
+                    <TableCell>
+                      {formatDuration(record.totalCreditedWorkingSeconds ?? null)}
+                    </TableCell>
+
+                    <TableCell>
+                      {formatPermissionHours(record.monthlyPermissionAllowanceHours)}
+                    </TableCell>
+
+                    <TableCell>
+                      {formatPermissionHours(record.monthlyPermissionUsedHours)}
+                    </TableCell>
+
+                    <TableCell>
+                      {formatPermissionHours(record.monthlyPermissionRemainingHours)}
+                    </TableCell>
+
+                    <TableCell>
+                      {record.attendanceStatus || "Pending"}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -1006,7 +1295,7 @@ function AttendanceSection({
           </TableContainer>
 
           <Box className="admin-checkinout__mobile-list">
-            {records.map((record, index) => (
+            {filteredRecords.map((record, index) => (
               <AttendanceMobileCard
                 key={
                   record._id ||
@@ -1058,8 +1347,48 @@ function AttendanceMobileCard({
     {
       label: "Working Hours",
       value: formatDuration(
-        record.totalWorkingSeconds
+        record.actualWorkingSeconds ?? record.totalWorkingSeconds
       ),
+    },
+    {
+      label: "Requested Permission",
+      value: formatPermissionHours(record.requestedPermissionHours),
+    },
+    {
+      label: "Permission Requests",
+      value: formatPermissionRequests(record.permissionRequests),
+    },
+    {
+      label: "Permission Status",
+      value: record.permissionStatus || "-",
+    },
+    {
+      label: "Approved Permission",
+      value: formatPermissionHours(record.approvedPermissionRequestedHours),
+    },
+    {
+      label: "Eligible Permission",
+      value: formatPermissionHours(record.approvedPermissionHours),
+    },
+    {
+      label: "Credited Working Hours",
+      value: formatDuration(record.totalCreditedWorkingSeconds ?? null),
+    },
+    {
+      label: "Monthly Allowance",
+      value: formatPermissionHours(record.monthlyPermissionAllowanceHours),
+    },
+    {
+      label: "Monthly Used",
+      value: formatPermissionHours(record.monthlyPermissionUsedHours),
+    },
+    {
+      label: "Monthly Remaining",
+      value: formatPermissionHours(record.monthlyPermissionRemainingHours),
+    },
+    {
+      label: "Final Attendance Status",
+      value: record.attendanceStatus || "Pending",
     },
   ];
 
@@ -1071,7 +1400,7 @@ function AttendanceMobileCard({
       <Box className="admin-checkinout__mobile-card-header">
         <Box className="admin-checkinout__mobile-employee">
           <Typography className="admin-checkinout__mobile-employee-id">
-            {record.employeeId || "-"}
+            {record.employeeName || "Employee"} · {record.employeeId || "-"}
           </Typography>
 
           <Typography className="admin-checkinout__mobile-email">

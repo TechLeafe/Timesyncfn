@@ -60,6 +60,7 @@ interface AttendanceRecord {
   checkInTime?: string | null;
   checkOutTime?: string | null;
   totalWorkingSeconds?: number | null;
+  attendanceStatus?: string;
   activeCheckInTime?: string | null;
   sessions?: {
     checkInTime?: string | null;
@@ -70,11 +71,15 @@ interface AttendanceRecord {
 interface AttendanceResponse {
   data?: {
     checkInTime?: string | null;
+    checkOutTime?: string | null;
     totalWorkingSeconds?: number | null;
+    attendanceStatus?: string;
     activeCheckInTime?: string | null;
   };
   checkInTime?: string | null;
+  checkOutTime?: string | null;
   totalWorkingSeconds?: number | null;
+  attendanceStatus?: string;
   activeCheckInTime?: string | null;
 }
 
@@ -158,6 +163,19 @@ const formatClockTime = (
   });
 };
 
+const getMinutesInIndia = (date: Date): number => {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Kolkata",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const value = (type: string) =>
+    Number(parts.find((part) => part.type === type)?.value || 0);
+
+  return value("hour") * 60 + value("minute");
+};
+
 const getApiError = (
   error: unknown,
   fallback: string
@@ -206,6 +224,9 @@ const EmployeeCheckInOut = () => {
 
   const [accumulatedSeconds, setAccumulatedSeconds] =
     useState(0);
+
+  const [attendanceStatus, setAttendanceStatus] =
+    useState<string | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -317,6 +338,11 @@ const EmployeeCheckInOut = () => {
       setCheckOutTime(validOut);
       setAccumulatedSeconds(
         Math.max(0, record?.totalWorkingSeconds ?? 0)
+      );
+      setAttendanceStatus(
+        validIn && !validOut
+          ? "In Progress"
+          : record?.attendanceStatus ?? null
       );
       setElapsedSeconds(
         Math.max(0, record?.totalWorkingSeconds ?? 0)
@@ -470,6 +496,7 @@ const EmployeeCheckInOut = () => {
       setAccumulatedSeconds(previousSeconds);
       setElapsedSeconds(previousSeconds);
       setStatus("checked-in");
+      setAttendanceStatus(payload?.attendanceStatus ?? "In Progress");
 
       setToast({
         severity: "success",
@@ -512,22 +539,41 @@ const EmployeeCheckInOut = () => {
       );
       const payload =
         response.data?.data ?? response.data;
+      const elapsedWorkingSeconds =
+        accumulatedSeconds +
+        (activeCheckInTime
+          ? Math.floor(
+              (Date.now() - activeCheckInTime.getTime()) / 1000
+            )
+          : 0);
       const totalSeconds = Math.max(
         0,
-        payload?.totalWorkingSeconds ??
-          accumulatedSeconds +
-            (activeCheckInTime
-              ? Math.floor(
-                  (Date.now() - activeCheckInTime.getTime()) / 1000
-                )
-              : 0)
+        payload?.totalWorkingSeconds ?? 0,
+        elapsedWorkingSeconds
       );
+      const returnedCheckOutTime = payload?.checkOutTime
+        ? new Date(payload.checkOutTime)
+        : new Date();
+      const validCheckOutTime = Number.isNaN(returnedCheckOutTime.getTime())
+        ? new Date()
+        : returnedCheckOutTime;
+      let fallbackAttendanceStatus: string | null = null;
+      if (getMinutesInIndia(validCheckOutTime) < 16 * 60 + 30) {
+        fallbackAttendanceStatus = "Early Departure";
+      } else if (totalSeconds >= 9 * 60 * 60) {
+        fallbackAttendanceStatus = "Present";
+      } else if (totalSeconds >= 6 * 60 * 60) {
+        fallbackAttendanceStatus = "Half-Day Present";
+      }
+      const resolvedAttendanceStatus =
+        payload?.attendanceStatus ?? fallbackAttendanceStatus;
 
-      setCheckOutTime(new Date());
+      setCheckOutTime(validCheckOutTime);
       setActiveCheckInTime(null);
       setAccumulatedSeconds(totalSeconds);
       setElapsedSeconds(totalSeconds);
       setStatus("checked-out");
+      setAttendanceStatus(resolvedAttendanceStatus);
 
       setToast({
         severity: "success",
@@ -576,9 +622,14 @@ const EmployeeCheckInOut = () => {
   const actionDisabled =
     loading || submitting || status === "unknown";
 
-  const timerValue = isCheckedIn
+  const timerValue = isCheckedIn || isCheckedOut
     ? elapsedSeconds
     : 0;
+  const timerAttendanceStatus = isCheckedIn
+    ? "In Progress"
+    : attendanceStatus && attendanceStatus !== "Pending"
+      ? attendanceStatus
+      : null;
 
   /* ================= UI ================= */
 
@@ -777,6 +828,14 @@ const EmployeeCheckInOut = () => {
                   <Typography>Minutes</Typography>
                   <Typography>Seconds</Typography>
                 </Box>
+
+                {timerAttendanceStatus && (
+                  <Box className="timer-attendance-status" role="status">
+                    <Typography>
+                      {timerAttendanceStatus}
+                    </Typography>
+                  </Box>
+                )}
               </Box>
 
               <Box className="timer-message">
@@ -836,7 +895,8 @@ const EmployeeCheckInOut = () => {
                   <DetailItem
                     icon={<BusinessCenterOutlinedIcon />}
                     label="Team"
-                    value={employee.team}
+                    value={employee.Team}
+                    
                   />
                 </Box>
 
@@ -862,7 +922,7 @@ const EmployeeCheckInOut = () => {
                   <DetailItem
                     icon={<GroupsOutlinedIcon />}
                     label="Reporting Manager"
-                    value="Dhamini"
+                    value="Dhamini A"
                   />
                 </Box>
               </Box>

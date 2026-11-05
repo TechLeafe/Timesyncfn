@@ -14,6 +14,7 @@ import {
   Chip,
   CircularProgress,
   FormControl,
+  FormHelperText,
   IconButton,
   MenuItem,
   Paper,
@@ -105,7 +106,7 @@ interface RequestForm {
   endDate: string;
   compOffDate: string;
   startTime: string;
-  endTime: string;
+  durationMinutes: string;
   reason: string;
 }
 
@@ -143,7 +144,7 @@ const EMPTY_FORM: RequestForm = {
   endDate: "",
   compOffDate: "",
   startTime: "",
-  endTime: "",
+  durationMinutes: "",
   reason: "",
 };
 
@@ -169,6 +170,8 @@ const PERMISSION_TYPE_OPTIONS: {
 }[] = [
   { value: "PERMISSION", label: "Permission" },
 ];
+
+const MONTHLY_PERMISSION_LIMIT_HOURS = 4;
 
 /* ================= HELPERS ================= */
 
@@ -281,19 +284,16 @@ const timeToMinutes = (
   return hours * 60 + minutes;
 };
 
-const diffHours = (
-  start: string,
-  end: string
-): number => {
-  if (!start || !end || end <= start) {
-    return 0;
-  }
-
-  return Math.max(
-    0,
-    (timeToMinutes(end) -
-      timeToMinutes(start)) / 60
-  );
+const getPermissionEndTime = (
+  startTime: string,
+  durationMinutes: number
+): string => {
+  if (!startTime || !durationMinutes) return "";
+  const endMinutes = timeToMinutes(startTime) + durationMinutes;
+  if (endMinutes >= 24 * 60) return "";
+  return `${String(Math.floor(endMinutes / 60)).padStart(2, "0")}:${String(
+    endMinutes % 60
+  ).padStart(2, "0")}`;
 };
 
 const getErrorMessage = (
@@ -518,20 +518,21 @@ function EmployeeLeavesPermissions() {
           );
         }
 
-        const matchingPolicy =
-          policies.find(
-            (policy) =>
-              policy.businessYear ===
-              getBusinessYear()
-          ) ?? null;
-
-        setLeavePolicy(matchingPolicy);
+        const matchingPolicy = policies.find(
+          (policy) =>
+            policy.businessYear === getBusinessYear()
+        );
 
         if (!matchingPolicy) {
+          setLeavePolicy(null);
           setPolicyError(
-            "No leave policy found for the current business year."
+            `Leave policy not found for business year ${getBusinessYear()}. Please ask HR/Admin to create the policy.`
           );
+          return;
         }
+
+        setLeavePolicy(matchingPolicy);
+        setPolicyError("");
       } catch (error) {
         setLeavePolicy(null);
         setPolicyError(
@@ -612,11 +613,11 @@ function EmployeeLeavesPermissions() {
 
   const today = new Date();
 
-  const usedPermissionsThisMonth =
+  const usedPermissionHoursThisMonth =
     requests.filter((request) => {
       if (
         request.leaveType !== "PERMISSION" ||
-        !isCountedRequest(request) ||
+        request.status !== "Approved" ||
         !request.date
       ) {
         return false;
@@ -629,7 +630,10 @@ function EmployeeLeavesPermissions() {
         year === today.getFullYear() &&
         month === today.getMonth() + 1
       );
-    }).length;
+    }).reduce(
+      (total, request) => total + request.totalHours,
+      0
+    );
 
   const remaining = (
     allocation: number | undefined,
@@ -658,9 +662,10 @@ function EmployeeLeavesPermissions() {
     usedDays("COMP_OFF")
   );
 
-  const permissionRemaining = remaining(
-    leavePolicy?.permissionsPerMonth,
-    usedPermissionsThisMonth
+  const permissionRemaining = Math.max(
+    0,
+    MONTHLY_PERMISSION_LIMIT_HOURS -
+      usedPermissionHoursThisMonth
   );
 
   /* ================= FORM ================= */
@@ -668,6 +673,12 @@ function EmployeeLeavesPermissions() {
   const openForm = (
     leaveType: LeaveType
   ) => {
+    setFormError(
+      leavePolicy
+        ? ""
+        : policyError ||
+            `Leave policy not found for business year ${getBusinessYear()}. Please ask HR/Admin to create the policy.`
+    );
     setRequestType(
       leaveType === "PERMISSION"
         ? "permission"
@@ -712,9 +723,10 @@ function EmployeeLeavesPermissions() {
     form.endDate
   );
 
-  const totalHours = diffHours(
+  const totalHours = Number(form.durationMinutes) / 60 || 0;
+  const permissionEndTime = getPermissionEndTime(
     form.startTime,
-    form.endTime
+    Number(form.durationMinutes)
   );
 
   const validateForm = (): boolean => {
@@ -731,18 +743,21 @@ function EmployeeLeavesPermissions() {
           "Start time is required.";
       }
 
-      if (!form.endTime) {
-        errors.endTime =
-          "End time is required.";
+      if (!form.durationMinutes) {
+        errors.durationMinutes = "Permission duration is required.";
+      }
+
+      if (form.durationMinutes && !permissionEndTime) {
+        errors.durationMinutes =
+          "Permission must end before midnight.";
       }
 
       if (
-        form.startTime &&
-        form.endTime &&
-        form.endTime <= form.startTime
+        form.durationMinutes &&
+        totalHours > permissionRemaining
       ) {
-        errors.endTime =
-          "End time must be after start time.";
+        errors.durationMinutes =
+          `Only ${permissionRemaining} hour(s) remain in your approved monthly balance.`;
       }
     } else {
       if (!form.startDate) {
@@ -792,13 +807,17 @@ function EmployeeLeavesPermissions() {
   /* ================= SUBMIT ================= */
 
   const submitRequest = async () => {
-    if (
-      !requestType ||
-      submitting ||
-      !validateForm()
-    ) {
+    if (!requestType || submitting) return;
+
+    if (!leavePolicy && form.leaveType !== "PERMISSION") {
+      setFormError(
+        policyError ||
+          `Leave policy not found for business year ${getBusinessYear()}. Please ask HR/Admin to create the policy.`
+      );
       return;
     }
+
+    if (!validateForm()) return;
 
     setSubmitting(true);
     setFormError("");
@@ -809,7 +828,7 @@ function EmployeeLeavesPermissions() {
             leaveType: "PERMISSION",
             fromDate: form.date,
             fromTime: form.startTime,
-            toTime: form.endTime,
+            toTime: permissionEndTime,
             reason: form.reason.trim(),
             businessYear: getBusinessYear(),
           }
@@ -960,16 +979,17 @@ function EmployeeLeavesPermissions() {
         <SimpleBalanceCard
           label="Permissions"
           value={permissionRemaining}
-          unit="estimated remaining this month"
+          unit="hours remaining this month"
           icon={<FactCheckOutlinedIcon />}
-          loading={policyLoading || listLoading}
+          loading={listLoading}
         />
       </Box>
 
       {(policyError || listError) && (
         <Alert
-          severity="warning"
+          severity={policyError ? "error" : "warning"}
           className="employee-leaves-warning"
+          role="alert"
           action={
             <Button
               size="small"
@@ -1155,35 +1175,53 @@ function EmployeeLeavesPermissions() {
                   />
                 </FieldRow>
 
-                <FieldRow
-                  label="End Time"
-                  required
-                >
-                  <TextField
+                <FieldRow label="Permission Duration" required>
+                  <FormControl
                     fullWidth
                     size="small"
-                    type="time"
-                    value={form.endTime}
-                    disabled={submitting}
-                    error={Boolean(
-                      fieldErrors.endTime
+                    error={Boolean(fieldErrors.durationMinutes)}
+                  >
+                    <Select
+                      value={form.durationMinutes}
+                      disabled={submitting}
+                      displayEmpty
+                      onChange={(event) =>
+                        updateField("durationMinutes", event.target.value)
+                      }
+                    >
+                      <MenuItem value="" disabled>
+                        Select duration
+                      </MenuItem>
+                      <MenuItem value="30">30 Minutes</MenuItem>
+                      <MenuItem value="60">1 Hour</MenuItem>
+                      <MenuItem value="90">1.5 Hours</MenuItem>
+                      <MenuItem value="120">2 Hours</MenuItem>
+                    </Select>
+                    {fieldErrors.durationMinutes && (
+                      <FormHelperText>
+                        {fieldErrors.durationMinutes}
+                      </FormHelperText>
                     )}
-                    helperText={fieldErrors.endTime}
-                    onChange={(event) =>
-                      updateField(
-                        "endTime",
-                        event.target.value
-                      )
-                    }
-                  />
+                  </FormControl>
                 </FieldRow>
+
+                {permissionEndTime && (
+                  <FieldRow label="End Time">
+                    <TextField
+                      fullWidth
+                      size="small"
+                      value={permissionEndTime}
+                      disabled
+                    />
+                  </FieldRow>
+                )}
 
                 <FieldRow label="Total Hours">
                   <TextField
                     fullWidth
                     size="small"
                     value={
-                      form.startTime && form.endTime
+                      form.startTime && form.durationMinutes
                         ? totalHours
                         : ""
                     }

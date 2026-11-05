@@ -2,10 +2,7 @@
    Mock attendance data for the Attendance page.
 
    * The colour legend / summary tiles are driven by ATTENDANCE_META.
-   * A half day is stored with the half it was taken on, so the calendar can
-     paint the two halves differently:
-         halfDayFirst  → amber / yellow   (worked the second half)
-         halfDaySecond → purple           (worked the first half)
+   * All half-day attendance is shown as "Half-Day Present".
    * Late arrival is NOT a status of its own – a late day stays "present"
      (green cell) and only carries the plain "LP" corner label, so it is still
      counted as a present day. The mock late days live in ATTENDANCE_LATE_KEYS.
@@ -15,9 +12,13 @@
    ────────────────────────────────────────────────────────────── */
 
 import { CALENDAR_TONES, type CalendarTone } from "../Components/Calendar/calendarTheme";
-import { HALF_DAY_SLOTS, toDateKey } from "./calendarEvents";
+import { toDateKey } from "./calendarEvents";
 
-export type AttendanceStatus = "present" | "absent" | "halfDayFirst" | "halfDaySecond" | "leave";
+export type AttendanceStatus =
+  | "present"
+  | "absent"
+  | "halfDay"
+  | "leave";
 
 export interface AttendanceStatusMeta {
   /** Tile / legend label */
@@ -35,20 +36,11 @@ export const ATTENDANCE_META: Record<AttendanceStatus, AttendanceStatusMeta> = {
 
   absent: { label: "Absent", note: "(Not working)", tone: "red", color: CALENDAR_TONES.red.dot },
 
-  /* First half (yellow) – the employee was present only for the first half */
-  halfDayFirst: {
-    label: "1st Half Day",
-    note: `(${HALF_DAY_SLOTS.first.label})`,
+  halfDay: {
+    label: "Half-Day Present",
+    note: "(6 to under 9 working hours)",
     tone: "amber",
     color: CALENDAR_TONES.amber.dot,
-  },
-
-  /* Second half (purple) – deliberately a different colour than the first half */
-  halfDaySecond: {
-    label: "2nd Half Day",
-    note: `(${HALF_DAY_SLOTS.second.label})`,
-    tone: "purple",
-    color: CALENDAR_TONES.purple.dot,
   },
 
   leave: { label: "Leave", note: "(Casual/Sick/Other)", tone: "blue", color: CALENDAR_TONES.blue.dot },
@@ -58,8 +50,7 @@ export const ATTENDANCE_META: Record<AttendanceStatus, AttendanceStatusMeta> = {
 export const ATTENDANCE_STATUSES: AttendanceStatus[] = [
   "present",
   "absent",
-  "halfDayFirst",
-  "halfDaySecond",
+  "halfDay",
   "leave",
 ];
 
@@ -84,7 +75,7 @@ export const HOLIDAY_TONE: CalendarTone = "pink";
 /**
  * Mock attendance records (`YYYY-MM-DD` → status).
  * September 2026 mirrors the agreed design sample (12 present / 3 absent /
- * 2 half days – one first half (yellow) and one second half (purple) –
+ * 2 half-day present entries –
  * 2 leaves, holidays excluded because they come from the company calendar).
  * Days listed in ATTENDANCE_LATE_KEYS additionally show the "LP" corner label.
  */
@@ -98,13 +89,13 @@ export const ATTENDANCE_RECORDS: Record<string, AttendanceStatus> = {
   "2026-09-07": "leave",
   "2026-09-08": "present",
   "2026-09-09": "present",
-  "2026-09-10": "halfDayFirst",
+  "2026-09-10": "halfDay",
   "2026-09-11": "present",
   "2026-09-14": "present",
   "2026-09-16": "present",
   "2026-09-17": "present",
   "2026-09-21": "present",
-  "2026-09-22": "halfDaySecond",
+  "2026-09-22": "halfDay",
   "2026-09-23": "present",
   "2026-09-24": "absent",
   "2026-09-25": "absent",
@@ -114,18 +105,18 @@ export const ATTENDANCE_RECORDS: Record<string, AttendanceStatus> = {
   "2026-08-03": "present",
   "2026-08-05": "leave",
   "2026-08-11": "present",
-  "2026-08-14": "halfDayFirst",
+  "2026-08-14": "halfDay",
   "2026-08-19": "absent",
-  "2026-08-21": "halfDaySecond",
+  "2026-08-21": "halfDay",
   "2026-08-26": "present",
 
   /* October 2026 (sample data) */
   "2026-10-01": "present",
   "2026-10-05": "present",
   "2026-10-08": "leave",
-  "2026-10-13": "halfDaySecond",
+  "2026-10-13": "halfDay",
   "2026-10-16": "present",
-  "2026-10-20": "halfDayFirst",
+  "2026-10-20": "halfDay",
   "2026-10-27": "absent",
 };
 
@@ -141,6 +132,10 @@ export interface AttendanceDayResult {
 export interface AttendanceLookupOptions {
   /** `YYYY-MM-DD` keys of all company holidays */
   holidayKeys: ReadonlySet<string>;
+  /** Optional live records keyed by `YYYY-MM-DD`; when provided they replace mock records. */
+  attendanceRecords?: Readonly<Record<string, AttendanceStatus>>;
+  /** Optional live late-arrival dates keyed by `YYYY-MM-DD`. */
+  lateKeys?: ReadonlySet<string>;
   /** Reference day – future working days stay empty */
   today?: Date;
   /**
@@ -160,7 +155,13 @@ const startOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(),
  */
 export function resolveAttendanceDay(
   date: Date,
-  { holidayKeys, today = new Date(), fillPastWorkingDays = true }: AttendanceLookupOptions
+  {
+    holidayKeys,
+    attendanceRecords,
+    lateKeys = ATTENDANCE_LATE_KEYS,
+    today = new Date(),
+    fillPastWorkingDays = true,
+  }: AttendanceLookupOptions
 ): AttendanceDayResult {
   const key = toDateKey(date);
 
@@ -168,22 +169,24 @@ export function resolveAttendanceDay(
     return { status: null, isHoliday: true, late: false };
   }
 
-  const recorded = ATTENDANCE_RECORDS[key];
+  const recorded = attendanceRecords
+    ? attendanceRecords[key]
+    : ATTENDANCE_RECORDS[key];
   if (recorded) {
-    return { status: recorded, isHoliday: false, late: recorded === "present" && ATTENDANCE_LATE_KEYS.has(key) };
+    return { status: recorded, isHoliday: false, late: recorded === "present" && lateKeys.has(key) };
   }
 
   const isWeekend = date.getDay() === 0 || date.getDay() === 6;
   const isPast    = startOfDay(date) <= startOfDay(today);
 
   if (fillPastWorkingDays && !isWeekend && isPast) {
-    return { status: "present", isHoliday: false, late: ATTENDANCE_LATE_KEYS.has(key) };
+    return { status: "present", isHoliday: false, late: lateKeys.has(key) };
   }
 
   return { status: null, isHoliday: false, late: false };
 }
 
-/** Counts present / absent / first half days / second half days / leaves for a whole month. */
+/** Counts present / absent / half-day present / leaves for a whole month. */
 export function summarizeAttendanceMonth(
   year: number,
   month: number,
@@ -192,8 +195,7 @@ export function summarizeAttendanceMonth(
   const totals: Record<AttendanceStatus, number> = {
     present: 0,
     absent: 0,
-    halfDayFirst: 0,
-    halfDaySecond: 0,
+    halfDay: 0,
     leave: 0,
   };
   const daysInMonth = new Date(year, month + 1, 0).getDate();

@@ -261,7 +261,7 @@ function Details() {
             const currentMonth = permissionDate.getMonth() + 1;
             const currentYear = permissionDate.getFullYear();
 
-            const approvedPermissions =
+            const approvedPermissionHours =
               employeeRequests.filter((item) => {
                 const date = item.fromDate.slice(0, 10);
                 const year = Number(date.slice(0, 4));
@@ -273,7 +273,11 @@ function Details() {
                   year === currentYear &&
                   month === currentMonth
                 );
-              }).length;
+              }).reduce(
+                (total, item) =>
+                  total + (Number(item.totalHours) || 0),
+                0
+              );
 
             mapped.currentCasualLeave = Math.max(
               0,
@@ -289,8 +293,7 @@ function Details() {
 
             mapped.currentPermission = Math.max(
               0,
-              (Number(policy.permissionsPerMonth) || 0) -
-                approvedPermissions
+              4 - approvedPermissionHours
             );
           }
         }
@@ -467,7 +470,7 @@ function Details() {
             <BalanceCard
               label="Permissions"
               value={request.currentPermission}
-              unit="estimated left this month"
+              unit="hours left this month"
               icon={<FactCheckOutlinedIcon />}
             />
           </Box>

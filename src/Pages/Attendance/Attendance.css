@@ -379,6 +379,35 @@
   overflow-wrap: anywhere;
 }
 
+.attendance-calculation-details {
+  display: grid;
+  gap: 10px;
+  margin-top: 15px;
+  padding-top: 14px;
+  border-top: 1px solid #e7edf2;
+}
+
+.attendance-page .attendance-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.attendance-page .attendance-detail-row .MuiTypography-root:first-child {
+  color: #718096;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.attendance-page .attendance-detail-row .MuiTypography-root:last-child {
+  color: #25364a;
+  font-size: 11px;
+  line-height: 1.5;
+  font-weight: 700;
+  text-align: right;
+}
+
 /* ==========================================
    LEGEND
 ========================================== */
