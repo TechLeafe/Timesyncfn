@@ -6,7 +6,6 @@ import {
   Alert,
   Box,
   Button,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -54,27 +53,32 @@ type EmployeeFilterField =
   | "name"
   | "email"
   | "designation"
+  | "team"
   | "role";
 
 interface Employee {
   _id?: string;
   id: string;
+  user_id: string;
   name: string;
   email: string;
   phone: string;
   designation: string;
+  team: string;
   status: EmployeeStatus;
   userType: UserType;
 }
 
 interface EmployeeApiRecord {
   _id?: string;
+  user_id: string;
   employeeId: string;
   name: string;
   email: string;
   password?: string;
   phone?: string;
   designation: string;
+  team?: string;
   status?: EmployeeStatus;
   userType?: UserType;
 }
@@ -92,6 +96,7 @@ interface EmployeeForm {
   password: string;
   phone: string;
   designation: string;
+  team: string;
   userType: UserType;
 }
 
@@ -108,6 +113,7 @@ const createEmptyForm = (): EmployeeForm => ({
   password: "",
   phone: "",
   designation: "",
+  team: "",
   userType: 3,
 });
 
@@ -119,11 +125,13 @@ const ROLE_LABELS: Record<UserType, string> = {
 
 const toEmployee = (record: EmployeeApiRecord): Employee => ({
   _id: record._id,
+  user_id: record.user_id || "",
   id: record.employeeId,
   name: record.name,
   email: record.email,
   phone: record.phone || "-",
   designation: record.designation,
+  team: record.team || "",
   status: record.status ?? "Active",
   userType:
     record.userType === 1 || record.userType === 2
@@ -234,6 +242,10 @@ const validateForm = (
     errors.designation = "Use alphabetical characters only.";
   }
 
+  if (!form.team.trim()) {
+    errors.team = "Team Name is required.";
+  }
+
   return errors;
 };
 
@@ -325,12 +337,14 @@ function Employee_Creation() {
           employee.name,
           employee.email,
           employee.designation,
+          employee.team,
           ROLE_LABELS[employee.userType],
         ],
         id: [employee.id],
         name: [employee.name],
         email: [employee.email],
         designation: [employee.designation],
+        team: [employee.team],
         role: [ROLE_LABELS[employee.userType]],
       };
 
@@ -352,6 +366,7 @@ function Employee_Creation() {
         "Email",
         "Phone",
         "Designation",
+        "Team",
         "Role",
         "Status",
         "Action",
@@ -362,6 +377,7 @@ function Employee_Creation() {
         employee.email,
         employee.phone,
         employee.designation,
+        employee.team || "—",
         ROLE_LABELS[employee.userType],
         employee.status,
         "Edit / Delete",
@@ -398,6 +414,7 @@ function Employee_Creation() {
           ? ""
           : employee.phone.replace(/^\+1/, ""),
       designation: employee.designation,
+      team: employee.team,
       userType: employee.userType,
     });
 
@@ -406,10 +423,11 @@ function Employee_Creation() {
     navigate("/employee-creation/edit");
 
     try {
-      const response = await api.get<
+      const response = await api.post<
         ApiEnvelope<EmployeeApiRecord> | EmployeeApiRecord
-      >(
-        `/employees/view/${encodeURIComponent(employee.id)}`
+      >( "/employees/view/", { 
+         user_id: employee.user_id 
+        }
       );
 
       const record = extractApiData(
@@ -425,6 +443,7 @@ function Employee_Creation() {
         phone:
           record.phone?.replace(/^\+1/, "") || "",
         designation: record.designation,
+        team: record.team || current.team,
         userType:
           record.userType === 1 || record.userType === 2
             ? record.userType
@@ -497,6 +516,7 @@ function Employee_Creation() {
       userType: form.userType,
       phone: form.phone.trim(),
       designation: form.designation.trim(),
+      team: form.team.trim(),
       ...(isCreate
         ? { password: form.password }
         : { password: form.password }),
@@ -619,6 +639,8 @@ function Employee_Creation() {
           </Alert>
         ) : undefined}
       </Snackbar>
+
+    <Box className="employee-creation-fixed-section">  {/* Added fixed section here */}
 
       <Box className="employee-creation-header">
         <Box className="employee-creation-heading">
@@ -809,6 +831,8 @@ function Employee_Creation() {
         </Alert>
       )}
 
+    </Box>  {/* Closed fixed section here */}
+
       <Paper
         elevation={0}
         className="employee-creation-list-card"
@@ -837,29 +861,24 @@ function Employee_Creation() {
 
         </Box>
 
+      
+      <Box className="employee-creation-directory-scroll"> { /* Added a Box wrapper here to ensure the content is scrollable and not fixed */ }
+
         {loading || loadError || filteredEmployees.length === 0 ? (
           <Box className="employee-creation-empty">
-            {loading && (
-              <CircularProgress
-                size={25}
-                sx={{ color: "#087b4d" }}
-              />
-            )}
 
-            <Typography>
-              {loading
-                ? "Loading employees..."
-                : loadError
+            {!loading && (
+              <Typography>
+                {loadError
                   ? "Employee information is unavailable."
                   : appliedFilter.value.trim()
                     ? "No employees match your search."
                     : "No employees found. Create your first employee."}
-            </Typography>
+              </Typography>
+            )}
           </Box>
         ) : (
           <>
-            {/* DESKTOP TABLE */}
-
             <TableContainer className="employee-creation-table-wrap">
               <Table
                 size="small"
@@ -872,6 +891,7 @@ function Employee_Creation() {
                     <TableCell>Email</TableCell>
                     <TableCell>Phone</TableCell>
                     <TableCell>Designation</TableCell>
+                    <TableCell>Team</TableCell>
                     <TableCell>Role</TableCell>
                     <TableCell>Status</TableCell>
                     <TableCell align="right">
@@ -903,6 +923,10 @@ function Employee_Creation() {
                         {employee.designation}
                       </TableCell>
 
+                      <TableCell> 
+                        {employee.team || "—"}
+                   </TableCell>
+
                       <TableCell>
                         {ROLE_LABELS[employee.userType]}
                       </TableCell>
@@ -929,8 +953,6 @@ function Employee_Creation() {
                 </TableBody>
               </Table>
             </TableContainer>
-
-            {/* MOBILE EMPLOYEE CARDS */}
 
             <Box className="employee-creation-mobile-list">
               {filteredEmployees.map((employee) => (
@@ -975,6 +997,10 @@ function Employee_Creation() {
                         label: "Designation",
                         value: employee.designation,
                       },
+                      { 
+                        label: "Team",
+                        value: employee.team || "—",
+                      },
                       {
                         label: "Role",
                         value: ROLE_LABELS[employee.userType],
@@ -1014,6 +1040,7 @@ function Employee_Creation() {
             </Box>
           </>
         )}
+      </Box>  {/* Closed Box wrapper here to ensure the content is scrollable and not fixed */ }
       </Paper>
 
       {/* CREATE / EDIT DRAWER */}
@@ -1181,6 +1208,19 @@ function Employee_Creation() {
                 fullWidth
                 size="small"
               />
+
+              <TextField
+                label="Team Name"
+                value={form.team}
+                onChange={(event) =>
+                  updateField("team", event.target.value)
+                }
+                error={Boolean(errors.team)}
+                helperText={errors.team}
+                required
+                fullWidth
+                size="small"
+              />
             </Box>
 
             <Typography className="employee-creation-form-section">
@@ -1231,17 +1271,9 @@ function Employee_Creation() {
               className="employee-creation-save"
               onClick={() => void saveEmployee()}
               disabled={saving}
-              startIcon={
-                saving ? (
-                  <CircularProgress size={16} color="inherit" />
-                ) : undefined
-              }
+            
             >
-              {saving
-                ? "Saving..."
-                : isEdit
-                  ? "Update Employee"
-                  : "Create Employee"}
+              {isEdit ? "Update Employee" : "Create Employee"}
             </Button>
           </Box>
         </Box>
@@ -1294,16 +1326,10 @@ function Employee_Creation() {
             variant="contained"
             color="error"
             disabled={deleting}
-            startIcon={
-              deleting ? (
-                <CircularProgress size={16} color="inherit" />
-              ) : (
-                <DeleteOutlineRoundedIcon />
-              )
-            }
+            startIcon={<DeleteOutlineRoundedIcon />}
             onClick={confirmDelete}
           >
-            {deleting ? "Deleting..." : "Delete Employee"}
+            Delete Employee
           </Button>
         </DialogActions>
       </Dialog>

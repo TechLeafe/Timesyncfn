@@ -21,13 +21,9 @@ import {
   CheckCircleRounded,
 
   CancelRounded,
-
   HourglassTopRounded,
-
   AutoGraphRounded,
-
   BadgeRounded,
-
 } from "@mui/icons-material";
 
 import api from "../../api/axiosInstance";
@@ -114,7 +110,18 @@ interface WorkingHours {
 
 }
 
+interface DashboardEmployee {
+  user_id: string;
+  employeeId: string;
+  name: string;
+  email: string;
+  designation: string;
+  team?: string;
+  status?: string;
+}
 interface EmployeeDashboardData {
+
+  employee?: DashboardEmployee;
 
   workingHours: WorkingHours;
 
@@ -961,9 +968,10 @@ const EmployeeDashboard = () => {
 
     <main className="emp-premium-dashboard">
 
-      {/* WELCOME SECTION */}
-
-      <section className="emp-welcome">
+      <section className="emp-dashboard-top">
+        <div className="emp-dashboard-main">
+          {/* WELCOME SECTION */}
+          <section className="emp-welcome">
 
         <div className="emp-welcome-content">
 
@@ -1017,7 +1025,7 @@ const EmployeeDashboard = () => {
 
         </div>
 
-      </section>
+          </section>
 
       {/* ERROR MESSAGE */}
 
@@ -1031,9 +1039,8 @@ const EmployeeDashboard = () => {
 
       )}
 
-      {/* STATISTICS */}
-
-      <section className="emp-stat-grid">
+          {/* STATISTICS */}
+          <section className="emp-stat-grid">
 
         <article className="emp-stat-card emp-green">
 
@@ -1170,6 +1177,9 @@ const EmployeeDashboard = () => {
           </div>
 
         </article>
+
+          </section>
+        </div>
 
       </section>
 

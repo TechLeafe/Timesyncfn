@@ -315,7 +315,7 @@ const PEEL_COLORS: Record<AttendanceMark, { back: [string, string, string]; flap
   LT:  { back: ["#9f2d13", "#e65b2b", "#bd3d1d"], flap: ["#ffc0a8", "#f28a69", "#ffad91"] },
   ED:  { back: ["#9f4b13", "#e68c2b", "#bd681d"], flap: ["#ffd0a8", "#f2ae69", "#ffc191"] },
   HP:  { back: ["#704214", "#a06a32", "#855522"], flap: ["#e6c49a", "#c99a64", "#d9ae7c"] },
-  A:   { back: ["#111111", "#3a3a3a", "#222222"], flap: ["#b5b5b5", "#7a7a7a", "#9a9a9a"] },
+  A: { back: ["#555555", "#747474", "#626262"], flap: ["#CCCCCC", "#AAAAAA", "#BBBBBB"],},
 
   L:   { back: ["#1424a2", "#3659e5", "#2a45c4"], flap: ["#a9b6ff", "#6f85f0", "#8d9eff"] },
 
@@ -368,7 +368,7 @@ function PagePeel({ mark }: { mark: AttendanceMark }) {
 
       {/* soft shadow the flap casts on the white page */}
 
-      <path d={FLAP_PATH} transform="translate(-6 -5)" fill="#000" opacity=".4" filter={`url(#${id}-blur)`} />
+      <path d={FLAP_PATH} transform="translate(-6 -5)" fill="#777777" opacity=".28" filter={`url(#${id}-blur)`} />
 
       <path d={BACK_PATH} fill={`url(#${id}-back)`} />
 

@@ -38,6 +38,7 @@ interface Employee {
   employeeId: string;
   department: string;
   email: string;
+  team: string;
   reportingManager: string;
   location: string;
 }
@@ -49,6 +50,7 @@ interface StoredUser {
   designation?: string;
   department?: string;
   email?: string;
+  team?: string;
   reportingManager?: string;
   location?: string;
 }
@@ -123,6 +125,7 @@ const makeEmployee = (user: StoredUser | null): Employee => ({
   designation: user?.designation || "Employee",
   employeeId:
     user?.employeeId || user?.userId || "-",
+  team: user?.team || "-",
   department: user?.department || "-",
   email: user?.email || "-",
   reportingManager: user?.reportingManager || "-",
@@ -389,33 +392,38 @@ const EmployeeCheckInOut = () => {
      * only for optional employee-role profile details.
      * HR/Admin may not have access to it.
      */
-    const loadProfile = async () => {
-      try {
-        const response = await api.post(
-          "/dashboard/employee",
-          { date: "" }
-        );
+    
+const loadProfile = async () => {
+  try {
+    const response = await api.post(
+      "/dashboard/employee",
+      { date: "" }
+    );
 
-        const payload =
-          response.data?.data ?? response.data;
+    const payload =
+      response.data?.data ?? response.data;
 
-        const info = payload?.employeeInformation;
+    // The API response contains payload.employee
+    const info = payload?.employee;
 
-        if (info) {
-          setEmployee((current) => ({
-            ...current,
-            name: info.name ?? current.name,
-            designation:
-              info.designation ?? current.designation,
-            employeeId:
-              info.employeeId ?? current.employeeId,
-            email: info.email ?? current.email,
-          }));
-        }
-      } catch {
-        // Keep profile data from the current login.
-      }
-    };
+    if (info) {
+      setEmployee((current) => ({
+        ...current,
+        name: info.name ?? current.name,
+        designation:
+          info.designation ?? current.designation,
+        employeeId:
+          info.employeeId ?? current.employeeId,
+        email: info.email ?? current.email,
+        team: info.team ?? current.team,
+      }));
+    }
+  } catch (error) {
+    console.error("Failed to load employee profile:", error);
+    // Keep profile data from the current login.
+  }
+};
+
 
     void loadProfile();
   }, [fetchStatus]);
@@ -895,7 +903,7 @@ const EmployeeCheckInOut = () => {
                   <DetailItem
                     icon={<BusinessCenterOutlinedIcon />}
                     label="Team"
-                    value={employee.Team}
+                    value={employee.team || "—"}
                     
                   />
                 </Box>

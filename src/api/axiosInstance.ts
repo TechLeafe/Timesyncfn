@@ -1,9 +1,14 @@
 
 import axios from "axios";
+import {
+  startGlobalLoading,
+  stopGlobalLoading,
+} from "./globalLoader";
 
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:5000/api/",
-
+  //baseURL: "http://localhost:5000/api/",
+  baseURL: "https://time-sync-backend-4452.onrender.com/api/",
+  
   headers: {
     "Content-Type": "application/json",
   },
@@ -12,8 +17,12 @@ const axiosInstance = axios.create({
 });
 
 // REQUEST INTERCEPTOR
+
+
 axiosInstance.interceptors.request.use(
   (config) => {
+    startGlobalLoading();
+
     const token = localStorage.getItem("token");
 
     if (token) {
@@ -23,20 +32,27 @@ axiosInstance.interceptors.request.use(
 
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    stopGlobalLoading();
+    return Promise.reject(error);
+  }
 );
 
 // RESPONSE INTERCEPTOR
 axiosInstance.interceptors.response.use(
-  (response) => response,
-
+  (response) => {
+    stopGlobalLoading();
+    return response;
+  },
   (error) => {
+    stopGlobalLoading();
+
     if (error.response) {
       const { status, data } = error.response;
 
       if (status === 401) {
         console.warn(
-          "Unauthorized:",
+          "Unauthorized / Token Expired:",
           data?.message || "401 Error"
         );
       }
@@ -56,7 +72,7 @@ axiosInstance.interceptors.response.use(
       }
     } else if (error.request) {
       console.error(
-        "Network error:",
+        "Network error:Server is unreachable.",
         error.message
       );
     } else {

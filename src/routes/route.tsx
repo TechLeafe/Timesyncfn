@@ -1,42 +1,37 @@
+import { lazy } from "react";
 import {
   createBrowserRouter,
   Navigate,
 } from "react-router-dom";
 
 import MainLayout from "../layout/Mainlayout";
-import CompanyCalendar from "../Pages/CompanyCalendar/Companycalendar";
-import Attendance from "../Pages/Attendance/Attendance";
-import Admin from "../Pages/Dashboard/AdminDashboard";
-import EmployeeDashboard from "../Pages/Dashboard/EmployeeDashboard";
-import HRDashboard from "../Pages/Dashboard/HRDashboard";
-import { Login } from "../Pages/Login/Login";
-
-import Employee_Creation from "../Pages/Employee_Creation/Employee_Creation";
-// import Employee_Creation from "../Pages/Employee_Creation";
-// import LeavesPermissions from "../Pages/LeavesPermissions";
-
-import EmployeeCheckInOut from "../Pages/EmployeeCheckInOut/EmployeeCheckInOut";
-
-import AdminCheckinout from "../Pages/Employee Management/CheckInOut/AdminCheckinout";
-
 import ProtectedRoute from "../Components/ProtectedRoute/ProtectedRoute";
-
-import Holiday from "../Pages/Holiday/Holiday";
-
-import AdminLeavesPermissions from "../Pages/LeavesPermissions/Admin/AdminLeavesPermissions";
-
-import EmployeeLeavesPermissions from "../Pages/LeavesPermissions/Employee/EmployeeLeavesPermissions";
-
-import Details from "../Pages/LeavesPermissions/Admin/EmployeeLeaveDetail/EmployeeLeaveDetail";
-
-import LeaveDetail from "../Pages/LeavesPermissions/Employee/LeaveDetail/LeaveDetail";
-import DailyTask from "../Pages/DailyTask/DailyTask";
-import AddTask from "../Pages/DailyTask/AddTask";
-import TaskDetails from "../Pages/DailyTask/TaskDetails";
 import {
   ADMIN,
   HR,
+  EMPLOYEE,
 } from "../data/permissions";
+
+const CompanyCalendar = lazy(() => import("../Pages/CompanyCalendar/Companycalendar"));
+const Attendance = lazy(() => import("../Pages/Attendance/Attendance"));
+const Admin = lazy(() => import("../Pages/Dashboard/AdminDashboard"));
+const EmployeeDashboard = lazy(() => import("../Pages/Dashboard/EmployeeDashboard"));
+const HRDashboard = lazy(() => import("../Pages/Dashboard/HRDashboard"));
+const Login = lazy(() =>
+  import("../Pages/Login/Login").then((module) => ({ default: module.Login }))
+);
+const OrganisationChart = lazy(() => import("../Pages/OrganisationChart/OrganisationChart"));
+const Employee_Creation = lazy(() => import("../Pages/Employee_Creation/Employee_Creation"));
+const EmployeeCheckInOut = lazy(() => import("../Pages/EmployeeCheckInOut/EmployeeCheckInOut"));
+const AdminCheckinout = lazy(() => import("../Pages/Employee Management/CheckInOut/AdminCheckinout"));
+const Holiday = lazy(() => import("../Pages/Holiday/Holiday"));
+const AdminLeavesPermissions = lazy(() => import("../Pages/LeavesPermissions/Admin/AdminLeavesPermissions"));
+const EmployeeLeavesPermissions = lazy(() => import("../Pages/LeavesPermissions/Employee/EmployeeLeavesPermissions"));
+const Details = lazy(() => import("../Pages/LeavesPermissions/Admin/EmployeeLeaveDetail/EmployeeLeaveDetail"));
+const LeaveDetail = lazy(() => import("../Pages/LeavesPermissions/Employee/LeaveDetail/LeaveDetail"));
+const DailyTask = lazy(() => import("../Pages/DailyTask/DailyTask"));
+const AddTask = lazy(() => import("../Pages/DailyTask/AddTask"));
+const TaskDetails = lazy(() => import("../Pages/DailyTask/TaskDetails"));
 
 
 /* =========================================================
@@ -90,9 +85,8 @@ function HolidayRoute() {
    ROUTER
 ========================================================= */
 
-//import Details  from "../Pages/LeavesPermissions/Admin/Details/Details";
-import LeavePolicies from "../Pages/LeavePolicies/LeavePolicies";
-// import EmployeeCheckInOut from "../Pages/EmployeeCheckInOut/EmployeeCheckInOut";
+const LeavePolicies = lazy(() => import("../Pages/LeavePolicies/LeavePolicies"));
+
 export const route = createBrowserRouter([
     {
         path: "/login",
@@ -186,6 +180,12 @@ export const route = createBrowserRouter([
             {
               path : "leave-policies",
               element: <LeavePolicies />
+            },
+            { path: "organisation-chart",
+              element: ( <ProtectedRoute allowedRoles={[EMPLOYEE, HR, ADMIN]}>
+                         <OrganisationChart />
+                         </ProtectedRoute>
+                      ),
             },
         ],
     },

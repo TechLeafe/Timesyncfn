@@ -162,10 +162,14 @@
   overflow-x: clip;
 }
 
+.app-main-layout-birthday-footer .app-page-content {
+  padding-bottom: 118px;
+}
+
 /* Employee dashboard has its own spacing */
 
 .app-page-content:has(.emp-premium-dashboard) {
-  padding: 0;
+  padding: 0 0 118px;
 }
 
 /* ==========================================
@@ -182,7 +186,7 @@
   }
 
   .app-page-content:has(.emp-premium-dashboard) {
-    padding: 0;
+    padding: 0 0 126px;
   }
 }
 
@@ -214,8 +218,12 @@
     padding: 16px;
   }
 
+  .app-main-layout-birthday-footer .app-page-content {
+    padding-bottom: 112px;
+  }
+
   .app-page-content:has(.emp-premium-dashboard) {
-    padding: 0;
+    padding: 0 0 112px;
   }
 }
 
@@ -246,8 +254,12 @@
     padding: 12px;
   }
 
+  .app-main-layout-birthday-footer .app-page-content {
+    padding-bottom: 126px;
+  }
+
   .app-page-content:has(.emp-premium-dashboard) {
-    padding: 0;
+    padding: 0 0 126px;
   }
 }
 
@@ -273,8 +285,12 @@
     padding: 10px;
   }
 
+  .app-main-layout-birthday-footer .app-page-content {
+    padding-bottom: 126px;
+  }
+
   .app-page-content:has(.emp-premium-dashboard) {
-    padding: 0;
+    padding: 0 0 126px;
   }
 }
 
@@ -286,4 +302,30 @@
   .app-mobile-menu-button {
     transition: none !important;
   }
+}
+
+/* ==========================================
+   EMPLOYEE CREATION - PAGE SCROLL CONTROL
+========================================== */
+
+.app-main-content:has(.employee-creation-page) {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.app-page-content:has(.employee-creation-page) {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.app-page-content:has(.employee-creation-page)
+  .employee-creation-page {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
 }

@@ -18,6 +18,7 @@ import {
 
 import Sidebar from "../Components/Sidebar/Sidebar";
 import ProfileDropdown from "../Components/ProfileDropdown/ProfileDropdown";
+import BirthdayFooter from "../Components/BirthdayFooter/BirthdayFooter";
 
 import "./Mainlayout.css";
 
@@ -71,7 +72,7 @@ const MainLayout = () => {
   }, [pathname]);
 
   return (
-    <Box className="app-main-layout">
+    <Box className="app-main-layout app-main-layout-birthday-footer">
 
       <ScrollRestoration />
 
@@ -131,6 +132,8 @@ const MainLayout = () => {
         </Box>
 
       </Box>
+
+      <BirthdayFooter />
     </Box>
   );
 };

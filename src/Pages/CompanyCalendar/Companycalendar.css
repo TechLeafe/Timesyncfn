@@ -135,7 +135,7 @@
 .cc-legend-color--early-departure { background: #c26b24; }
 .cc-legend-color--half-day { background: #8b5e34; }
 
-.cc-legend-color--absent { background: #303030; }
+.cc-legend-color--absent {  background: #505050;}
 
 .cc-legend-color--leave { background: #3b58da; }
 .cc-legend-color--lp { background: #8143bd; }
@@ -820,7 +820,6 @@
 .company-calendar-page .cc-day-mark-p  { border-color: #1b7a14; }
 
 .company-calendar-page .cc-day-mark-p  .cc-day-number { color: #3a8a00; font-weight: 800; }
-
 .company-calendar-page .cc-day-mark-lt { border-color: #bd3d1d; }
 
 .company-calendar-page .cc-day-mark-lt .cc-day-number { color: #bd3d1d; font-weight: 800; }
