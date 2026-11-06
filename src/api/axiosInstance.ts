@@ -1,22 +1,16 @@
-﻿
-import axios from "axios";
+﻿import axios from "axios";
 import {
   startGlobalLoading,
   stopGlobalLoading,
 } from "./globalLoader";
 
 const axiosInstance = axios.create({
+  // baseURL: "http://localhost:5000/api/",
   baseURL: "https://time-sync-backend-4452.onrender.com/api/",
-  
-  
   headers: {
-    "Content-Type": "application/json",
-  },
-
+    "Content-Type": "application/json",  },
   timeout: 10000,
 });
-
-// REQUEST INTERCEPTOR
 
 
 axiosInstance.interceptors.request.use(
@@ -38,7 +32,8 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// RESPONSE INTERCEPTOR
+
+
 axiosInstance.interceptors.response.use(
   (response) => {
     stopGlobalLoading();
@@ -72,18 +67,16 @@ axiosInstance.interceptors.response.use(
       }
     } else if (error.request) {
       console.error(
-        "Network error:Server is unreachable.",
+        "Network error: Server is unreachable.",
         error.message
       );
     } else {
-      console.error(
-        "Request error:",
-        error.message
-      );
+      console.error("Error setting up request:", error.message);
     }
 
     return Promise.reject(error);
   }
 );
+
 
 export default axiosInstance;

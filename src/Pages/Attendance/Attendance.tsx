@@ -45,6 +45,11 @@ import { toDateKey } from "../../data/calendarEvents";
 
 import { EMPLOYEE } from "../../data/permissions";
 import api from "../../api/axiosInstance";
+import {
+  ATTENDANCE_UPDATED_EVENT,
+  ATTENDANCE_UPDATED_STORAGE_KEY,
+  type AttendanceUpdate,
+} from "../../utils/attendanceEvents";
 
 import "./Attendance.css";
 
@@ -64,6 +69,7 @@ interface AttendanceApiRecord {
   employeeName?: string;
   employeeId?: string;
   attendanceStatus?: string;
+  attendanceStatusManuallyCorrected?: boolean;
   finalizedAt?: string | null;
   checkInTime?: string | null;
   checkOutTime?: string | null;
@@ -233,6 +239,31 @@ function Attendance() {
       }
     };
 
+    const refreshOnAttendanceUpdate = (event: Event) => {
+      const { userId } = (event as CustomEvent<AttendanceUpdate>).detail;
+      if (userId === loggedInUser?.userId) {
+        void loadAttendance();
+      }
+    };
+
+    const refreshOnStorage = (event: StorageEvent) => {
+      if (
+        event.key !== ATTENDANCE_UPDATED_STORAGE_KEY ||
+        !event.newValue
+      ) {
+        return;
+      }
+
+      try {
+        const update = JSON.parse(event.newValue) as AttendanceUpdate;
+        if (update.userId === loggedInUser?.userId) {
+          void loadAttendance();
+        }
+      } catch (error: unknown) {
+        console.error("Unable to read attendance update notification:", error);
+      }
+    };
+
     void loadAttendance();
     const refreshInterval = window.setInterval(
       () => void loadAttendance(),
@@ -240,14 +271,24 @@ function Attendance() {
     );
     window.addEventListener("focus", refreshOnFocus);
     document.addEventListener("visibilitychange", refreshOnFocus);
+    window.addEventListener(
+      ATTENDANCE_UPDATED_EVENT,
+      refreshOnAttendanceUpdate
+    );
+    window.addEventListener("storage", refreshOnStorage);
 
     return () => {
       cancelled = true;
       window.clearInterval(refreshInterval);
       window.removeEventListener("focus", refreshOnFocus);
       document.removeEventListener("visibilitychange", refreshOnFocus);
+      window.removeEventListener(
+        ATTENDANCE_UPDATED_EVENT,
+        refreshOnAttendanceUpdate
+      );
+      window.removeEventListener("storage", refreshOnStorage);
     };
-  }, [isEmployee]);
+  }, [isEmployee, loggedInUser?.userId]);
 
   /* ==========================================
      CALENDAR STATE
@@ -303,7 +344,9 @@ function Attendance() {
           .filter(
             (record) =>
               record.attendanceStatus &&
-              (record.day !== todayInIndia || record.finalizedAt)
+              (record.day !== todayInIndia ||
+                record.finalizedAt ||
+                record.attendanceStatusManuallyCorrected)
           )
           .map((record) => [record.day, record.attendanceStatus as string])
       ) as Record<string, string>,
