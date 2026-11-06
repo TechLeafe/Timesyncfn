@@ -7,6 +7,10 @@ import {
   Box,
   Button,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   Menu,
   MenuItem,
@@ -78,6 +82,12 @@ interface AttendanceApiResponse {
   success?: boolean;
   message?: string;
   data?: AttendanceRecord[];
+}
+
+interface AttendanceCorrectionResponse {
+  success?: boolean;
+  message?: string;
+  data?: AttendanceRecord;
 }
 
 type AttendanceCardField = {
@@ -288,6 +298,135 @@ function AdminCheckinout() {
 
   const [dailyRefresh, setDailyRefresh] = useState(0);
   const [historyRefresh, setHistoryRefresh] = useState(0);
+
+  const [correctionEmployee, setCorrectionEmployee] =
+    useState<AttendanceRecord | null>(null);
+  const [correctionDate, setCorrectionDate] = useState("");
+  const [correctionRecord, setCorrectionRecord] =
+    useState<AttendanceRecord | null>(null);
+  const [correctionNewStatus, setCorrectionNewStatus] = useState("");
+  const [correctionReason, setCorrectionReason] = useState("");
+  const [correctionLoading, setCorrectionLoading] = useState(false);
+  const [correctionSaving, setCorrectionSaving] = useState(false);
+  const [correctionError, setCorrectionError] = useState("");
+  const [correctionMessage, setCorrectionMessage] = useState("");
+
+  const openCorrection = (record: AttendanceRecord) => {
+    setCorrectionEmployee(record);
+    setCorrectionDate(record.day.slice(0, 10));
+    setCorrectionRecord(null);
+    setCorrectionNewStatus("");
+    setCorrectionReason("");
+    setCorrectionError("");
+    setCorrectionMessage("");
+  };
+
+  useEffect(() => {
+    if (!correctionEmployee || !correctionDate) {
+      setCorrectionRecord(null);
+      return;
+    }
+
+    let cancelled = false;
+    const fetchSelectedAttendance = async () => {
+      setCorrectionLoading(true);
+      setCorrectionError("");
+      setCorrectionRecord(null);
+
+      try {
+        const response = await api.post<AttendanceApiResponse>(
+          "/attendance/employee",
+          {
+            user_id: correctionEmployee.user_id,
+            date: correctionDate,
+          }
+        );
+        const record = getAttendanceRecords(response).find(
+          (attendance) => attendance.day.slice(0, 10) === correctionDate
+        );
+
+        if (!cancelled) {
+          setCorrectionRecord(record || null);
+          if (!record) {
+            setCorrectionError(
+              "No attendance record exists for this employee and date."
+            );
+          }
+        }
+      } catch (error: unknown) {
+        if (!cancelled) {
+          setCorrectionError(
+            getErrorMessage(error, "Unable to load attendance for this date.")
+          );
+        }
+      } finally {
+        if (!cancelled) setCorrectionLoading(false);
+      }
+    };
+
+    void fetchSelectedAttendance();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [correctionEmployee, correctionDate]);
+
+  const saveAttendanceCorrection = async () => {
+    if (!correctionEmployee || !correctionRecord) return;
+
+    setCorrectionSaving(true);
+    setCorrectionError("");
+
+    try {
+      const response = await api.post<AttendanceCorrectionResponse>(
+        "/attendance/correct",
+        {
+          user_id: correctionEmployee.user_id,
+          date: correctionDate,
+          attendanceStatus: correctionNewStatus,
+          reason: correctionReason.trim(),
+        }
+      );
+      const updatedRecord = response.data?.data;
+      if (!response.data?.success || !updatedRecord) {
+        throw new Error(
+          response.data?.message || "Unable to save attendance correction."
+        );
+      }
+
+      setHistoryRecords((records) =>
+        records.map((record) =>
+          record.user_id === correctionEmployee.user_id &&
+          record.day.slice(0, 10) === correctionDate
+            ? { ...record, ...updatedRecord, attendanceStatus: "Present" }
+            : record
+        )
+      );
+      setDailyRecords((records) =>
+        records.map((record) =>
+          record.user_id === correctionEmployee.user_id &&
+          record.day.slice(0, 10) === correctionDate
+            ? { ...record, ...updatedRecord, attendanceStatus: "Present" }
+            : record
+        )
+      );
+
+      setCorrectionEmployee(null);
+      setCorrectionMessage(
+        `${correctionEmployee.employeeId} attendance for ${correctionDate} was corrected to Present.`
+      );
+      setHistoryRefresh((value) => value + 1);
+      if (correctionDate === selectedDate) {
+        setDailyRefresh((value) => value + 1);
+      }
+    } catch (error: unknown) {
+      setCorrectionError(
+        getErrorMessage(error, "Unable to save attendance correction.")
+      );
+    } finally {
+      setCorrectionSaving(false);
+    }
+  };
 
   /* =========================================
      DAILY ATTENDANCE
@@ -772,6 +911,16 @@ function AdminCheckinout() {
         </Alert>
       )}
 
+      {correctionMessage && (
+        <Alert
+          severity="success"
+          className="admin-checkinout__alert"
+          onClose={() => setCorrectionMessage("")}
+        >
+          {correctionMessage}
+        </Alert>
+      )}
+
       {/* HISTORY */}
 
       <AttendanceSection
@@ -782,7 +931,112 @@ function AdminCheckinout() {
         error={historyError}
         showDay
         emptyMessage="No attendance history found."
+        onCorrect={openCorrection}
       />
+
+      <Dialog
+        open={Boolean(correctionEmployee)}
+        onClose={() => {
+          if (!correctionSaving) setCorrectionEmployee(null);
+        }}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Correct Employee Attendance</DialogTitle>
+        <DialogContent>
+          {correctionEmployee && (
+            <Box sx={{ display: "grid", gap: 2, pt: 1 }}>
+              <Typography>
+                <strong>Employee:</strong>{" "}
+                {correctionEmployee.employeeName || correctionEmployee.employeeId}
+                {" · "}
+                {correctionEmployee.employeeId}
+              </Typography>
+              <TextField
+                label="Attendance Date"
+                type="date"
+                value={correctionDate}
+                onChange={(event) => setCorrectionDate(event.target.value)}
+                required
+                fullWidth
+                slotProps={{ inputLabel: { shrink: true } }}
+              />
+              {correctionLoading ? (
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <CircularProgress size={18} />
+                  <Typography>Fetching attendance status...</Typography>
+                </Box>
+              ) : correctionError ? (
+                <Alert severity="error">{correctionError}</Alert>
+              ) : correctionRecord ? (
+                <>
+                  <Typography>
+                    <strong>Current Attendance Status:</strong>{" "}
+                    {correctionRecord.attendanceStatus || "Pending"}
+                  </Typography>
+                  {correctionRecord.attendanceStatus === "Absent" ? (
+                    <>
+                      <TextField
+                        label="Change Attendance Status"
+                        select
+                        value={correctionNewStatus}
+                        onChange={(event) =>
+                          setCorrectionNewStatus(event.target.value)
+                        }
+                        fullWidth
+                      >
+                        <MenuItem value="" disabled>
+                          Select attendance status
+                        </MenuItem>
+                        <MenuItem value="Present">Present</MenuItem>
+                      </TextField>
+                      <TextField
+                        label="Reason for Attendance Correction"
+                        value={correctionReason}
+                        onChange={(event) =>
+                          setCorrectionReason(event.target.value)
+                        }
+                        required
+                        multiline
+                        minRows={3}
+                        fullWidth
+                        slotProps={{ htmlInput: { maxLength: 1000 } }}
+                        helperText={`${correctionReason.length}/1000`}
+                      />
+                    </>
+                  ) : (
+                    <Alert severity="info">
+                      Only attendance records currently marked Absent can be
+                      changed to Present.
+                    </Alert>
+                  )}
+                </>
+              ) : null}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => setCorrectionEmployee(null)}
+            disabled={correctionSaving}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => void saveAttendanceCorrection()}
+            disabled={
+              correctionSaving ||
+              correctionLoading ||
+              correctionRecord?.attendanceStatus !== "Absent" ||
+              correctionNewStatus !== "Present" ||
+              !correctionReason.trim()
+            }
+          >
+            {correctionSaving ? "Saving..." : "Save Changes"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
@@ -861,6 +1115,7 @@ function AttendanceSection({
   error,
   showDay,
   emptyMessage,
+  onCorrect,
 }: {
   title: string;
   subtitle: string;
@@ -869,6 +1124,7 @@ function AttendanceSection({
   error: string;
   showDay: boolean;
   emptyMessage: string;
+  onCorrect?: (record: AttendanceRecord) => void;
 }) {
   const [filterAnchor, setFilterAnchor] =
     useState<HTMLElement | null>(null);
@@ -1147,6 +1403,9 @@ function AttendanceSection({
                   <TableCell>Monthly Used</TableCell>
                   <TableCell>Monthly Remaining</TableCell>
                   <TableCell>Final Status</TableCell>
+                  {showDay && onCorrect && (
+                    <TableCell align="right">Action</TableCell>
+                  )}
                 </TableRow>
               </TableHead>
 
@@ -1228,6 +1487,18 @@ function AttendanceSection({
                     <TableCell>
                       {record.attendanceStatus || "Pending"}
                     </TableCell>
+                    {showDay && onCorrect && (
+                      <TableCell align="right">
+                        {record.attendanceStatus === "Absent" && (
+                          <Button
+                            size="small"
+                            onClick={() => onCorrect(record)}
+                          >
+                            Correct
+                          </Button>
+                        )}
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
@@ -1243,6 +1514,7 @@ function AttendanceSection({
                 }
                 record={record}
                 showDay={showDay}
+                onCorrect={onCorrect}
               />
             ))}
           </Box>
@@ -1259,9 +1531,11 @@ function AttendanceSection({
 function AttendanceMobileCard({
   record,
   showDay,
+  onCorrect,
 }: {
   record: AttendanceRecord;
   showDay: boolean;
+  onCorrect?: (record: AttendanceRecord) => void;
 }) {
   const fields: AttendanceCardField[] = [
     ...(showDay
@@ -1367,6 +1641,15 @@ function AttendanceMobileCard({
           </Box>
         ))}
       </Box>
+      {showDay && onCorrect && record.attendanceStatus === "Absent" && (
+        <Button
+          size="small"
+          sx={{ mt: 1 }}
+          onClick={() => onCorrect(record)}
+        >
+          Correct Attendance
+        </Button>
+      )}
     </Paper>
   );
 }

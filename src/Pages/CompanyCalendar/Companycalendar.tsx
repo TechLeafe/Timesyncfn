@@ -245,10 +245,13 @@ function getAttendanceMark(
     .toLowerCase().replace(/[-_]/g, " ");
 
   const finalizedAt = readField(record, ["finalizedAt", "finalized_at"]);
+  const manuallyCorrected =
+    readField(record, ["attendanceStatusManuallyCorrected"]) === "true";
   const today = getTodayInIndia();
   if (
     (day === today || day === getPreviousDayKey(today)) &&
-    !finalizedAt
+    !finalizedAt &&
+    !manuallyCorrected
   ) {
     return null;
   }
