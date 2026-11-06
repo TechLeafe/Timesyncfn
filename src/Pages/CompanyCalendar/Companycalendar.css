@@ -100,6 +100,10 @@
 
 .cc-day-holiday .cc-day-number { color: #f46c0b; }
 
+.cc-day-working-day { background: #fff; border-color: #b9d7b4; }
+
+.cc-day-working-day .cc-day-number { color: #161d22; }
+
 .cc-day-selected { outline: 2px solid #078d4b; outline-offset: -3px; }
 
 /* Festival art is centered and never stretches the calendar row */
@@ -127,6 +131,9 @@
 .cc-legend-color--holiday { background: #ffb88d; }
 
 .cc-legend-color--present { background: #169a2c; }
+.cc-legend-color--late { background: #d84c2b; }
+.cc-legend-color--early-departure { background: #c26b24; }
+.cc-legend-color--half-day { background: #8b5e34; }
 
 .cc-legend-color--absent {  background: #505050;}
 
@@ -161,6 +168,84 @@
 
 .cc-selection-empty { margin: 0; }
 
+.cc-company-day-summary {
+  position: absolute;
+  right: 3px;
+  bottom: 5px;
+  left: 3px;
+  overflow: hidden;
+  color: #344b3b;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cc-company-attendance-list { min-width: 0; }
+
+.cc-company-attendance-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 12px;
+  margin-bottom: 10px;
+}
+
+.cc-company-attendance-heading strong { color: #19402a; font-size: 13px; }
+
+.cc-company-attendance-heading span { color: #72839a; font-size: 11px; }
+
+.cc-company-attendance-table-wrap { overflow-x: auto; }
+
+.cc-company-attendance-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+}
+
+.cc-company-attendance-table th,
+.cc-company-attendance-table td {
+  padding: 9px 10px;
+  border-bottom: 1px solid #eef0ed;
+}
+
+.cc-company-attendance-table th {
+  color: #74869b;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.cc-company-attendance-table td { color: #1a2c43; }
+
+.cc-status-pill {
+  display: inline-flex;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #eef1f3;
+  color: #586574;
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.cc-status-pill--present { background: #e6f5e8; color: #18752a; }
+.cc-status-pill--half-day-present { background: #fff3dc; color: #8b5e34; }
+.cc-status-pill--absent { background: #eeeeee; color: #333; }
+.cc-status-pill--late-present { background: #ffebe5; color: #b33b20; }
+.cc-status-pill--early-departure { background: #fff0e2; color: #a55318; }
+
+.cc-company-employee-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
 @media (max-width: 1100px) {
 
   .cc-day { height: 83px; max-height: 83px; }
@@ -172,7 +257,6 @@
 }
 
 @media (max-width: 720px) {
-
   .cc-calendar-card { padding: 12px; }
 
   .cc-calendar-body { padding: 8px; }
@@ -736,7 +820,19 @@
 .company-calendar-page .cc-day-mark-p  { border-color: #1b7a14; }
 
 .company-calendar-page .cc-day-mark-p  .cc-day-number { color: #3a8a00; font-weight: 800; }
-.company-calendar-page .cc-day-mark-a { border-color: #505050; }
+.company-calendar-page .cc-day-mark-lt { border-color: #bd3d1d; }
+
+.company-calendar-page .cc-day-mark-lt .cc-day-number { color: #bd3d1d; font-weight: 800; }
+
+.company-calendar-page .cc-day-mark-ed { border-color: #c26b24; }
+
+.company-calendar-page .cc-day-mark-ed .cc-day-number { color: #a55318; font-weight: 800; }
+
+.company-calendar-page .cc-day-mark-h  { border-color: #8b5e34; }
+
+.company-calendar-page .cc-day-mark-h  .cc-day-number { color: #704214; font-weight: 800; }
+
+.company-calendar-page .cc-day-mark-a  { border-color: #3a3a3a; }
 
 .company-calendar-page .cc-day-mark-l  { border-color: #3659e5; }
 
@@ -1012,4 +1108,12 @@
 
 @media (max-width: 650px) {
   .company-calendar-page .cc-day .cc-holiday-symbol--uzhavar-thirunal { width: 29px; height: 29px; flex-basis: 29px; }
+}
+
+.company-calendar-page .cc-day:not(.cc-day-today) .cc-day-number {
+  color: #000;
+}
+
+.company-calendar-page .cc-day-today .cc-day-number {
+  color: #267c13;
 }

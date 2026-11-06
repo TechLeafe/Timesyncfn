@@ -330,6 +330,65 @@
   border-bottom: 1px solid #eaf0f3;
 }
 
+.admin-checkinout__section-heading-copy {
+  min-width: 220px;
+}
+
+.admin-checkinout__section-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-checkinout__filter-button.MuiButton-root,
+.admin-checkinout__excel-button.MuiButton-root {
+  min-height: 40px;
+  padding: 7px 14px;
+  border: 1px solid #b7d9c4;
+  border-radius: 10px;
+  color: #087b4d;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 750;
+  text-transform: none;
+}
+
+.admin-checkinout__filter-button.MuiButton-root:hover,
+.admin-checkinout__excel-button.MuiButton-root:hover {
+  border-color: #087b4d;
+  background: #eef8f2;
+}
+
+.admin-checkinout__filter-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.admin-checkinout__filter-clear.MuiButton-root,
+.admin-checkinout__filter-apply.MuiButton-root {
+  min-width: 0;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: none;
+}
+
+.admin-checkinout__filter-clear.MuiButton-root {
+  color: #087b4d;
+  border-color: #b7d9c4;
+}
+
+.admin-checkinout__filter-apply.MuiButton-root {
+  background: #087b4d;
+}
+
+.admin-checkinout__filter-apply.MuiButton-root:hover {
+  background: #075b3d;
+}
+
 .admin-checkinout__section-title.MuiTypography-root {
   color: #17263b;
   font-size: 16px;
@@ -720,6 +779,16 @@
 
   .admin-checkinout__section-heading {
     padding: 16px;
+  }
+
+  .admin-checkinout__section-heading-copy {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .admin-checkinout__section-actions {
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .admin-checkinout__section-title.MuiTypography-root {

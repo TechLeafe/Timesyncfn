@@ -592,7 +592,9 @@ const EmployeeDashboard = () => {
             );
             attendance = {
               ...attendance,
-              isCheckedIn: Boolean(todayRecord?.checkInTime),
+              isCheckedIn: Boolean(
+                todayRecord?.checkInTime && !todayRecord.checkOutTime
+              ),
               isCheckedOut: Boolean(todayRecord?.checkOutTime),
             };
 
@@ -806,7 +808,7 @@ const EmployeeDashboard = () => {
 
     {
 
-      label: "Permission",
+      label: "Permission Hours",
 
       value: getAvailableLeave(leaveBalance.permissions),
 
@@ -926,7 +928,7 @@ const EmployeeDashboard = () => {
 
     : todaysAttendance.isCheckedIn
 
-      ? "Check In"
+      ? "Checked In"
 
       : "Not Checked In";
 

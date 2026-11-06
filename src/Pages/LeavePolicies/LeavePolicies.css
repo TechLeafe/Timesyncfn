@@ -151,6 +151,17 @@
   text-transform: none;
 }
 
+.leave-policies__delete-button.MuiButton-outlined.Mui-disabled {
+  border-color: #d7dce2;
+  color: #8993a1;
+  opacity: 0.7;
+}
+
+.leave-policies__delete-button.MuiButton-outlined.Mui-disabled .MuiButton-startIcon {
+  color: #8993a1;
+  opacity: 0.7;
+}
+
 .leave-policies__delete-button.MuiButton-outlined:hover {
   background: #fff1f1;
   border-color: #d25151;
@@ -411,6 +422,15 @@
   color: #8190a2;
 }
 
+.leave-policies__empty-policy.MuiCard-root {
+  gap: 12px;
+  padding: 32px 24px;
+}
+
+.leave-policies__empty-policy .MuiButton-root {
+  margin-top: 8px;
+}
+
 .leave-policies__error.MuiAlert-root {
   border-radius: 10px;
 }
@@ -587,6 +607,16 @@
   gap: 20px;
 
   padding: 24px;
+}
+
+.leave-policies__policy-name-field {
+  padding-top: 10px;
+}
+
+.leave-policies__policy-name
+  .MuiInputLabel-root.MuiInputLabel-shrink {
+  padding: 0 5px;
+  background-color: #fff;
 }
 
 .leave-policies__form-grid {

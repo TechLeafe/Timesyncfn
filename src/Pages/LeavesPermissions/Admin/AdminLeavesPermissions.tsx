@@ -4,8 +4,8 @@ import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Alert, Box, Button, Chip, CircularProgress, IconButton,
-  MenuItem, Paper, Select, Table, TableBody, TableCell,
-  TableHead, TableRow, Tooltip, Typography,
+  Menu, MenuItem, Paper, Select, Table, TableBody, TableCell,
+  TableHead, TableRow, TextField, Tooltip, Typography,
 } from "@mui/material";
 
 import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
@@ -15,13 +15,23 @@ import HighlightOffOutlinedIcon from "@mui/icons-material/HighlightOffOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import EventNoteOutlinedIcon from "@mui/icons-material/EventNoteOutlined";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
+import FilterListRoundedIcon from "@mui/icons-material/FilterListRounded";
+import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 
 import api from "../../../api/axiosInstance";
+import { downloadExcelFile } from "../../../utils/excel";
 import "./AdminLeavesPermissions.css";
 
 type RequestStatus = "Pending" | "Approved" | "Rejected" | "Cancelled";
 type StatusFilter = "All" | RequestStatus;
 type LeaveType = "CL" | "SL" | "COMP_OFF" | "PERMISSION";
+type RequestFilterField = "employee" | "requestType" | "date";
+
+interface RequestFilters {
+  employee: string;
+  requestType: LeaveType | "All";
+  date: string;
+}
 
 interface LeaveApiData {
   _id: string;
@@ -156,6 +166,17 @@ function AdminLeavesPermissions() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
+  const [filterAnchor, setFilterAnchor] =
+    useState<HTMLElement | null>(null);
+  const [filterField, setFilterField] =
+    useState<RequestFilterField>("employee");
+  const [filterValue, setFilterValue] = useState("");
+  const [appliedFilters, setAppliedFilters] =
+    useState<RequestFilters>({
+      employee: "",
+      requestType: "All",
+      date: "",
+    });
 
   const fetchRequests = useCallback(async () => {
     setLoading(true);
@@ -234,14 +255,105 @@ function AdminLeavesPermissions() {
   );
 
   const filteredRequests = useMemo(() => {
-    const filtered = statusFilter === "All"
-      ? requests
-      : requests.filter((r) => r.status === statusFilter);
+    const employeeTerm = appliedFilters.employee.trim().toLowerCase();
+    const filtered = requests.filter((request) => {
+      if (statusFilter !== "All" && request.status !== statusFilter) {
+        return false;
+      }
+      if (
+        employeeTerm &&
+        !request.employeeName.toLowerCase().includes(employeeTerm) &&
+        !request.employeeId.toLowerCase().includes(employeeTerm)
+      ) {
+        return false;
+      }
+      if (
+        appliedFilters.requestType !== "All" &&
+        request.leaveType !== appliedFilters.requestType
+      ) {
+        return false;
+      }
+      if (appliedFilters.date) {
+        const fromDate = toDateOnly(request.startDate ?? request.date);
+        const endDate = toDateOnly(request.endDate ?? request.date ?? fromDate);
+        const requestedOn = toDateOnly(request.createdAt);
+        const matchesRequestPeriod =
+          Boolean(fromDate) &&
+          appliedFilters.date >= fromDate &&
+          appliedFilters.date <= (endDate || fromDate);
+        if (
+          !matchesRequestPeriod &&
+          requestedOn !== appliedFilters.date
+        ) {
+          return false;
+        }
+      }
+      return true;
+    });
 
     return [...filtered].sort((a, b) =>
       (b.createdAt || "").localeCompare(a.createdAt || "")
     );
-  }, [requests, statusFilter]);
+  }, [appliedFilters, requests, statusFilter]);
+
+  const applyRequestFilter = () => {
+    setAppliedFilters((current) => {
+      if (filterField === "employee") {
+        return { ...current, employee: filterValue };
+      }
+      if (filterField === "date") {
+        return { ...current, date: filterValue };
+      }
+      return {
+        ...current,
+        requestType: filterValue as LeaveType | "All",
+      };
+    });
+    setFilterAnchor(null);
+  };
+
+  const clearRequestFilter = () => {
+    setAppliedFilters((current) => ({
+      ...current,
+      [filterField]: filterField === "requestType" ? "All" : "",
+    }));
+    setFilterValue("");
+    setFilterAnchor(null);
+  };
+
+  const downloadRequestsExcel = () => {
+    const rows = [
+      [
+        "Employee",
+        "Employee ID",
+        "Request Type",
+        "Requested On",
+        "From",
+        "To",
+        "Duration",
+        "Reason",
+        "Status",
+      ],
+      ...filteredRequests.map((request) => [
+        request.employeeName,
+        request.employeeId,
+        TYPE_LABELS[request.leaveType],
+        formatDate(request.createdAt),
+        formatDate(request.startDate ?? request.date),
+        formatDate(request.endDate ?? request.date),
+        getDuration(request),
+        request.reason,
+        request.status,
+      ]),
+    ];
+
+    downloadExcelFile({
+      rows,
+      fileName: "employee-requests.xlsx",
+      sheetName: "Employee Requests",
+      columnWidths: [24, 18, 24, 18, 18, 18, 14, 36, 16],
+    });
+  };
 
   const viewRequest = (request: AdminLeaveRequest) => {
     navigate(
@@ -326,25 +438,149 @@ function AdminLeavesPermissions() {
             </Typography>
           </Box>
 
-          <Select
-            size="small"
-            value={statusFilter}
-            onChange={(event) =>
-              setStatusFilter(event.target.value as StatusFilter)
-            }
-            className="admin-leaves-permissions__status-filter"
-            aria-label="Filter requests by status"
-            MenuProps={{
-              classes: { paper: "admin-leaves-permissions__status-menu" },
-            }}
-          >
-            <MenuItem value="All">All Statuses</MenuItem>
-            <MenuItem value="Pending">Pending</MenuItem>
-            <MenuItem value="Approved">Approved</MenuItem>
-            <MenuItem value="Rejected">Rejected</MenuItem>
-            <MenuItem value="Cancelled">Cancelled</MenuItem>
-          </Select>
+          <Box className="admin-leaves-permissions__request-actions">
+            <Button
+              variant="outlined"
+              className="admin-leaves-permissions__filter-button"
+              startIcon={<FilterListRoundedIcon />}
+              aria-haspopup="menu"
+              aria-expanded={Boolean(filterAnchor)}
+              onClick={(event) => {
+                setFilterValue(
+                  filterField === "employee"
+                    ? appliedFilters.employee
+                    : filterField === "date"
+                      ? appliedFilters.date
+                      : appliedFilters.requestType
+                );
+                setFilterAnchor(event.currentTarget);
+              }}
+            >
+              Filter
+            </Button>
+            <Menu
+              anchorEl={filterAnchor}
+              open={Boolean(filterAnchor)}
+              onClose={() => setFilterAnchor(null)}
+              slotProps={{ paper: { sx: { minWidth: 250, p: 1 } } }}
+            >
+              <Typography
+                variant="subtitle2"
+                sx={{ px: 1.5, py: 1, fontWeight: 700 }}
+              >
+                Filter By
+              </Typography>
+              {([
+                ["employee", "Employee"],
+                ["requestType", "Request Type"],
+                ["date", "Date"],
+              ] as const).map(([field, label]) => (
+                <MenuItem
+                  key={field}
+                  selected={filterField === field}
+                  onClick={() => {
+                    setFilterField(field);
+                    setFilterValue(
+                      field === "employee"
+                        ? appliedFilters.employee
+                        : field === "date"
+                          ? appliedFilters.date
+                          : appliedFilters.requestType
+                    );
+                  }}
+                >
+                  {label}
+                </MenuItem>
+              ))}
+              <Box
+                sx={{ p: 1.5, width: 270 }}
+                onKeyDown={(event) => event.stopPropagation()}
+              >
+                {filterField === "requestType" ? (
+                  <Select
+                    fullWidth
+                    size="small"
+                    value={filterValue || "All"}
+                    onChange={(event) => setFilterValue(event.target.value)}
+                    aria-label="Filter by request type"
+                  >
+                    <MenuItem value="All">All Request Types</MenuItem>
+                    {Object.entries(TYPE_LABELS).map(([value, label]) => (
+                      <MenuItem key={value} value={value}>
+                        {label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                ) : (
+                  <TextField
+                    fullWidth
+                    size="small"
+                    type={filterField === "date" ? "date" : "text"}
+                    label={filterField === "date" ? undefined : "Employee name or ID"}
+                    value={filterValue}
+                    onChange={(event) => setFilterValue(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") applyRequestFilter();
+                    }}
+                    slotProps={
+                      filterField === "date"
+                        ? { inputLabel: { shrink: true } }
+                        : undefined
+                    }
+                  />
+                )}
+                <Box className="admin-leaves-permissions__filter-actions">
+                  <Button
+                    variant="outlined"
+                    onClick={clearRequestFilter}
+                  >
+                    Clear
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={applyRequestFilter}
+                  >
+                    Apply
+                  </Button>
+                </Box>
+              </Box>
+            </Menu>
+            <Button
+              variant="outlined"
+              className="admin-leaves-permissions__excel-button"
+              startIcon={<FileDownloadOutlinedIcon />}
+              disabled={loading || Boolean(loadError)}
+              onClick={downloadRequestsExcel}
+            >
+              Download 
+            </Button>
+            <Select
+              size="small"
+              value={statusFilter}
+              onChange={(event) =>
+                setStatusFilter(event.target.value as StatusFilter)
+              }
+              className="admin-leaves-permissions__status-filter"
+              aria-label="Filter requests by status"
+              MenuProps={{
+                classes: { paper: "admin-leaves-permissions__status-menu" },
+              }}
+            >
+              <MenuItem value="All">All Statuses</MenuItem>
+              <MenuItem value="Pending">Pending</MenuItem>
+              <MenuItem value="Approved">Approved</MenuItem>
+              <MenuItem value="Rejected">Rejected</MenuItem>
+              <MenuItem value="Cancelled">Cancelled</MenuItem>
+            </Select>
+          </Box>
         </Box>
+
+        {!loading && !loadError && (
+          <Typography className="admin-leaves-permissions__matching-count">
+            {filteredRequests.length} matching request
+            {filteredRequests.length === 1 ? "" : "s"}
+          </Typography>
+        )}
 
         {loading ? (
           <Box className="admin-leaves-permissions__empty-state">
@@ -358,7 +594,7 @@ function AdminLeavesPermissions() {
         ) : filteredRequests.length === 0 ? (
           <Box className="admin-leaves-permissions__empty-state">
             <AssignmentOutlinedIcon />
-            <Typography>No requests match this status.</Typography>
+            <Typography>No requests match the selected filters.</Typography>
           </Box>
         ) : (
           <>

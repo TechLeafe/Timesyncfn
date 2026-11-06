@@ -121,14 +121,19 @@ through the Vite dev server (or `npm run preview` after a build).
 | `npm run preview` | serve the already built `dist/` folder locally |
 | `npm run lint` | run oxlint over the project |
 
+### Local backend connection
+
+The front end connects to `http://localhost:5000/api/` in both development and
+production builds. Start the `Timesyncbe` backend on port `5000` and connect it
+to the local database for attendance, holiday, and employee data to load.
+
 Notes:
 
 - `npm run build` runs `tsc -b` first. It fails on unused imports and unused
   locals because `noUnusedLocals` and `noUnusedParameters` are enabled in
   `tsconfig.app.json` - remove unused code instead of skipping the check.
-- This project is front-end only. There is no separate back-end node server to
-  start; the data currently comes from the mock arrays in `src/data/users.ts`
-  and `src/Pages/Admin/Companycalendar.tsx`.
+- The front end calls the separate `Timesyncbe` backend for calendar,
+  attendance, holiday, and employee data.
 
 ---
 

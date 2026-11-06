@@ -1,11 +1,11 @@
-import axios from "axios";
+﻿import axios from "axios";
 import {
   startGlobalLoading,
   stopGlobalLoading,
 } from "./globalLoader";
 
 const axiosInstance = axios.create({
-  //baseURL: "http://localhost:5000/api/",
+  // baseURL: "http://localhost:5000/api/",
   baseURL: "https://time-sync-backend-4452.onrender.com/api/",
   headers: {
     "Content-Type": "application/json",  },

@@ -7,7 +7,7 @@ import api from "../../api/axiosInstance";
 
 import "./Companycalendar.css";
 
-type AttendanceMark = "P" | "A" | "L" | "LP";
+type AttendanceMark = "P" | "HP" | "A" | "L" | "LP" | "LT" | "ED";
 
 type Holiday = {
 
@@ -27,6 +27,18 @@ type Holiday = {
 
 type AttendanceRecord = Record<string, unknown>;
 type ApiResponse<T> = { success?: boolean; message?: string; data?: T };
+type EmployeeRecord = {
+  user_id: string;
+  employeeId: string;
+  name: string;
+  email: string;
+  userType: number;
+  status: string;
+};
+type CompanyAttendanceStatus = {
+  status: string;
+  finalized: boolean;
+};
 type LeaveRecord = {
   user_id?: string;
   employeeId?: string | { _id?: string; email?: string } | null;
@@ -37,18 +49,25 @@ type LeaveRecord = {
   status?: string;
 };
 
-type LoggedInUser = { userId?: string; employeeId?: string; email?: string };
-
+type LoggedInUser = {
+  userId?: string;
+  employeeId?: string;
+  email?: string;
+  userType?: number;
+};
 const DAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
 const MARK_NAMES: Record<AttendanceMark, string> = {
 
   P: "Present",
+  HP: "Half-Day Present",
   A: "Absent",
 
   L: "Leave",
 
   LP: "Loss of Pay",
+  LT: "Late Present",
+  ED: "Early Departure",
 };
 
 function dateKey(date: Date): string {
@@ -61,6 +80,21 @@ function dateKey(date: Date): string {
 
   return `${yyyy}-${mm}-${dd}`;
 
+}
+
+function getTodayInIndia(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+function getPreviousDayKey(day: string): string {
+  const date = new Date(`${day}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() - 1);
+  return date.toISOString().slice(0, 10);
 }
 
 function normalizeDate(value: unknown): string {
@@ -201,11 +235,26 @@ function getLeaveDateKeys(record: LeaveRecord): string[] {
 
 }
 
-function getAttendanceMark(record: AttendanceRecord): AttendanceMark | null {
+function getAttendanceMark(
+  record: AttendanceRecord,
+  day: string
+): AttendanceMark | null {
 
   const status = readField(record, ["attendanceStatus", "attendance_status", "status", "remark"])
 
     .toLowerCase().replace(/[-_]/g, " ");
+
+  const finalizedAt = readField(record, ["finalizedAt", "finalized_at"]);
+  const manuallyCorrected =
+    readField(record, ["attendanceStatusManuallyCorrected"]) === "true";
+  const today = getTodayInIndia();
+  if (
+    (day === today || day === getPreviousDayKey(today)) &&
+    !finalizedAt &&
+    !manuallyCorrected
+  ) {
+    return null;
+  }
 
   const leaveType = readField(record, ["leaveType", "leave_type"]).toLowerCase();
 
@@ -227,15 +276,17 @@ function getAttendanceMark(record: AttendanceRecord): AttendanceMark | null {
 
       ["loss of pay", "lop", "lp", "unpaid leave"].includes(leaveType)) return "LP";
 
-  // A real check-in is sufficient, even when check-out has not happened yet.
-
-  if (checkIn || checkOut) return "P";
+  if (status === "half day present") return "HP";
+  if (["present late", "late present"].includes(status)) return "LT";
+  if (status === "early departure") return "ED";
+  if (status === "present") return "P";
+  if (["absent", "a", "not present"].includes(status)) return "A";
+  if (["in progress", "pending", "currently working"].includes(status)) return null;
 
   if (["leave", "on leave", "approved leave", "paid leave", "casual leave", "sick leave"].includes(status) || leaveType) return "L";
 
-  if (["present", "checked in", "checked out"].includes(status)) return "P";
-
-  if (["absent", "a", "not present"].includes(status)) return "A";
+  // Preserve legacy attendance records that have no finalized status.
+  if (checkIn || checkOut) return "P";
 
   return null;
 
@@ -263,11 +314,15 @@ function errorText(error: unknown, fallback: string): string {
 
 const PEEL_COLORS: Record<AttendanceMark, { back: [string, string, string]; flap: [string, string, string] }> = {
 
-  P:  { back: ["#06600e", "#0e9a1b", "#0a7a15"], flap: ["#74cf80", "#4aa052", "#62bd6c"] },
+  P:   { back: ["#06600e", "#0e9a1b", "#0a7a15"], flap: ["#74cf80", "#4aa052", "#62bd6c"] },
+  LT:  { back: ["#9f2d13", "#e65b2b", "#bd3d1d"], flap: ["#ffc0a8", "#f28a69", "#ffad91"] },
+  ED:  { back: ["#9f4b13", "#e68c2b", "#bd681d"], flap: ["#ffd0a8", "#f2ae69", "#ffc191"] },
+  HP:  { back: ["#704214", "#a06a32", "#855522"], flap: ["#e6c49a", "#c99a64", "#d9ae7c"] },
   A: { back: ["#555555", "#747474", "#626262"], flap: ["#CCCCCC", "#AAAAAA", "#BBBBBB"],},
-  L:  { back: ["#1424a2", "#3659e5", "#2a45c4"], flap: ["#a9b6ff", "#6f85f0", "#8d9eff"] },
 
-  LP: { back: ["#4e1495", "#8b48cc", "#6b2fb0"], flap: ["#d3b4f5", "#a574d9", "#bd94ec"] },
+  L:   { back: ["#1424a2", "#3659e5", "#2a45c4"], flap: ["#a9b6ff", "#6f85f0", "#8d9eff"] },
+
+  LP:  { back: ["#4e1495", "#8b48cc", "#6b2fb0"], flap: ["#d3b4f5", "#a574d9", "#bd94ec"] },
 };
 
 const FLAP_PATH = "M243 0 L0 195 C40 220 78 240 72 285 Z";
@@ -411,18 +466,30 @@ export default function CompanyCalendar() {
 
   );
 
-  const [selectedDay, setSelectedDay] = useState(() => dateKey(new Date()));
+  const [selectedDay, setSelectedDay] = useState(() =>
+    getTodayInIndia()
+  );
 
   const [holidays, setHolidays] = useState<Holiday[]>(COMPANY_HOLIDAYS_2026);
 
+  const [workingDayDates, setWorkingDayDates] = useState<Set<string>>(
+    () => new Set()
+  );
+
   const [attendance, setAttendance] = useState<Record<string, AttendanceMark>>({});
+  const [employees, setEmployees] = useState<EmployeeRecord[]>([]);
+  const [companyAttendance, setCompanyAttendance] = useState<
+    Record<string, Record<string, CompanyAttendanceStatus>>
+  >({});
   const [loading, setLoading] = useState(true);
 
   const [error, setError] = useState("");
 
   const [attendanceWarning, setAttendanceWarning] = useState("");
 
-  const today = dateKey(new Date());
+  const today = getTodayInIndia();
+  const [user] = useState(() => loggedInUser());
+  const isCompanyAdmin = [1, 2].includes(Number(user?.userType));
 
   const loadCalendar = useCallback(async () => {
 
@@ -432,7 +499,7 @@ export default function CompanyCalendar() {
 
     setAttendanceWarning("");
 
-    const [holidayResponse, attendanceResponse, leaveResponse] = await Promise.allSettled([
+    const [holidayResponse, attendanceResponse, leaveResponse, employeeResponse] = await Promise.allSettled([
 
       api.post<ApiResponse<Holiday[]>>("/holidays/list", { companyYear: "", holidayType: "" }),
 
@@ -445,6 +512,9 @@ export default function CompanyCalendar() {
           return now.getMonth() >= 3 ? `${year}-${year + 1}` : `${year - 1}-${year}`;
         })(),
       }),
+      isCompanyAdmin
+        ? api.get<ApiResponse<EmployeeRecord[]>>("/employees/list")
+        : Promise.resolve(null),
     ]);
 
     if (holidayResponse.status === "fulfilled") {
@@ -456,12 +526,23 @@ export default function CompanyCalendar() {
         setError(result.message || "Unable to load company holidays.");
 
         setHolidays(COMPANY_HOLIDAYS_2026);
+        setWorkingDayDates(new Set());
 
       } else {
 
         const apiHolidays = result.data.filter(
           (item) => (item.status || "Active").toLowerCase() === "active"
         );
+        const workingDates = new Set(
+          apiHolidays
+            .filter(
+              (item) =>
+                item.holidayType?.trim().toLowerCase() === "working day"
+            )
+            .map((item) => normalizeDate(item.holidayDate))
+            .filter((date) => Boolean(date))
+        );
+        setWorkingDayDates(workingDates);
         // For 2026, use the supplied company schedule as the authority for
         // these festival names. An old API date must not add Muharram again
         // in July (or create a second date for any listed 2026 festival).
@@ -473,6 +554,8 @@ export default function CompanyCalendar() {
         const fixedDates = new Set(COMPANY_HOLIDAYS_2026.map((h) => h.holidayDate));
         const additionalHolidays = apiHolidays.filter((item) => {
           const date = normalizeDate(item.holidayDate);
+          if (item.holidayType?.trim().toLowerCase() === "working day") return false;
+          if (workingDates.has(date)) return false;
           if (!date.startsWith("2026-")) return true;
           if (fixedDates.has(date)) return false;
           if (fixedNames.has(normalizeHolidayName(item.holidayName))) return false;
@@ -480,7 +563,12 @@ export default function CompanyCalendar() {
           if (/muharram|muharam|moharram/i.test(item.holidayName)) return false;
           return true;
         });
-        setHolidays([...COMPANY_HOLIDAYS_2026, ...additionalHolidays]);
+        setHolidays([
+          ...COMPANY_HOLIDAYS_2026.filter(
+            (holiday) => !workingDates.has(holiday.holidayDate)
+          ),
+          ...additionalHolidays,
+        ]);
 
       }
 
@@ -489,14 +577,15 @@ export default function CompanyCalendar() {
       setError(errorText(holidayResponse.reason, "Unable to load company holidays."));
 
       setHolidays(COMPANY_HOLIDAYS_2026);
+      setWorkingDayDates(new Set());
 
     }
 
     const marks: Record<string, AttendanceMark> = {};
+    const companyMarks: Record<string, Record<string, CompanyAttendanceStatus>> = {};
     const warnings: string[] = [];
-    const user = loggedInUser();
 
-    if (!user || (!user.userId && !user.employeeId && !user.email)) {
+    if (!user || (!isCompanyAdmin && !user.userId && !user.employeeId && !user.email)) {
       warnings.push("Logged-in employee details are unavailable.");
     } else {
       if (attendanceResponse.status === "fulfilled") {
@@ -505,16 +594,69 @@ export default function CompanyCalendar() {
         if (result.success === false || !Array.isArray(result.data)) {
           warnings.push(result.message || "Attendance records are unavailable.");
         } else {
-          for (const record of result.data.filter((item) => belongsToUser(item, user))) {
-            const key = getRecordDate(record);
-            const mark = getAttendanceMark(record);
+          const records = isCompanyAdmin
+            ? result.data
+            : result.data.filter((item) => belongsToUser(item, user));
 
-            if (!key || !mark) continue;
-            if (!marks[key] || (mark === "P" && marks[key] === "A")) marks[key] = mark;
+          for (const record of records) {
+            const key = getRecordDate(record);
+            if (!key) continue;
+
+            if (isCompanyAdmin) {
+              const userId = readField(record, ["user_id", "userId"]);
+              if (!userId) continue;
+
+              const status = readField(record, [
+                "attendanceStatus",
+                "attendance_status",
+                "status",
+              ]);
+              const finalized = Boolean(
+                readField(record, ["finalizedAt", "finalized_at"])
+              );
+              const dayRecords = companyMarks[key] || {};
+              const existing = dayRecords[userId];
+              if (!existing || (finalized && !existing.finalized)) {
+                dayRecords[userId] = { status, finalized };
+                companyMarks[key] = dayRecords;
+              }
+              continue;
+            }
+
+            const mark = getAttendanceMark(record, key);
+            if (!mark) continue;
+            if (!marks[key] || (mark === "P" && marks[key] === "A")) {
+              marks[key] = mark;
+            }
           }
         }
       } else {
         warnings.push(errorText(attendanceResponse.reason, "Attendance records are unavailable."));
+      }
+
+      if (isCompanyAdmin) {
+        if (employeeResponse.status === "fulfilled" && employeeResponse.value) {
+          const result = employeeResponse.value.data;
+          if (result.success === false || !Array.isArray(result.data)) {
+            warnings.push(result.message || "Employee list is unavailable.");
+            setEmployees([]);
+          } else {
+            setEmployees(
+              result.data.filter(
+                (employee) =>
+                  Number(employee.userType) === 3 &&
+                  employee.status === "Active"
+              )
+            );
+          }
+        } else if (employeeResponse.status === "rejected") {
+          warnings.push(
+            errorText(employeeResponse.reason, "Employee list is unavailable.")
+          );
+          setEmployees([]);
+        }
+      } else {
+        setEmployees([]);
       }
 
       if (leaveResponse.status === "fulfilled") {
@@ -526,14 +668,22 @@ export default function CompanyCalendar() {
             : [];
 
         if (result.success === false || !result.data) {
-          warnings.push(result.message || "Approved leave records are unavailable.");
+          warnings.push(result.message || "Leave application records are unavailable.");
         } else {
           for (const record of records) {
-            if (
-              record.status?.trim().toLowerCase() !== "approved" ||
-              record.leaveType?.trim().toUpperCase() === "PERMISSION" ||
-              !leaveBelongsToUser(record, user)
-            ) {
+            const status = record.status?.trim().toLowerCase();
+            const isPermission =
+              record.leaveType?.trim().toUpperCase() === "PERMISSION";
+
+            if (isPermission && status === "rejected") {
+              continue;
+            }
+
+            if (!leaveBelongsToUser(record, user)) continue;
+
+            if (status !== "approved") continue;
+
+            if (isPermission) {
               continue;
             }
 
@@ -543,18 +693,40 @@ export default function CompanyCalendar() {
           }
         }
       } else {
-        warnings.push(errorText(leaveResponse.reason, "Approved leave records are unavailable."));
+        warnings.push(errorText(leaveResponse.reason, "Leave application records are unavailable."));
       }
     }
 
     setAttendance(marks);
+    setCompanyAttendance(companyMarks);
     setAttendanceWarning(warnings.join(" "));
 
     setLoading(false);
 
-  }, []);
+  }, [isCompanyAdmin, user]);
 
-  useEffect(() => { void loadCalendar(); }, [loadCalendar]);
+  useEffect(() => {
+    void loadCalendar();
+
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") {
+        void loadCalendar();
+      }
+    };
+    const refreshInterval = window.setInterval(
+      () => void loadCalendar(),
+      30_000
+    );
+
+    window.addEventListener("focus", refreshWhenVisible);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+
+    return () => {
+      window.clearInterval(refreshInterval);
+      window.removeEventListener("focus", refreshWhenVisible);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+    };
+  }, [loadCalendar]);
 
   const holidayByDay = useMemo(() => {
 
@@ -601,6 +773,58 @@ export default function CompanyCalendar() {
   const selectedHolidays = holidayByDay.get(selectedDay) || [];
 
   const selectedMark = attendance[selectedDay];
+  const selectedCompanyStatuses = employees.map((employee) => {
+    const record = companyAttendance[selectedDay]?.[employee.user_id];
+    const isAwaitingFinalization =
+      (selectedDay === today || selectedDay === getPreviousDayKey(today)) &&
+      record &&
+      !record.finalized;
+
+    const normalizedStatus = record?.status.toLowerCase().replace(/[-_]/g, " ").trim();
+    const attendanceStatus =
+      normalizedStatus === "present" || normalizedStatus === "p"
+        ? "Present"
+        : ["half day", "half day present", "hp"].includes(normalizedStatus || "")
+          ? "Half Day"
+          : normalizedStatus === "absent" || normalizedStatus === "a"
+            ? "Absent"
+            : record?.status || "No status";
+
+    return {
+      employee,
+      status: !record
+        ? "No attendance record"
+        : isAwaitingFinalization
+          ? "Not finalized"
+          : attendanceStatus,
+    };
+  });
+
+  const getCompanyDaySummary = (day: string) => {
+    const counts: Partial<Record<AttendanceMark, number>> = {};
+    for (const record of Object.values(companyAttendance[day] || {})) {
+      if (!record.finalized) continue;
+      const status = record.status.toLowerCase().replace(/[-_]/g, " ");
+      const mark: AttendanceMark | null =
+        ["present", "p"].includes(status)
+          ? "P"
+          : ["half day", "half day present", "hp"].includes(status)
+            ? "HP"
+            : ["late present", "present late"].includes(status)
+              ? "LT"
+              : status === "early departure"
+                ? "ED"
+              : ["absent", "a"].includes(status)
+                ? "A"
+                : null;
+      if (mark) counts[mark] = (counts[mark] || 0) + 1;
+    }
+
+    return (["P", "HP", "A", "LT", "ED"] as const)
+      .filter((mark) => counts[mark])
+      .map((mark) => `${mark} ${counts[mark]}`)
+      .join(" · ");
+  };
 
   function moveMonth(offset: number) {
 
@@ -624,7 +848,11 @@ export default function CompanyCalendar() {
 
           <h1>Company Calendar</h1>
 
-          <p>Company holidays and your attendance at a glance.</p>
+          <p>
+            {isCompanyAdmin
+              ? "Company holidays and employee attendance at a glance."
+              : "Company holidays and your attendance at a glance."}
+          </p>
 
         </div>
 
@@ -679,16 +907,33 @@ export default function CompanyCalendar() {
               const dayHolidays = holidayByDay.get(key) || [];
 
               const hasHoliday = inMonth && dayHolidays.length > 0;
+              const isSpecialWorkingDay = inMonth && workingDayDates.has(key);
 
-              const mark = inMonth && !hasHoliday && weekDay !== 0 && weekDay !== 6 ? attendance[key] : undefined;
+              const isWorkingDay =
+                inMonth &&
+                (isSpecialWorkingDay ||
+                  (!hasHoliday && weekDay !== 0 && weekDay !== 6));
+              const mark =
+                isWorkingDay && !isCompanyAdmin ? attendance[key] : undefined;
+              const companySummary =
+                isWorkingDay && isCompanyAdmin
+                  ? getCompanyDaySummary(key)
+                  : "";
 
-              const description = dayHolidays.length > 0 ? dayHolidays.map((h) => h.holidayName).join(", ") : mark ? MARK_NAMES[mark] : "";
+              const description = dayHolidays.length > 0
+                ? dayHolidays.map((h) => h.holidayName).join(", ")
+                : companySummary
+                  ? companySummary
+                : mark
+                  ? MARK_NAMES[mark]
+                  : "";
 
               const classes = [
 
                 "cc-day", !inMonth && "cc-day-outside", weekDay === 0 && "cc-day-sunday",
 
                 weekDay === 6 && "cc-day-saturday", hasHoliday && "cc-day-holiday",
+                isSpecialWorkingDay && "cc-day-working-day",
 
                 mark && `cc-day-mark-${mark.toLowerCase()}`,
 
@@ -740,6 +985,11 @@ export default function CompanyCalendar() {
 
                   )}
 
+                  {companySummary && (
+                    <span className="cc-company-day-summary">
+                      {companySummary}
+                    </span>
+                  )}
                 </button>
 
               );
@@ -757,6 +1007,12 @@ export default function CompanyCalendar() {
             <span><i className="cc-legend-color cc-legend-color--holiday" />Company Holiday</span>
 
             <span><i className="cc-legend-color cc-legend-color--present" />P – Present</span>
+
+            <span><i className="cc-legend-color cc-legend-color--late" />LT – Late Present</span>
+
+            <span><i className="cc-legend-color cc-legend-color--early-departure" />ED – Early Departure</span>
+
+            <span><i className="cc-legend-color cc-legend-color--half-day" />HP – Half-Day Present</span>
 
             <span><i className="cc-legend-color cc-legend-color--absent" />A – Absent</span>
 
@@ -792,21 +1048,66 @@ export default function CompanyCalendar() {
 
             </div>
 
-          )) : selectedMark ? (
+          )) : null}
 
-            <div className="cc-selected-attendance">
-
-              <strong>{MARK_NAMES[selectedMark]}</strong>
-
-              <span>Attendance status recorded for your employee account.</span>
-
+          {isCompanyAdmin && !selectedHolidays.length ? (
+            <div className="cc-company-attendance-list">
+              <div className="cc-company-attendance-heading">
+                <strong>Employee attendance</strong>
+                <span>{selectedCompanyStatuses.length} active employees</span>
+              </div>
+              {selectedCompanyStatuses.length ? (
+                <div className="cc-company-attendance-table-wrap">
+                  <table className="cc-company-attendance-table">
+                    <thead>
+                      <tr>
+                        <th>Employee</th>
+                        <th>Employee ID</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedCompanyStatuses.map(({ employee, status }) => (
+                        <tr key={employee.user_id}>
+                          <td>{employee.name}</td>
+                          <td>{employee.employeeId}</td>
+                          <td>
+                            <div className="cc-company-employee-status">
+                              <span
+                                className={`cc-status-pill cc-status-pill--${status
+                                  .toLowerCase()
+                                  .replace(/[^a-z0-9]+/g, "-")}`}
+                              >
+                                {status}
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="cc-selection-empty">No active employees found.</p>
+              )}
             </div>
+          ) : !isCompanyAdmin ? (
+            <>
+              {selectedMark ? (
+                <div className="cc-selected-attendance">
+                  <strong>{MARK_NAMES[selectedMark]}</strong>
+                  <span>
+                    Attendance status recorded for your employee account.
+                  </span>
+                </div>
+              ) : (
+                <p className="cc-selection-empty">
+                  No company holiday or confirmed attendance status for this date.
+                </p>
+              )}
+            </>
 
-          ) : (
-
-            <p className="cc-selection-empty">No company holiday or confirmed attendance status for this date.</p>
-
-          )}
+          ) : null}
 
         </div>
 
