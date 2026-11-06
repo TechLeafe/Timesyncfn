@@ -25,8 +25,7 @@ import ManageAccountsOutlinedIcon from "@mui/icons-material/ManageAccountsOutlin
 import TaskAltOutlinedIcon from "@mui/icons-material/TaskAltOutlined";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import SupportAgentOutlinedIcon from "@mui/icons-material/SupportAgentOutlined";
-import AccountTreeOutlinedIcon from "@mui/icons-material/AccountTreeOutlined";
-import CakeOutlinedIcon from "@mui/icons-material/CakeOutlined";
+
 
 import { HR, ADMIN, EMPLOYEE } from "../../data/permissions";
 
