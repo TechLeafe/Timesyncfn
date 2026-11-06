@@ -25,6 +25,8 @@ import ManageAccountsOutlinedIcon from "@mui/icons-material/ManageAccountsOutlin
 import TaskAltOutlinedIcon from "@mui/icons-material/TaskAltOutlined";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import SupportAgentOutlinedIcon from "@mui/icons-material/SupportAgentOutlined";
+import AccountTreeOutlinedIcon from "@mui/icons-material/AccountTreeOutlined";
+import CakeOutlinedIcon from "@mui/icons-material/CakeOutlined";
 
 import { HR, ADMIN, EMPLOYEE } from "../../data/permissions";
 
@@ -116,11 +118,12 @@ const navItems: NavItem[] = [
     path: "/employee-leaves-permissions",
     roles: [EMPLOYEE],
   },
+
   // {
-  // label: "Organisation Chart",
-  // icon: <AccountTreeIcon />,
-  // path: "/organisation-chart",
-  // roles: [EMPLOYEE, HR, ADMIN],
+  //   label: "Birthday Creation",
+  //   icon: <CakeOutlinedIcon />,
+  //   path: "/birthday-creation",
+  //   roles: [HR, ADMIN],
   // },
 
 

@@ -116,11 +116,12 @@ function BirthdayFooter() {
             alt="Diwali illustration with families, fireworks, and traditional lamps"
           />
           <div className="diwali-popup-message">
-            <strong lang="ta">தீபாவளிப் பரிசு காத்திருக்கிறது!!!</strong>
+            <strong>Let's Debug Negativity and Deploy Happiness!</strong>
             <p>
-              Tomorrow, we are celebrating Diwali at our office! 🎁 Exciting
-              gifts and surprises are waiting for everyone. Get ready for a
-              joyful celebration!
+               This Diwali, may your worries get deleted, happiness get upgraded, success run without errors, and prosperity keep loading endlessly! Wishing you and your family a bright and joyful Diwali!
+            </p>
+            <p className="diwali-popup-wishes">
+                Warm wishes from the entire team!
             </p>
           </div>
           <div className="birthday-poster-confetti" aria-hidden="true">

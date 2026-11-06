@@ -15,11 +15,17 @@
   padding: 10px 20px;
   overflow: hidden;
 
-  color: #542f25;
-  background: linear-gradient(105deg, #fff3cf, #fffaf0 55%, #ffe4c2);
-  border: 1px solid #f3cf86;
+  color: #ffffff;
+  background: linear-gradient(
+    110deg,
+    #45216f 0%,
+    #762b83 35%,
+    #a52c70 68%,
+    #d45b45 100%
+  );
+  border: 1px solid #e9bd65;
   border-radius: 17px;
-  box-shadow: 0 5px 20px rgba(151, 81, 26, 0.18);
+  box-shadow: 0 5px 22px rgba(75, 25, 95, 0.25);
   cursor: pointer;
   transition: box-shadow 180ms ease, transform 180ms ease;
 }
@@ -50,7 +56,7 @@
 }
 
 .birthday-footer-title > span {
-  color: #93602c;
+  color: #A11B77;
   font-size: 10px;
   font-weight: 650;
 }
@@ -95,8 +101,8 @@
   gap: 10px;
   min-height: 58px;
   padding: 0 16px 0 8px;
-  color: #ffffff;
-  background: linear-gradient(145deg, #f5a623, #d95b1e);
+  color:#4a174f;
+  background: linear-gradient(145deg, #ffcf56, #f28c28, #e45b35);
   border: 0;
   border-radius: 999px;
   box-shadow:
@@ -187,20 +193,39 @@
   align-items: center;
   padding: 54px 18px 18px;
   overflow: auto;
-  background: linear-gradient(145deg, #fff8e6, #ffecd0);
-  border: 2px solid #f3cf86;
-  border-radius: 22px;
-  box-shadow: 0 18px 60px rgba(27, 15, 41, 0.4);
+
+  background: linear-gradient(
+    145deg,
+    #fff8e8 0%,
+    #ffebcc 48%,
+    #ffe0c2 100%
+  );
+
+  border: 2px solid #f5a623;
+  border-radius: 24px;
+
+  box-shadow:
+    0 18px 60px rgba(27, 15, 41, 0.4),
+    0 0 25px rgba(255, 166, 35, 0.25);
 }
 
 .birthday-poster-full-image {
   display: block;
   width: 100%;
-  max-height: 44dvh;
+  max-height: 30dvh;
   object-fit: contain;
-  background: radial-gradient(ellipse, #fff4d8, #ffecd0);
-  border-radius: 14px;
-  animation: birthday-poster-reveal 450ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+
+  background: radial-gradient(
+    ellipse,
+    #fff1c9 0%,
+    #ffe4b5 65%,
+    #ffd8a0 100%
+  );
+
+  border-radius: 16px;
+
+  animation: birthday-poster-reveal
+    450ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 .diwali-popup-message {
@@ -215,7 +240,18 @@
 
 .diwali-popup-message > strong {
   display: block;
-  color: #b7461f;
+
+  background: linear-gradient(
+    90deg,
+    #c03916,
+    #f07818,
+    #c03916
+  );
+
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
   font-size: clamp(20px, 5vw, 28px);
   font-weight: 850;
   line-height: 1.4;
@@ -250,22 +286,69 @@
   pointer-events: none;
 }
 
+/* Diwali fireworks and glowing sparks */
 .birthday-poster-confetti > span {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 9px;
-  height: 15px;
-  background: #ed49a4;
-  border-radius: 2px;
-  animation: birthday-poster-confetti-blast 1.45s cubic-bezier(0.12, 0.7, 0.25, 1) both;
+
+  width: 4px;
+  height: 17px;
+
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    #fff9b0,
+    #ffb300,
+    #ff5e00
+  );
+
+  border-radius: 50%;
+  box-shadow:
+    0 0 5px #ffb300,
+    0 0 12px #ff6a00;
+
+  animation: birthday-poster-firework
+    1.45s cubic-bezier(0.12, 0.7, 0.25, 1) both;
 }
 
-.birthday-poster-confetti > span:nth-child(3n) { background: #ffcd55; }
-.birthday-poster-confetti > span:nth-child(3n + 1) { background: #54c9a0; }
-.birthday-poster-confetti > span:nth-child(4n) { width: 7px; height: 7px; border-radius: 50%; }
-.birthday-poster-confetti > span:nth-child(5n) { background: #8d5be8; }
+.birthday-poster-confetti > span:nth-child(3n) {
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    #fff5a0,
+    #ffd700,
+    #ff8c00
+  );
+  box-shadow: 0 0 10px #ffd700;
+}
 
+.birthday-poster-confetti > span:nth-child(3n + 1) {
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    #ffffff,
+    #ff8c42,
+    #ff4500
+  );
+  box-shadow: 0 0 10px #ff6a00;
+}
+
+.birthday-poster-confetti > span:nth-child(4n) {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+}
+
+.birthday-poster-confetti > span:nth-child(5n) {
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    #ffd6f5,
+    #ff69b4
+  );
+  box-shadow: 0 0 10px #ff69b4;
+}
 @keyframes birthday-footer-image-glow {
   0%, 100% { transform: scale(1); filter: brightness(1); }
   50% { transform: scale(1.04); filter: brightness(1.08); }
@@ -291,17 +374,22 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes birthday-poster-confetti-blast {
+@keyframes birthday-poster-firework {
   0% {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(0.4) rotate(0);
+    transform: translate(-50%, -50%) scale(0.3) rotate(0deg);
   }
+
+  45% {
+    opacity: 1;
+  }
+
   100% {
     opacity: 0;
     transform: translate(
       calc(-50% + var(--burst-x)),
       calc(-50% + var(--burst-y))
-    ) scale(1) rotate(var(--burst-rotation));
+    ) scale(0.8) rotate(var(--burst-rotation));
   }
 }
 
@@ -405,4 +493,102 @@
     animation: none !important;
     transition: none !important;
   }
+}
+
+.diwali-popup-wishes {
+  color: #d65a1a;
+  font-weight: 800;
+  font-size: 16px;
+  margin-top: 14px;
+  margin-bottom: 0;
+  text-align: center;
+
+  text-shadow: 0 1px 1px rgba(255, 190, 90, 0.35);
+}
+
+/* Colourful Diwali popup theme */
+.birthday-poster-content.MuiDialogContent-root {
+  background: linear-gradient(
+    135deg,
+    #fff0d9 0%,
+    #fce4ec 35%,
+    #ede7f6 70%,
+    #e0f2f1 100%
+  );
+  border: 2px solid #e8b85c;
+  box-shadow:
+    0 18px 60px rgba(69, 35, 90, 0.3),
+    0 0 22px rgba(255, 193, 7, 0.2);
+}
+
+/* Colourful heading */
+.diwali-popup-message > strong {
+  background: linear-gradient(
+    90deg,
+    #8e24aa,
+    #d81b60,
+    #e67e22,
+    #00897b
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Main wishes text */
+.diwali-popup-message > p {
+  color: #574568;
+}
+
+/* Final company wishes */
+.diwali-popup-message > .diwali-popup-wishes {
+  color: #008577;
+  font-weight: 800;
+}
+
+/* Close button */
+.birthday-poster-close.MuiIconButton-root {
+  color: #8e24aa;
+  background: #ffffff;
+  border: 1px solid #ead5f0;
+}
+
+.birthday-poster-close.MuiIconButton-root:hover {
+  color: #d81b60;
+  background: #fff0f5;
+}
+
+/* Colourful Diwali footer text */
+
+.birthday-footer-title > span {
+  color: #ffe5a3;
+}
+
+.birthday-footer-title > strong {
+  color: #ffd166;
+}
+
+.birthday-footer-person > strong {
+  color: #ffffff;
+}
+
+.birthday-footer-person > span {
+  color: #f8d9ee;
+}
+
+.birthday-footer-message {
+  color: #fff1e6;
+  border-left-color: rgba(255, 224, 166, 0.55);
+}
+
+/* Golden decorative sparkles */
+.birthday-footer-sparkles svg {
+  color: #ffd166;
+}
+
+/* Footer image frame */
+.birthday-footer-image {
+  background: #fff8e8;
+  border-color: #ffe3a1;
 }
