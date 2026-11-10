@@ -12,6 +12,7 @@ import {
   EMPLOYEE,
 } from "../data/permissions";
 
+
 const CompanyCalendar = lazy(() => import("../Pages/CompanyCalendar/Companycalendar"));
 const Attendance = lazy(() => import("../Pages/Attendance/Attendance"));
 const Admin = lazy(() => import("../Pages/Dashboard/AdminDashboard"));
@@ -22,6 +23,7 @@ const Login = lazy(() =>
 );
 const OrganisationChart = lazy(() => import("../Pages/OrganisationChart/OrganisationChart"));
 const Employee_Creation = lazy(() => import("../Pages/Employee_Creation/Employee_Creation"));
+const BirthdayCreation = lazy(() => import("../Pages/BirthdayCreation/BirthdayCreation"));
 const EmployeeCheckInOut = lazy(() => import("../Pages/EmployeeCheckInOut/EmployeeCheckInOut"));
 const AdminCheckinout = lazy(() => import("../Pages/Employee Management/CheckInOut/AdminCheckinout"));
 const Holiday = lazy(() => import("../Pages/Holiday/Holiday"));
@@ -187,6 +189,12 @@ export const route = createBrowserRouter([
                          </ProtectedRoute>
                       ),
             },
+            { path: "birthday-creation",
+              element: ( <ProtectedRoute allowedRoles={[HR, ADMIN]}>
+                         <BirthdayCreation />
+                         </ProtectedRoute>
+                       ),
+           },
         ],
     },
 ]);

@@ -1,0 +1,202 @@
+
+.birthday-page {
+  width: 100%;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.birthday-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.birthday-create-btn {
+  background-color: #016637 !important;
+  text-transform: none !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+}
+
+.birthday-create-btn:hover {
+  background-color: #016637 !important;
+}
+
+.birthday-table-container {
+  width: 100%;
+  border-radius: 10px !important;
+  overflow-x: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+}
+
+.birthday-table-container .MuiTableHead-root {
+  background-color: #f5f7fa;
+}
+
+.birthday-table-container .MuiTableCell-head {
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
+}
+
+.birthday-table-container .MuiTableCell-body {
+  font-size: 14px;
+}
+
+.birthday-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+@media (max-width: 600px) {
+  .birthday-page {
+    padding: 12px;
+  }
+
+  .birthday-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .birthday-create-btn {
+    width: 100%;
+  }
+}
+
+.birthday-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin: 24px 0;
+}
+
+.birthday-stat-card {
+  padding: 24px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.birthday-stat-card h4 {
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+.birthday-stat-card {
+  padding: 14px 20px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  min-height: 110px;
+  box-sizing: border-box;
+}
+
+.birthday-stat-card h4 {
+  font-weight: 700;
+  margin-top: 4px;
+  margin-bottom: 0;
+}
+
+/* Birthday page primary color theme */
+
+.birthday-page .MuiButton-containedPrimary {
+  background-color: #016637 !important;
+  color: #ffffff !important;
+}
+
+.birthday-page .MuiButton-containedPrimary:hover {
+  background-color: #014d2a !important;
+}
+
+/* Modal save button */
+
+.birthday-page .MuiDialogActions-root .MuiButton-contained {
+  background-color: #016637 !important;
+  color: #ffffff !important;
+}
+
+/* Birthday icons */
+
+.birthday-page .MuiSvgIcon-colorPrimary {
+  color: #016637 !important;
+}
+
+/* Focused input fields */
+
+.birthday-page .MuiOutlinedInput-root.Mui-focused
+.MuiOutlinedInput-notchedOutline {
+  border-color: #016637 !important;
+}
+
+/* Input labels */
+
+.birthday-page .MuiInputLabel-root.Mui-focused {
+  color: #016637 !important;
+}
+
+/* Date picker icons */
+
+.birthday-page .MuiIconButton-root {
+  color: #016637;
+}
+
+
+/* REDUCE BIRTHDAY STAT CARD HEIGHT */
+
+.birthday-stat-card {
+  padding: 16px !important;
+  min-height: 110px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.birthday-stat-card h4 {
+  margin-top: 4px !important;
+  line-height: 1.2;
+}
+
+/* SAVE BUTTON - GREEN */
+
+.birthday-save-btn {
+  background-color: #016637 !important;
+  color: #ffffff !important;
+}
+
+.birthday-save-btn:hover {
+  background-color: #014d2a !important;
+}
+
+/* DIALOG - GREEN FOCUS BORDER */
+
+.MuiDialog-root .MuiOutlinedInput-root.Mui-focused
+.MuiOutlinedInput-notchedOutline {
+  border-color: #016637 !important;
+}
+
+.MuiDialog-root .MuiInputLabel-root.Mui-focused {
+  color: #016637 !important;
+}
+
+/* TEXT FIELD FOCUS */
+
+.MuiDialog-root .MuiOutlinedInput-root.Mui-focused {
+  box-shadow: none;
+}
+
+/* DIALOG BUTTON FOCUS */
+
+.MuiDialog-root .MuiButton-contained {
+  background-color: #016637;
+}
+
+.MuiDialog-root .MuiButton-contained:hover {
+  background-color: #014d2a;
+}
