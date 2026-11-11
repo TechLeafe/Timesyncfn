@@ -217,6 +217,22 @@
   font-size: 12px;
 }
 
+.admin-checkinout__edit-button.MuiButton-root {
+  min-width: 88px;
+  min-height: 32px;
+  padding: 4px 12px;
+  border-radius: 9px;
+  color: #ffffff;
+  background: #086344;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: none;
+}
+
+.admin-checkinout__edit-button.MuiButton-root:hover {
+  background: #086344;
+}
+
 /* ==========================================
    DAILY SUMMARY
 ========================================== */
@@ -428,8 +444,9 @@
 .admin-checkinout__table-wrapper {
   width: 100%;
   min-width: 0;
-  overflow-x: auto;
-  max-height: 480px;
+  max-height: min(60vh, 480px);
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .admin-checkinout__table {
@@ -438,6 +455,9 @@
 }
 
 .admin-checkinout__table .MuiTableCell-head {
+  position: sticky;
+  z-index: 2;
+  top: 0;
   padding: 16px 15px;
 
   background: #f3f8f5;
@@ -459,6 +479,25 @@
 
   border-bottom: 1px solid #edf2ee;
   white-space: nowrap;
+}
+
+.admin-checkinout__table .admin-checkinout__action-cell {
+  position: sticky;
+  right: 0;
+  width: 100px;
+  min-width: 100px;
+  max-width: 100px;
+  background: #ffffff;
+  box-shadow: null;
+}
+
+.admin-checkinout__table .admin-checkinout__action-cell--header {
+  z-index: 4;
+  background: #f3f8f5;
+}
+
+.admin-checkinout__table .MuiTableRow-root:hover .admin-checkinout__action-cell {
+  background: #f7fbf8;
 }
 
 .admin-checkinout__table .MuiTableRow-root:hover {
@@ -595,7 +634,10 @@
   display: none;
   flex-direction: column;
   gap: 12px;
+  max-height: min(60vh, 480px);
   padding: 15px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .admin-checkinout__mobile-card.MuiPaper-root {
@@ -846,5 +888,698 @@
 @media (prefers-reduced-motion: reduce) {
   .admin-checkinout__date-field input {
     transition: none;
+  }
+}
+
+/* ==========================================
+   ATTENDANCE CORRECTION DIALOG
+========================================== */
+
+.admin-checkinout__correction-paper.MuiDialog-paper {
+  width: min(780px, calc(100vw - 32px));
+  max-width: 780px;
+  max-height: calc(100vh - 32px);
+  margin: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(14, 111, 143, 0.1);
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 20px 48px rgba(13, 57, 78, 0.24);
+  font-family: var(--font-family, Inter, sans-serif);
+}
+
+.admin-checkinout__correction-header.MuiDialogTitle-root {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-height: 144px;
+  padding: 18px 72px 24px 34px;
+  overflow: hidden;
+  color: #ffffff;
+  background:
+    radial-gradient(ellipse at 87% 2%, rgba(112, 205, 156, 0.62) 0 13%, transparent 13.5%),
+    radial-gradient(ellipse at 74% 112%, rgba(24, 132, 91, 0.72) 0 24%, transparent 24.5%),
+    linear-gradient(112deg, #087b4d 0%, #075b3d 52%, #11865c 100%);
+}
+
+.admin-checkinout__correction-header.MuiDialogTitle-root::after {
+  position: absolute;
+  right: -5%;
+  bottom: -48px;
+  left: -4%;
+  height: 74px;
+  border-radius: 50% 50% 0 0 / 70% 70% 0 0;
+  background: #ffffff;
+  content: "";
+}
+
+.admin-checkinout__correction-header-icon {
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 62px;
+  height: 62px;
+  flex: 0 0 62px;
+  border-right: 1px solid rgba(255, 255, 255, 0.76);
+}
+
+.admin-checkinout__correction-header-icon svg {
+  font-size: 48px;
+}
+
+.admin-checkinout__correction-brand {
+  display: block;
+  width: 110px;
+  height: 34px;
+  margin-bottom: 5px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.admin-checkinout__correction-heading-copy {
+  z-index: 1;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.admin-checkinout__correction-title {
+  font-size: 25px;
+  font-weight: 750;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+}
+
+.admin-checkinout__correction-subtitle {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.admin-checkinout__correction-header-art {
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 105px;
+  height: 86px;
+  margin-left: auto;
+  color: rgba(224, 250, 255, 0.95);
+  transform: rotate(9deg);
+}
+
+.admin-checkinout__correction-header-art svg {
+  font-size: 78px;
+  filter: drop-shadow(7px 8px 0 rgba(0, 52, 79, 0.32));
+}
+
+.admin-checkinout__correction-close.MuiIconButton-root {
+  position: absolute;
+  z-index: 2;
+  top: 14px;
+  right: 14px;
+  width: 40px;
+  height: 40px;
+  color: #075b3d;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 38, 58, 0.13);
+}
+
+.admin-checkinout__correction-close.MuiIconButton-root:hover {
+  background: #effaf3;
+}
+
+.admin-checkinout__correction-content.MuiDialogContent-root {
+  padding: 0 30px 18px;
+  overflow-y: auto;
+}
+
+.admin-checkinout__correction-form {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.admin-checkinout__correction-employee {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  min-height: 68px;
+  padding: 9px 16px;
+  border-radius: 13px;
+  background: linear-gradient(105deg, #eff9f1 0%, #dcf1e2 100%);
+}
+
+.admin-checkinout__correction-employee-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.admin-checkinout__correction-employee-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  flex: 0 0 50px;
+  border-radius: 50%;
+  color: #ffffff;
+  background: #087b4d;
+}
+
+.admin-checkinout__correction-employee-icon svg {
+  font-size: 31px;
+}
+
+.admin-checkinout__correction-employee-label.MuiTypography-root {
+  color: #63717d;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.admin-checkinout__correction-employee-name.MuiTypography-root {
+  margin-top: 2px;
+  color: #142a47;
+  font-size: 17px;
+  font-weight: 750;
+  line-height: 1.3;
+}
+
+.admin-checkinout__correction-employee-id {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 132px;
+  padding: 7px 10px;
+  border: 1px solid #b5dec3;
+  border-radius: 11px;
+  color: #087b4d;
+  background: rgba(255, 255, 255, 0.38);
+}
+
+.admin-checkinout__correction-employee-id > svg {
+  flex: 0 0 auto;
+  font-size: 24px;
+}
+
+.admin-checkinout__correction-employee-id > span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.admin-checkinout__correction-employee-id-label {
+  color: #526371;
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.admin-checkinout__correction-employee-id-value {
+  overflow: hidden;
+  color: #142a47;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+}
+
+.admin-checkinout__correction-field-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.admin-checkinout__correction-field-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 54px;
+  flex: 0 0 56px;
+  border-radius: 12px;
+  color: #087b4d;
+  background: #e5f4e9;
+}
+
+.admin-checkinout__correction-field-icon svg {
+  font-size: 27px;
+}
+
+.admin-checkinout__correction-field.MuiFormControl-root {
+  min-width: 0;
+}
+
+.admin-checkinout__correction-field .MuiInputLabel-root {
+  color: #14233d;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.admin-checkinout__correction-field .MuiOutlinedInput-root {
+  border-radius: 12px;
+  color: #16233d;
+  background: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.admin-checkinout__correction-field .MuiOutlinedInput-notchedOutline {
+  border-color: #b7c8d8;
+  border-width: 1.5px;
+}
+
+.admin-checkinout__correction-field .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #75b78e;
+}
+
+.admin-checkinout__correction-field .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #087b4d;
+}
+
+.admin-checkinout__correction-date .MuiOutlinedInput-root {
+  min-height: 44px;
+}
+
+.admin-checkinout__correction-status-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-checkinout__correction-status-field {
+  align-items: center;
+  min-width: 0;
+}
+
+.admin-checkinout__correction-status-field > .MuiFormControl-root {
+  flex: 1;
+}
+
+.admin-checkinout__correction-status-target {
+  min-width: 0;
+}
+
+.admin-checkinout__correction-status-target .MuiFormControl-root {
+  width: 100%;
+}
+
+.admin-checkinout__correction-status-field .admin-checkinout__correction-field-icon {
+  width: 46px;
+  height: 44px;
+  flex-basis: 46px;
+  border-radius: 10px;
+}
+
+.admin-checkinout__correction-status-field .admin-checkinout__correction-field-icon svg {
+  font-size: 22px;
+}
+
+.admin-checkinout__correction-swap-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 30px;
+  align-self: center;
+  border-radius: 12px;
+  color: #087b4d;
+  background: #e5f4e9;
+}
+
+.admin-checkinout__correction-swap-icon svg {
+  font-size: 23px;
+}
+
+.admin-checkinout__correction-status-field .MuiInputLabel-root {
+  transform: translate(14px, -9px) scale(0.75);
+  transform-origin: top left;
+  padding: 0 5px;
+  background: #ffffff;
+}
+
+.admin-checkinout__correction-status-field .MuiOutlinedInput-root {
+  min-height: 40px;
+  font-size: 14px;
+}
+
+.admin-checkinout__correction-preview {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-height: 76px;
+  padding: 10px 16px;
+  border: 1px solid #ccebd5;
+  border-radius: 13px;
+  background: linear-gradient(105deg, #f0fbf2, #e3f7ef);
+}
+
+.admin-checkinout__correction-preview-icon.MuiSvgIcon-root {
+  flex: 0 0 auto;
+  color: #078b37;
+  font-size: 42px;
+}
+
+.admin-checkinout__correction-preview-copy {
+  min-width: 0;
+}
+
+.admin-checkinout__correction-preview-title.MuiTypography-root {
+  color: #125021;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.admin-checkinout__correction-preview-description.MuiTypography-root {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 3px;
+  color: #142a47;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.admin-checkinout__correction-preview-status {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 7px;
+  font-weight: 700;
+}
+
+.admin-checkinout__correction-preview-status--current {
+  background: #b6eaf1;
+}
+
+.admin-checkinout__correction-preview-status--new {
+  color: #125021;
+  background: #c8efbf;
+}
+
+.admin-checkinout__correction-reason-row {
+  align-items: flex-start;
+}
+
+.admin-checkinout__correction-reason-icon {
+  height: 56px;
+}
+
+.admin-checkinout__correction-reason .MuiOutlinedInput-root {
+  align-items: flex-start;
+  padding: 10px 14px;
+}
+
+.admin-checkinout__correction-reason .MuiInputBase-inputMultiline {
+  padding: 0;
+  font-weight: 500;
+}
+
+.admin-checkinout__correction-reason .MuiFormHelperText-root {
+  margin-right: 2px;
+  color: #6f7882;
+  text-align: right;
+  font-size: 13px;
+}
+
+.admin-checkinout__correction-feedback {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 2px;
+  color: #425466;
+}
+
+.admin-checkinout__correction-alert.MuiAlert-root {
+  border-radius: 12px;
+}
+
+.admin-checkinout__correction-actions.MuiDialogActions-root {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  min-height: 76px;
+  padding: 16px 22px 18px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 3% 112%, rgba(166, 224, 183, 0.82) 0 26%, transparent 26.5%),
+    radial-gradient(ellipse at 18% 135%, rgba(101, 190, 128, 0.35) 0 37%, transparent 37.5%),
+    #f6fcf7;
+}
+
+.admin-checkinout__correction-actions .MuiButton-root {
+  z-index: 1;
+  min-width: 130px;
+  min-height: 42px;
+  border-radius: 11px;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: none;
+}
+
+.admin-checkinout__correction-cancel.MuiButton-root {
+  border: 1.5px solid #087b4d;
+  color: #087b4d;
+  background: #ffffff;
+}
+
+.admin-checkinout__correction-cancel.MuiButton-root:hover {
+  border-color: #075b3d;
+  background: #effaf3;
+}
+
+.admin-checkinout__correction-save.MuiButton-root {
+  min-width: 180px;
+  gap: 7px;
+  color: #ffffff;
+  background: linear-gradient(105deg, #087b4d, #075b3d);
+  box-shadow: 0 5px 12px rgba(7, 91, 61, 0.18);
+}
+
+.admin-checkinout__correction-save.MuiButton-root:hover {
+  background: linear-gradient(105deg, #066b43, #064c33);
+}
+
+.admin-checkinout__correction-save .MuiSvgIcon-root {
+  font-size: 23px;
+}
+
+@media (max-width: 700px) {
+  .admin-checkinout__correction-paper.MuiDialog-paper {
+    border-radius: 20px;
+  }
+
+  .admin-checkinout__correction-header.MuiDialogTitle-root {
+    min-height: 140px;
+    padding: 20px 64px 28px 24px;
+  }
+
+  .admin-checkinout__correction-brand {
+    width: 94px;
+    height: 28px;
+  }
+
+  .admin-checkinout__correction-title {
+    font-size: 23px;
+  }
+
+  .admin-checkinout__correction-subtitle {
+    font-size: 13px;
+  }
+
+  .admin-checkinout__correction-header-art {
+    display: none;
+  }
+
+  .admin-checkinout__correction-close.MuiIconButton-root {
+    top: 12px;
+    right: 12px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .admin-checkinout__correction-content.MuiDialogContent-root {
+    padding: 0 24px 20px;
+  }
+
+  .admin-checkinout__correction-form {
+    gap: 14px;
+  }
+
+  .admin-checkinout__correction-employee {
+    gap: 14px;
+    min-height: 72px;
+    padding: 10px 14px;
+  }
+
+  .admin-checkinout__correction-employee-icon {
+    width: 50px;
+    height: 50px;
+    flex-basis: 50px;
+  }
+
+  .admin-checkinout__correction-employee-icon svg {
+    font-size: 31px;
+  }
+
+  .admin-checkinout__correction-employee-name.MuiTypography-root {
+    font-size: 17px;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-checkinout__correction-employee-id {
+    min-width: 116px;
+    padding: 6px 8px;
+  }
+
+  .admin-checkinout__correction-status-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .admin-checkinout__correction-swap-icon {
+    width: 38px;
+    height: 30px;
+    justify-self: center;
+  }
+
+  .admin-checkinout__correction-swap-icon svg {
+    transform: rotate(90deg);
+  }
+
+  .admin-checkinout__correction-preview {
+    min-height: 68px;
+    padding: 9px 12px;
+  }
+
+  .admin-checkinout__correction-preview-icon.MuiSvgIcon-root {
+    font-size: 35px;
+  }
+
+  .admin-checkinout__correction-preview-title.MuiTypography-root {
+    font-size: 15px;
+  }
+
+  .admin-checkinout__correction-field-icon,
+  .admin-checkinout__correction-status-field .admin-checkinout__correction-field-icon {
+    width: 54px;
+    height: 58px;
+    flex-basis: 54px;
+    border-radius: 12px;
+  }
+
+  .admin-checkinout__correction-field-icon svg {
+    font-size: 27px;
+  }
+
+  .admin-checkinout__correction-field .MuiInputLabel-root {
+    font-size: 14px;
+  }
+
+  .admin-checkinout__correction-field .MuiOutlinedInput-root {
+    font-size: 14px;
+  }
+
+  .admin-checkinout__correction-actions.MuiDialogActions-root {
+    gap: 10px;
+    min-height: 82px;
+    padding: 16px 20px;
+  }
+
+  .admin-checkinout__correction-actions .MuiButton-root {
+    min-width: 120px;
+    min-height: 46px;
+    font-size: 14px;
+  }
+
+  .admin-checkinout__correction-save.MuiButton-root {
+    min-width: 170px;
+  }
+}
+
+@media (max-width: 420px) {
+  .admin-checkinout__correction-paper.MuiDialog-paper {
+    width: calc(100vw - 20px);
+    margin: 10px;
+  }
+
+  .admin-checkinout__correction-header.MuiDialogTitle-root {
+    min-height: 124px;
+    padding-right: 52px;
+    padding-left: 16px;
+  }
+
+  .admin-checkinout__correction-brand {
+    width: 82px;
+    height: 24px;
+  }
+
+  .admin-checkinout__correction-title {
+    font-size: 19px;
+  }
+
+  .admin-checkinout__correction-subtitle {
+    font-size: 11px;
+  }
+
+  .admin-checkinout__correction-employee {
+    gap: 8px;
+  }
+
+  .admin-checkinout__correction-employee-icon {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+  }
+
+  .admin-checkinout__correction-employee-id {
+    min-width: 0;
+    max-width: 118px;
+    gap: 5px;
+    padding: 5px 6px;
+  }
+
+  .admin-checkinout__correction-employee-id > svg {
+    font-size: 19px;
+  }
+
+  .admin-checkinout__correction-employee-id-label {
+    font-size: 9px;
+  }
+
+  .admin-checkinout__correction-employee-id-value {
+    font-size: 10px;
+  }
+
+  .admin-checkinout__correction-content.MuiDialogContent-root {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .admin-checkinout__correction-actions.MuiDialogActions-root {
+    gap: 8px;
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .admin-checkinout__correction-actions .MuiButton-root {
+    min-width: 0;
+    flex: 1;
+    padding-right: 10px;
+    padding-left: 10px;
+    font-size: 13px;
+  }
+
+  .admin-checkinout__correction-save.MuiButton-root {
+    min-width: 0;
   }
 }
