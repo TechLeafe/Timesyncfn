@@ -71,6 +71,8 @@ const MainLayout = () => {
     setMobileOpen(false);
   }, [pathname]);
 
+  const showDiwaliBanner = false; // Set to true to show the Diwali celebration banner
+
   return (
     <Box className="app-main-layout app-main-layout-birthday-footer">
 
@@ -133,7 +135,9 @@ const MainLayout = () => {
 
       </Box>
 
-      <BirthdayFooter />
+      {/* DIWALI CELEBRATION BANNER - TEMPORARILY DISABLED */}
+      
+      {showDiwaliBanner && <BirthdayFooter />}
     </Box>
   );
 };
