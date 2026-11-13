@@ -300,7 +300,7 @@ const EmployeeCheckInOut = () => {
 
         const emailMatches =
           Boolean(myEmail) &&
-          entry.email?.toLowerCase() === myEmail;
+          entry.email?.toLowerCase() === myEmail
 
         return idMatches || emailMatches;
       });

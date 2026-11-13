@@ -36,7 +36,7 @@ import {
   createBirthday,
   updateBirthday,
   deleteBirthday,
-  type BirthdayReward,
+  type BirthdayCreation,
   type BirthdayPayload,
 } from "../../services/birthdayCreationService";
 
@@ -60,7 +60,7 @@ const getToday = () => {
 };
 
 export default function BirthdayCreation() {
-  const [birthdays, setBirthdays] = useState<BirthdayReward[]>([]);
+  const [birthdays, setBirthdays] = useState<BirthdayCreation[]>([]);
   
   const totalBirthdays = birthdays.length;
 
@@ -122,7 +122,7 @@ export default function BirthdayCreation() {
   };
 
   // OPEN EDIT POPUP
-  const handleEdit = (birthday: BirthdayReward) => {
+  const handleEdit = (birthday: BirthdayCreation) => {
     setForm({
       employeeName: birthday.employeeName,
       employeeId: birthday.employeeId,
@@ -326,6 +326,8 @@ export default function BirthdayCreation() {
      </Box>
 
       {/* BIRTHDAY TABLE */}
+      
+      {/* BIRTHDAY TABLE */}
       <TableContainer
         component={Paper}
         className="birthday-table-container"
@@ -366,39 +368,28 @@ export default function BirthdayCreation() {
 
                     <TableCell align="center">
 
-                     
-                    <TableCell align="center">
-
-  {/* EDIT BUTTON */}
-  <IconButton
-    sx={{
-      color: "#016637",
-      "&:hover": {
-        backgroundColor: "rgba(1, 102, 55, 0.08)",
-      },
-    }}
-    onClick={() => handleEdit(birthday)}
-    title="Edit"
-  >
-    <Edit />
-  </IconButton>
-
-  {/* DELETE BUTTON */}
-  <IconButton
-    color="error"
-    onClick={() =>
-      handleDeleteClick(birthday.employeeId)
-    }
-    title="Delete"
-  >
-    <Delete />
-  </IconButton>
-
-</TableCell>
-
-
+                      {/* EDIT BUTTON */}
                       <IconButton
-                        color="error"
+                        sx={{
+                          color: "#016637",
+                          "&:hover": {
+                            backgroundColor: "rgba(1, 102, 55, 0.08)",
+                          },
+                        }}
+                        onClick={() => handleEdit(birthday)}
+                        title="Edit"
+                      >
+                        <Edit />
+                      </IconButton>
+
+                      {/* DELETE BUTTON */}
+                      <IconButton
+                        sx={{
+                          color: "#d32f2f",
+                          "&:hover": {
+                            backgroundColor: "rgba(211, 47, 47, 0.08)",
+                          },
+                        }}
                         onClick={() =>
                           handleDeleteClick(birthday.employeeId)
                         }
@@ -420,9 +411,11 @@ export default function BirthdayCreation() {
               )}
 
             </TableBody>
+
           </Table>
         )}
       </TableContainer>
+
 
       {/* CREATE / EDIT POPUP */}
       <Dialog
@@ -538,9 +531,9 @@ export default function BirthdayCreation() {
         fullWidth
       >
 
-        <DialogTitle>
+        {/* <DialogTitle>
           Delete Birthday
-        </DialogTitle>
+        </DialogTitle> */}
 
         <DialogContent>
           <Typography>

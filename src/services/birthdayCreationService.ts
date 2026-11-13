@@ -1,7 +1,7 @@
 
 import axiosInstance from "../api/axiosInstance";
 
-export interface BirthdayReward {
+export interface BirthdayCreation {
   _id: string;
   employeeName: string;
   employeeId: string;
@@ -19,9 +19,9 @@ export interface BirthdayPayload {
 // GET ALL BIRTHDAYS
 export const getAllBirthdays = async () => {
   const response = await axiosInstance.get(
-    "birthday-rewards/list"
+    "birthday-creation/list"
   );
-
+ console.log(response.data);
   return response.data;
 };
 
@@ -30,10 +30,9 @@ export const createBirthday = async (
   payload: BirthdayPayload
 ) => {
   const response = await axiosInstance.post(
-    "birthday-rewards/create",
+    "birthday-creation/create",
     payload
   );
-
   return response.data;
 };
 
@@ -42,9 +41,8 @@ export const getBirthdayByEmployeeId = async (
   employeeId: string
 ) => {
   const response = await axiosInstance.get(
-    `birthday-rewards/${encodeURIComponent(employeeId)}`
+    `birthday-creation/${encodeURIComponent(employeeId)}`
   );
-
   return response.data;
 };
 
@@ -54,10 +52,9 @@ export const updateBirthday = async (
   payload: BirthdayPayload
 ) => {
   const response = await axiosInstance.put(
-    `birthday-rewards/${encodeURIComponent(employeeId)}`,
+    `birthday-creation/${encodeURIComponent(employeeId)}`,
     payload
   );
-
   return response.data;
 };
 
@@ -66,9 +63,8 @@ export const deleteBirthday = async (
   employeeId: string
 ) => {
   const response = await axiosInstance.delete(
-    `birthday-rewards/${encodeURIComponent(employeeId)}`
+    `birthday-creation/${encodeURIComponent(employeeId)}`
   );
-
   return response.data;
 };
 
