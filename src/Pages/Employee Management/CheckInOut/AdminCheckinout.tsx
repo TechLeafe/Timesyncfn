@@ -29,6 +29,13 @@ import {
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
+import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
+import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlined";
+import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
+import SwapHorizOutlinedIcon from "@mui/icons-material/SwapHorizOutlined";
+import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
+import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
+import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 import LoginOutlinedIcon from "@mui/icons-material/LoginOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import PeopleOutlineOutlinedIcon from "@mui/icons-material/PeopleOutlineOutlined";
@@ -1035,29 +1042,88 @@ function AdminCheckinout() {
           if (!correctionSaving) setCorrectionEmployee(null);
         }}
         fullWidth
-        maxWidth="sm"
+        maxWidth={false}
+        className="admin-checkinout__correction-dialog"
+        slotProps={{
+          paper: { className: "admin-checkinout__correction-paper" },
+        }}
+        aria-labelledby="attendance-correction-title"
       >
-        <DialogTitle>Employee Attendance</DialogTitle>
-        <DialogContent>
+        <DialogTitle
+          id="attendance-correction-title"
+          className="admin-checkinout__correction-header"
+        >
+          <span className="admin-checkinout__correction-heading-copy">
+            {/* <img
+              className="admin-checkinout__correction-brand"
+              src="/hrms%20logo%20v%201.6.jpg"
+              alt="HRMS TimeSync"
+            /> */}
+            <span className="admin-checkinout__correction-title">
+              Employee Attendance
+            </span>
+            <span className="admin-checkinout__correction-subtitle">
+              Update attendance status for the selected employee
+            </span>
+          </span>
+          <span className="admin-checkinout__correction-header-art" aria-hidden="true">
+            <CalendarMonthOutlinedIcon />
+          </span>
+          <IconButton
+            className="admin-checkinout__correction-close"
+            aria-label="Close attendance correction"
+            onClick={() => {
+              if (!correctionSaving) setCorrectionEmployee(null);
+            }}
+            disabled={correctionSaving}
+          >
+            <CloseOutlinedIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent className="admin-checkinout__correction-content">
           {correctionEmployee && (
-            <Box sx={{ display: "grid", gap: 2, pt: 1 }}>
-              <Typography>
-                <strong>Employee:</strong>{" "}
-                {correctionEmployee.employeeName || correctionEmployee.employeeId}
-                {" · "}
-                {correctionEmployee.employeeId}
-              </Typography>
-              <TextField
-                label="Attendance Date"
-                type="date"
-                value={correctionDate}
-                onChange={(event) => setCorrectionDate(event.target.value)}
-                required
-                fullWidth
-                slotProps={{ inputLabel: { shrink: true } }}
-              />
+            <Box className="admin-checkinout__correction-form">
+              <Box className="admin-checkinout__correction-employee">
+                <span className="admin-checkinout__correction-employee-icon">
+                  <PersonOutlineOutlinedIcon />
+                </span>
+                <span className="admin-checkinout__correction-employee-copy">
+                  <Typography className="admin-checkinout__correction-employee-label">
+                    Employee
+                  </Typography>
+                  <Typography className="admin-checkinout__correction-employee-name">
+                    {correctionEmployee.employeeName || correctionEmployee.employeeId}
+                  </Typography>
+                </span>
+                <span className="admin-checkinout__correction-employee-id">
+                  <CalendarMonthOutlinedIcon />
+                  <span>
+                    <span className="admin-checkinout__correction-employee-id-label">
+                      Employee ID
+                    </span>
+                    <span className="admin-checkinout__correction-employee-id-value">
+                      {correctionEmployee.employeeId}
+                    </span>
+                  </span>
+                </span>
+              </Box>
+              <Box className="admin-checkinout__correction-field-row">
+                <span className="admin-checkinout__correction-field-icon">
+                  <CalendarMonthOutlinedIcon />
+                </span>
+                <TextField
+                  className="admin-checkinout__correction-field admin-checkinout__correction-date"
+                  label="Attendance Date"
+                  type="date"
+                  value={correctionDate}
+                  onChange={(event) => setCorrectionDate(event.target.value)}
+                  required
+                  fullWidth
+                  slotProps={{ inputLabel: { shrink: true } }}
+                />
+              </Box>
               {correctionLoading ? (
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Box className="admin-checkinout__correction-feedback">
                   <CircularProgress size={18} />
                   <Typography>Fetching attendance status...</Typography>
                 </Box>
@@ -1067,74 +1133,122 @@ function AdminCheckinout() {
                 <>
                   {canCorrectAttendance(correctionRecord.attendanceStatus) ? (
                     <>
-                      <TextField
-                        label="Current Attendance Status"
-                        select
-                        value={correctionCurrentStatus}
-                        onChange={(event) => {
-                          const status = event.target.value;
-                          if (isAttendanceCorrectionStatus(status)) {
-                            setCorrectionCurrentStatus(status);
-                            setCorrectionNewStatus(
-                              getAllowedCorrectionStatuses(status)[0] || ""
-                            );
-                          }
-                        }}
-                        fullWidth
-                      >
-                        {ATTENDANCE_CORRECTION_STATUSES.map((status) => (
-                          <MenuItem key={status} value={status}>
-                            {status}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                      <TextField
-                        label="Change Attendance Status"
-                        select
-                        value={correctionNewStatus}
-                        onChange={(event) => {
-                          const status = event.target.value;
-                          if (
-                            isAttendanceCorrectionStatus(status) &&
-                            getAllowedCorrectionStatuses(
-                              correctionCurrentStatus
-                            ).includes(status)
-                          ) {
-                            setCorrectionNewStatus(status);
-                          }
-                        }}
-                        fullWidth
-                      >
-                        {ATTENDANCE_CORRECTION_STATUSES.map((status) => (
-                          <MenuItem
-                            key={status}
-                            value={status}
-                            disabled={
-                              !getAllowedCorrectionStatuses(
-                                correctionCurrentStatus
-                              ).includes(status)
-                            }
+                      <Box className="admin-checkinout__correction-status-row">
+                        <Box className="admin-checkinout__correction-field-row admin-checkinout__correction-status-field">
+                          <span className="admin-checkinout__correction-field-icon">
+                            <EventAvailableOutlinedIcon />
+                          </span>
+                          <TextField
+                            className="admin-checkinout__correction-field"
+                            label="Current Attendance Status"
+                            select
+                            value={correctionCurrentStatus}
+                            onChange={(event) => {
+                              const status = event.target.value;
+                              if (isAttendanceCorrectionStatus(status)) {
+                                setCorrectionCurrentStatus(status);
+                                setCorrectionNewStatus(
+                                  getAllowedCorrectionStatuses(status)[0] || ""
+                                );
+                              }
+                            }}
+                            fullWidth
                           >
-                            {status}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                      <TextField
-                        label="Reason for Attendance Correction"
-                        value={correctionReason}
-                        onChange={(event) =>
-                          setCorrectionReason(event.target.value)
-                        }
-                        required
-                        multiline
-                        minRows={3}
-                        fullWidth
-                        slotProps={{ htmlInput: { maxLength: 1000 } }}
-                        helperText={`${correctionReason.length}/1000`}
-                      />
+                            {ATTENDANCE_CORRECTION_STATUSES.map((status) => (
+                              <MenuItem key={status} value={status}>
+                                {status}
+                              </MenuItem>
+                            ))}
+                          </TextField>
+                        </Box>
+                        <span
+                          className="admin-checkinout__correction-swap-icon"
+                          aria-hidden="true"
+                        >
+                          <SwapHorizOutlinedIcon />
+                        </span>
+                        <Box className="admin-checkinout__correction-status-target">
+                          <TextField
+                            className="admin-checkinout__correction-field"
+                            label="Change Attendance Status"
+                            select
+                            value={correctionNewStatus}
+                            onChange={(event) => {
+                              const status = event.target.value;
+                              if (
+                                isAttendanceCorrectionStatus(status) &&
+                                getAllowedCorrectionStatuses(
+                                  correctionCurrentStatus
+                                ).includes(status)
+                              ) {
+                                setCorrectionNewStatus(status);
+                              }
+                            }}
+                            fullWidth
+                          >
+                            {ATTENDANCE_CORRECTION_STATUSES.map((status) => (
+                              <MenuItem
+                                key={status}
+                                value={status}
+                                disabled={
+                                  !getAllowedCorrectionStatuses(
+                                    correctionCurrentStatus
+                                  ).includes(status)
+                                }
+                              >
+                                {status}
+                              </MenuItem>
+                            ))}
+                          </TextField>
+                        </Box>
+                      </Box>
+                      <Box className="admin-checkinout__correction-field-row admin-checkinout__correction-reason-row">
+                        <span className="admin-checkinout__correction-field-icon admin-checkinout__correction-reason-icon">
+                          <DescriptionOutlinedIcon />
+                        </span>
+                        <TextField
+                          className="admin-checkinout__correction-field admin-checkinout__correction-reason"
+                          label="Reason for Attendance Correction"
+                          value={correctionReason}
+                          onChange={(event) =>
+                            setCorrectionReason(event.target.value)
+                          }
+                          required
+                          multiline
+                          minRows={3}
+                          fullWidth
+                          slotProps={{ htmlInput: { maxLength: 1000 } }}
+                          helperText={`${correctionReason.length}/1000`}
+                        />
+                      </Box>
+                      {/* <Box
+                        className="admin-checkinout__correction-preview"
+                        role="status"
+                        aria-live="polite"
+                      >
+                        <CheckCircleRoundedIcon className="admin-checkinout__correction-preview-icon" />
+                        <span className="admin-checkinout__correction-preview-copy">
+                          <Typography className="admin-checkinout__correction-preview-title">
+                            Attendance will be updated!
+                          </Typography>
+                          <Typography className="admin-checkinout__correction-preview-description">
+                            The attendance status will be changed from{" "}
+                            <span className="admin-checkinout__correction-preview-status admin-checkinout__correction-preview-status--current">
+                              {correctionCurrentStatus}
+                            </span>{" "}
+                            to{" "}
+                            <span className="admin-checkinout__correction-preview-status admin-checkinout__correction-preview-status--new">
+                              {correctionNewStatus}
+                            </span>
+                          </Typography>
+                        </span>
+                      </Box> */}
                     </>
                   ) : (
-                    <Alert severity="info">
+                    <Alert
+                      severity="info"
+                      className="admin-checkinout__correction-alert"
+                    >
                       Only Absent, Present, and Half-Day Present records can
                       be corrected.
                     </Alert>
@@ -1144,14 +1258,16 @@ function AdminCheckinout() {
             </Box>
           )}
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
+        <DialogActions className="admin-checkinout__correction-actions">
           <Button
+            className="admin-checkinout__correction-cancel"
             onClick={() => setCorrectionEmployee(null)}
             disabled={correctionSaving}
           >
             Cancel
           </Button>
           <Button
+            className="admin-checkinout__correction-save"
             variant="contained"
             onClick={() => void saveAttendanceCorrection()}
             disabled={
@@ -1162,6 +1278,7 @@ function AdminCheckinout() {
               correctionReason.trim().length > 1000
             }
           >
+            <SaveOutlinedIcon />
             {correctionSaving ? "Saving..." : "Save Changes"}
           </Button>
         </DialogActions>
@@ -1533,7 +1650,12 @@ function AttendanceSection({
                   <TableCell>Monthly Remaining</TableCell>
                   <TableCell>Final Status</TableCell>
                   {showDay && onCorrect && (
-                    <TableCell align="right">Action</TableCell>
+                    <TableCell
+                      align="center"
+                      className="admin-checkinout__action-cell admin-checkinout__action-cell--header"
+                    >
+                      Action
+                    </TableCell>
                   )}
                 </TableRow>
               </TableHead>
@@ -1617,13 +1739,17 @@ function AttendanceSection({
                       {record.attendanceStatus || "Pending"}
                     </TableCell>
                     {showDay && onCorrect && (
-                      <TableCell align="right">
+                      <TableCell
+                        align="right"
+                        className="admin-checkinout__action-cell"
+                      >
                         {canCorrectAttendance(record.attendanceStatus) && (
                           <Button
                             size="small"
+                            className="admin-checkinout__edit-button"
                             onClick={() => onCorrect(record)}
                           >
-                            Correct
+                            Edit
                           </Button>
                         )}
                       </TableCell>
@@ -1743,7 +1869,7 @@ function AttendanceMobileCard({
       <Box className="admin-checkinout__mobile-card-header">
         <Box className="admin-checkinout__mobile-employee">
           <Typography className="admin-checkinout__mobile-employee-id">
-            {record.employeeName || "Employee"} · {record.employeeId || "-"}
+            {record.employeeName || "Employee"} 
           </Typography>
 
           <Typography className="admin-checkinout__mobile-email">
@@ -1775,10 +1901,10 @@ function AttendanceMobileCard({
         canCorrectAttendance(record.attendanceStatus) && (
         <Button
           size="small"
-          sx={{ mt: 1 }}
+          className="admin-checkinout__edit-button"
           onClick={() => onCorrect(record)}
         >
-          Correct Attendance
+          Edit
         </Button>
       )}
     </Paper>

@@ -42,6 +42,18 @@
 
 .cc-refresh:disabled { opacity: .6; cursor: not-allowed; }
 
+.cc-header-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+
+.cc-header-actions .cc-refresh { margin-left: 0; }
+
+.cc-filter-btn, .cc-download-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid #d6e7dc; background: #fff; border-radius: 9px; padding: 8px 12px; color: #087b4d; font-size: 12px; font-weight: 700; cursor: pointer; }
+
+.cc-filter-btn:hover, .cc-download-btn:hover:not(:disabled) { background: #f2f8f3; }
+
+.cc-filter-btn:focus-visible, .cc-download-btn:focus-visible { outline: 3px solid #4fbd83; outline-offset: 2px; }
+
+.cc-download-btn:disabled { opacity: .6; cursor: not-allowed; }
+
 .cc-alert { margin: 0; padding: 10px 12px; background: #fff3f3; color: #a33434; border: 1px solid #f2c8c8; border-radius: 9px; font-size: 12px; }
 
 .cc-alert--warning { color: #916818; background: #fffaf0; border-color: #ead9a3; }
@@ -746,6 +758,10 @@
 }
 
 @media (max-width: 600px) {
+
+  .company-calendar-page .cc-page-header { flex-wrap: wrap; }
+
+  .company-calendar-page .cc-header-actions { width: 100%; margin-left: 0; }
 
   .company-calendar-page .cc-grid { gap: 3px; }
 

@@ -1,13 +1,30 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
-import { CalendarDays, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Download, Filter, RefreshCw } from "lucide-react";
 
 import api from "../../api/axiosInstance";
+import {
+  Alert,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
+  Stack,
+  TextField,
+} from "@mui/material";
 
 import "./Companycalendar.css";
 
 type AttendanceMark = "P" | "HP" | "A" | "L" | "LP" | "LT" | "ED";
+type AttendanceExportLeaveType =
+  | "ALL"
+  | "CL"
+  | "SL"
+  | "COMP_OFF"
+  | "PERMISSION";
 
 type Holiday = {
 
@@ -486,6 +503,20 @@ export default function CompanyCalendar() {
   const [error, setError] = useState("");
 
   const [attendanceWarning, setAttendanceWarning] = useState("");
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [leaveType, setLeaveType] =
+    useState<AttendanceExportLeaveType>("ALL");
+  const [appliedRange, setAppliedRange] = useState<{
+    startDate: string;
+    endDate: string;
+    leaveType: AttendanceExportLeaveType;
+  } | null>(null);
+  const [filterError, setFilterError] = useState("");
+  const [downloadError, setDownloadError] = useState("");
+  const [downloadSuccess, setDownloadSuccess] = useState("");
+  const [downloading, setDownloading] = useState(false);
 
   const today = getTodayInIndia();
   const [user] = useState(() => loggedInUser());
@@ -836,6 +867,72 @@ export default function CompanyCalendar() {
 
   }
 
+  const handleApplyFilter = () => {
+    if (!startDate || !endDate) {
+      setFilterError("Start Date and End Date are required.");
+      return;
+    }
+
+    if (startDate > endDate) {
+      setFilterError("Start Date cannot be greater than End Date.");
+      return;
+    }
+
+    setAppliedRange({ startDate, endDate, leaveType });
+    setFilterError("");
+    setDownloadError("");
+    setDownloadSuccess("");
+    setFilterOpen(false);
+  };
+
+  const handleClearFilter = () => {
+    setStartDate("");
+    setEndDate("");
+    setLeaveType("ALL");
+    setAppliedRange(null);
+    setFilterError("");
+    setDownloadError("");
+    setDownloadSuccess("");
+  };
+
+  const handleDownload = async () => {
+    if (!isCompanyAdmin || !appliedRange || downloading) return;
+
+    try {
+      setDownloading(true);
+      setDownloadError("");
+      setDownloadSuccess("");
+
+      const response = await api.get("/attendance/export", {
+        params: appliedRange,
+        responseType: "blob",
+      });
+
+      const blob = response.data as Blob;
+      if (!blob.size || !blob.type.includes("spreadsheetml")) {
+        throw new Error("Server did not return a valid Excel file.");
+      }
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download =
+        `Employee_Attendance_${appliedRange.startDate}_to_${appliedRange.endDate}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 0);
+
+      setDownloadSuccess("Attendance report downloaded successfully.");
+    } catch (downloadFailure) {
+      setDownloadError(
+        errorText(downloadFailure, "Unable to download the attendance report.")
+      );
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
 
     <div className="company-calendar-page">
@@ -856,15 +953,136 @@ export default function CompanyCalendar() {
 
         </div>
 
-        <button className="cc-refresh" type="button" onClick={() => void loadCalendar()} disabled={loading}>
+        <div className="cc-header-actions">
+          <button
+            className="cc-refresh"
+            type="button"
+            onClick={() => void loadCalendar()}
+            disabled={loading}
+          >
+            <RefreshCw size={15} />
+            <span>Refresh</span>
+          </button>
 
-          <RefreshCw size={15} /><span>Refresh</span>
+          {isCompanyAdmin && (
+            <>
+              <button
+                className="cc-filter-btn"
+                type="button"
+                onClick={() => setFilterOpen(true)}
+              >
+                <Filter size={16} />
+                <span>Filter</span>
+              </button>
 
-        </button>
+              <button
+                className="cc-download-btn"
+                type="button"
+                disabled={!appliedRange || downloading}
+                onClick={() => void handleDownload()}
+              >
+                <Download size={16} />
+                <span>{downloading ? "Downloading..." : "Download"}</span>
+              </button>
+            </>
+          )}
+        </div>
 
       </header>
 
       {error && <p className="cc-alert" role="alert">{error}</p>}
+
+      {isCompanyAdmin && (
+        <Dialog
+          open={filterOpen}
+          onClose={() => setFilterOpen(false)}
+          fullWidth
+          maxWidth="xs"
+        >
+          <DialogTitle>Attendance Date Filter</DialogTitle>
+          <DialogContent>
+            <Stack spacing={3} sx={{ mt: 2 }}>
+              <TextField
+                label="Start Date"
+                type="date"
+                fullWidth
+                value={startDate}
+                slotProps={{
+                  htmlInput: { max: endDate || undefined },
+                  inputLabel: { shrink: true },
+                }}
+                onChange={(event) => {
+                  setStartDate(event.target.value);
+                  setAppliedRange(null);
+                  setFilterError("");
+                }}
+              />
+              <TextField
+                label="End Date"
+                type="date"
+                fullWidth
+                value={endDate}
+                slotProps={{
+                  htmlInput: { min: startDate || undefined },
+                  inputLabel: { shrink: true },
+                }}
+                onChange={(event) => {
+                  setEndDate(event.target.value);
+                  setAppliedRange(null);
+                  setFilterError("");
+                }}
+              />
+              <TextField
+                label="Leave Type"
+                select
+                fullWidth
+                value={leaveType}
+                onChange={(event) => {
+                  setLeaveType(event.target.value as AttendanceExportLeaveType);
+                  setAppliedRange(null);
+                  setFilterError("");
+                }}
+              >
+                <MenuItem value="ALL">All Records</MenuItem>
+                <MenuItem value="CL">Casual Leave</MenuItem>
+                <MenuItem value="SL">Sick Leave</MenuItem>
+                <MenuItem value="COMP_OFF">Compensatory Off</MenuItem>
+                <MenuItem value="PERMISSION">Permission</MenuItem>
+              </TextField>
+              {filterError && <Alert severity="error">{filterError}</Alert>}
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={handleClearFilter}
+              variant="outlined"
+              sx={{
+                color: "#087b4d",
+                borderColor: "#087b4d",
+                "&:hover": {
+                  borderColor: "#06613d",
+                  backgroundColor: "rgba(8, 123, 77, 0.06)",
+                },
+              }}
+            >
+              Clear
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleApplyFilter}
+              sx={{
+                backgroundColor: "#087b4d",
+                "&:hover": { backgroundColor: "#06613d" },
+              }}
+            >
+              Apply
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
+
+      {downloadError && <Alert severity="error">{downloadError}</Alert>}
+      {downloadSuccess && <Alert severity="success">{downloadSuccess}</Alert>}
 
       {attendanceWarning && <p className="cc-alert cc-alert--warning" role="status">{attendanceWarning}</p>}
 
