@@ -1133,3 +1133,71 @@
 .company-calendar-page .cc-day-today .cc-day-number {
   color: #267c13;
 }
+
+/* ==========================================
+   COMPANY CALENDAR - FIXED PAGE + INTERNAL SCROLL
+   ========================================== */
+
+.company-calendar-page {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Calendar card takes the available remaining height */
+.company-calendar-page .cc-calendar-card {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Keep month navigation fixed */
+.company-calendar-page .cc-calendar-header {
+  flex-shrink: 0;
+}
+
+/* Calendar body fills the remaining card space */
+.company-calendar-page .cc-calendar-body {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Weekday names remain fixed */
+.company-calendar-page .cc-weekdays {
+  flex-shrink: 0;
+}
+
+/* Only the calendar date rows scroll */
+.company-calendar-page .cc-grid-scroll {
+  flex: 1 1 0%;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #a8c99c #f1f6ee;
+}
+
+/* Keep date cells at their existing size */
+.company-calendar-page .cc-grid {
+  grid-auto-rows: 112px;
+}
+
+/* Keep the legend visible below the scrolling dates */
+.company-calendar-page .cc-legend {
+  flex-shrink: 0;
+}
+
+/* Mobile date cell sizing */
+@media (max-width: 650px) {
+  .company-calendar-page .cc-grid {
+    grid-auto-rows: 76px;
+  }
+}

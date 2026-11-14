@@ -392,3 +392,43 @@
   overflow-y: auto;
   overflow-x: auto;
 }
+
+/* ==========================================
+   COMPANY CALENDAR - PAGE SCROLL CONTROL
+   ========================================== */
+
+.app-main-content:has(.company-calendar-page) {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.app-page-content:has(.company-calendar-page) {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  height: 0;
+  min-height: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Prevent footer padding from reducing calendar height */
+.app-main-layout-birthday-footer
+  .app-page-content:has(.company-calendar-page) {
+  padding-bottom: 20px;
+}
+
+/* Let the calendar use the available page height */
+.app-page-content:has(.company-calendar-page)
+  .company-calendar-page {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
