@@ -1,7 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
-import { CalendarDays, ChevronLeft, ChevronRight, Download, Filter, RefreshCw } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Filter,
+  RefreshCw,
+  Trophy,
+} from "lucide-react";
 
 import api from "../../api/axiosInstance";
 import {
@@ -17,6 +25,12 @@ import {
 } from "@mui/material";
 
 import "./Companycalendar.css";
+import MonthlyAchievementCard from "../../Components/MonthlyAchievement/MonthlyAchievementCard";
+import type {
+  MonthlyAchievement,
+} from "../../Components/MonthlyAchievement/MonthlyAchievementCard";
+import DeclareAchievementModal from "../../Components/MonthlyAchievement/DeclareAchievementModal";
+import "../../Components/MonthlyAchievement/MonthlyAchievement.css";
 
 type AttendanceMark = "P" | "HP" | "A" | "L" | "LP" | "LT" | "ED";
 type AttendanceExportLeaveType =
@@ -51,6 +65,7 @@ type EmployeeRecord = {
   email: string;
   userType: number;
   status: string;
+  photo?: string | null;
 };
 type CompanyAttendanceStatus = {
   status: string;
@@ -517,6 +532,16 @@ export default function CompanyCalendar() {
   const [downloadError, setDownloadError] = useState("");
   const [downloadSuccess, setDownloadSuccess] = useState("");
   const [downloading, setDownloading] = useState(false);
+  const [showAchievementCard, setShowAchievementCard] =
+    useState(false);
+  const [declareAchievementOpen, setDeclareAchievementOpen] =
+    useState(false);
+  const [monthlyAchievement, setMonthlyAchievement] =
+    useState<MonthlyAchievement | null>(null);
+  const [monthlyAchievementLoading, setMonthlyAchievementLoading] =
+    useState(false);
+  const [monthlyAchievementError, setMonthlyAchievementError] =
+    useState("");
 
   const today = getTodayInIndia();
   const [user] = useState(() => loggedInUser());
@@ -758,6 +783,58 @@ export default function CompanyCalendar() {
       document.removeEventListener("visibilitychange", refreshWhenVisible);
     };
   }, [loadCalendar]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadMonthlyAchievement = async () => {
+      setMonthlyAchievementLoading(true);
+      setMonthlyAchievementError("");
+      setMonthlyAchievement(null);
+
+      try {
+        const response = await api.get<{
+          success: boolean;
+          message?: string;
+          data: MonthlyAchievement | null;
+        }>("/monthly-achievement", {
+          params: {
+            month: visibleMonth.getMonth() + 1,
+            year: visibleMonth.getFullYear(),
+          },
+        });
+
+        if (response.data.success === false) {
+          throw new Error(
+            response.data.message || "Unable to load achievement"
+          );
+        }
+
+        if (!cancelled) {
+          setMonthlyAchievement(response.data.data ?? null);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setMonthlyAchievementError(
+            errorText(
+              error,
+              "Unable to load monthly achievement."
+            )
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setMonthlyAchievementLoading(false);
+        }
+      }
+    };
+
+    void loadMonthlyAchievement();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [visibleMonth]);
 
   const holidayByDay = useMemo(() => {
 
@@ -1086,18 +1163,70 @@ export default function CompanyCalendar() {
 
       {attendanceWarning && <p className="cc-alert cc-alert--warning" role="status">{attendanceWarning}</p>}
 
-      <section className="cc-calendar-card" aria-label="Company month calendar">
+      {monthlyAchievementError && (
+        <Alert severity="error">
+          {monthlyAchievementError}
+        </Alert>
+      )}
+
+      <div
+        className={`cc-calendar-achievement-layout ${
+          showAchievementCard && !isCompanyAdmin
+            ? "cc-achievement-visible"
+            : ""
+        }`}
+      >
+        <div className="cc-calendar-main">
+          <section className="cc-calendar-card" aria-label="Company month calendar">
 
         <div className="cc-calendar-header">
 
           <div className="cc-month-controls">
 
-            <button type="button" title="Previous month" aria-label="Previous month" onClick={() => moveMonth(-1)}><ChevronLeft size={21} /></button>
+            <button
+              type="button"
+              onClick={() => moveMonth(-1)}
+              aria-label="Previous month"
+            >
+              <ChevronLeft size={22} />
+            </button>
 
             <h2>{monthLabel}</h2>
 
-            <button type="button" title="Next month" aria-label="Next month" onClick={() => moveMonth(1)}><ChevronRight size={21} /></button>
+            <button
+              type="button"
+              onClick={() => moveMonth(1)}
+              aria-label="Next month"
+            >
+              <ChevronRight size={22} />
+            </button>
 
+          </div>
+
+          <div className="cc-achievement-actions">
+            {!isCompanyAdmin && monthlyAchievement && (
+              <button
+                type="button"
+                className="cc-monthly-achievement-btn"
+                onClick={() =>
+                  setShowAchievementCard((prev) => !prev)
+                }
+                aria-expanded={showAchievementCard}
+              >
+                <Trophy size={17} />
+                Monthly Achievement
+              </button>
+            )}
+            {isCompanyAdmin && (
+              <button
+                type="button"
+                className="cc-declare-achievement-btn"
+                onClick={() => setDeclareAchievementOpen(true)}
+              >
+                <Trophy size={20} />
+                Declare Achievement
+              </button>
+            )}
           </div>
 
           <span className="cc-month-summary">{loading ? "Loading..." : `${monthHolidays.length} holiday${monthHolidays.length === 1 ? "" : "s"} this month`}</span>
@@ -1330,6 +1459,46 @@ export default function CompanyCalendar() {
         </div>
 
       </section>
+
+        </div>
+
+        {!isCompanyAdmin && showAchievementCard && (
+          <aside className="cc-achievement-sidebar">
+            {monthlyAchievementLoading ? (
+              <div className="ma-empty-sidebar">
+                Loading achievement...
+              </div>
+            ) : monthlyAchievement ? (
+              <MonthlyAchievementCard
+                achievement={monthlyAchievement}
+              />
+            ) : (
+              <div className="ma-empty-sidebar">
+                No Monthly Achievement declared
+                for {monthLabel}.
+              </div>
+            )}
+          </aside>
+        )}
+
+      </div>
+
+      {isCompanyAdmin && (
+        <DeclareAchievementModal
+          open={declareAchievementOpen}
+          onClose={() =>
+            setDeclareAchievementOpen(false)
+          }
+          onSaved={(savedAchievement) => {
+            setMonthlyAchievement(savedAchievement);
+            setMonthlyAchievementError("");
+          }}
+          employees={employees}
+          month={visibleMonth.getMonth() + 1}
+          year={visibleMonth.getFullYear()}
+          existing={monthlyAchievement}
+        />
+      )}
 
     </div>
 

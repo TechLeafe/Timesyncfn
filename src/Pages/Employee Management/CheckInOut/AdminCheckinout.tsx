@@ -1,5 +1,12 @@
 
-import { useEffect, useMemo, useState } from "react";
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { ReactNode } from "react";
 
 import {
@@ -89,12 +96,16 @@ type AttendanceStatus =
 type AttendanceCorrectionStatus =
   | "Absent"
   | "Present"
-  | "Half-Day Present";
+  | "Half-Day Present"
+  | "Pending"
+  | "Late Present";
 
 const ATTENDANCE_CORRECTION_STATUSES: AttendanceCorrectionStatus[] = [
   "Absent",
   "Present",
   "Half-Day Present",
+  "Pending",
+  "Late Present",
 ];
 
 const getAllowedCorrectionStatuses = (
@@ -106,6 +117,8 @@ const getAllowedCorrectionStatuses = (
     case "Present":
       return ["Absent"];
     case "Half-Day Present":
+    case "Pending":
+    case "Late Present":
       return ["Present"];
     default:
       return [];
@@ -165,6 +178,12 @@ const getTodayDateString = (): string => {
 
   return `${year}-${month}-${day}`;
 };
+
+const shouldShowCorrectionAction = (
+  record: AttendanceRecord
+): boolean =>
+  canCorrectAttendance(record.attendanceStatus) ||
+  record.day.slice(0, 10) < getTodayDateString();
 
 const formatDateTime = (
   value: string | null
@@ -353,26 +372,62 @@ function AdminCheckinout() {
     useState<AttendanceCorrectionStatus | "">("");
   const [correctionNewStatus, setCorrectionNewStatus] =
     useState<AttendanceCorrectionStatus | "">("");
-  const [correctionReason, setCorrectionReason] = useState("");
+  const [correctionReasonKey, setCorrectionReasonKey] = useState(0);
+  const [correctionReasonRequired, setCorrectionReasonRequired] =
+    useState(false);
+  const correctionReasonRef = useRef("");
   const [correctionLoading, setCorrectionLoading] = useState(false);
   const [correctionSaving, setCorrectionSaving] = useState(false);
   const [correctionError, setCorrectionError] = useState("");
   const [correctionMessage, setCorrectionMessage] = useState("");
 
-  const openCorrection = (record: AttendanceRecord) => {
+  const handleCorrectionReasonChange = useCallback((reason: string) => {
+    correctionReasonRef.current = reason;
+  }, []);
+
+  const openCorrection = useCallback((record: AttendanceRecord) => {
     setCorrectionEmployee(record);
     setCorrectionDate(record.day.slice(0, 10));
-    setCorrectionRecord(null);
-    setCorrectionCurrentStatus("");
-    setCorrectionNewStatus("");
-    setCorrectionReason("");
+    setCorrectionRecord(record);
+    setCorrectionLoading(false);
+    const currentStatus = record.attendanceStatus;
+    if (currentStatus && isAttendanceCorrectionStatus(currentStatus)) {
+      setCorrectionCurrentStatus(currentStatus);
+      setCorrectionNewStatus(
+        getAllowedCorrectionStatuses(currentStatus)[0] || ""
+      );
+    } else {
+      setCorrectionCurrentStatus("");
+      setCorrectionNewStatus("");
+    }
+    correctionReasonRef.current = "";
+    setCorrectionReasonKey((key) => key + 1);
+    setCorrectionReasonRequired(false);
     setCorrectionError("");
     setCorrectionMessage("");
-  };
+  }, []);
 
   useEffect(() => {
     if (!correctionEmployee || !correctionDate) {
       setCorrectionRecord(null);
+      setCorrectionLoading(false);
+      return;
+    }
+
+    if (correctionDate === correctionEmployee.day.slice(0, 10)) {
+      const currentStatus = correctionEmployee.attendanceStatus;
+      setCorrectionRecord(correctionEmployee);
+      setCorrectionError("");
+      setCorrectionLoading(false);
+      if (currentStatus && isAttendanceCorrectionStatus(currentStatus)) {
+        setCorrectionCurrentStatus(currentStatus);
+        setCorrectionNewStatus(
+          getAllowedCorrectionStatuses(currentStatus)[0] || ""
+        );
+      } else {
+        setCorrectionCurrentStatus("");
+        setCorrectionNewStatus("");
+      }
       return;
     }
 
@@ -431,7 +486,13 @@ function AdminCheckinout() {
   }, [correctionEmployee, correctionDate]);
 
   const saveAttendanceCorrection = async () => {
-    const cleanReason = correctionReason.trim();
+    const cleanReason = correctionReasonRef.current.trim();
+    if (!cleanReason) {
+      setCorrectionReasonRequired(true);
+      return;
+    }
+    setCorrectionReasonRequired(false);
+
     const parsedDate = new Date(`${correctionDate}T00:00:00.000Z`);
     const isValidDate =
       /^\d{4}-\d{2}-\d{2}$/.test(correctionDate) &&
@@ -448,9 +509,7 @@ function AdminCheckinout() {
       !isAttendanceCorrectionStatus(correctionNewStatus) ||
       !getAllowedCorrectionStatuses(correctionCurrentStatus).includes(
         correctionNewStatus
-      ) ||
-      !cleanReason ||
-      cleanReason.length > 1000
+      )
     ) {
       setCorrectionError(
         "Select a valid employee, attendance date, status, and correction reason."
@@ -1041,6 +1100,7 @@ function AdminCheckinout() {
         onClose={() => {
           if (!correctionSaving) setCorrectionEmployee(null);
         }}
+        transitionDuration={100}
         fullWidth
         maxWidth={false}
         className="admin-checkinout__correction-dialog"
@@ -1206,19 +1266,10 @@ function AdminCheckinout() {
                         <span className="admin-checkinout__correction-field-icon admin-checkinout__correction-reason-icon">
                           <DescriptionOutlinedIcon />
                         </span>
-                        <TextField
-                          className="admin-checkinout__correction-field admin-checkinout__correction-reason"
-                          label="Reason for Attendance Correction"
-                          value={correctionReason}
-                          onChange={(event) =>
-                            setCorrectionReason(event.target.value)
-                          }
-                          required
-                          multiline
-                          minRows={3}
-                          fullWidth
-                          slotProps={{ htmlInput: { maxLength: 1000 } }}
-                          helperText={`${correctionReason.length}/1000`}
+                        <AttendanceCorrectionReasonField
+                          key={correctionReasonKey}
+                          onChange={handleCorrectionReasonChange}
+                          showRequiredError={correctionReasonRequired}
                         />
                       </Box>
                       {/* <Box
@@ -1249,8 +1300,7 @@ function AdminCheckinout() {
                       severity="info"
                       className="admin-checkinout__correction-alert"
                     >
-                      Only Absent, Present, and Half-Day Present records can
-                      be corrected.
+                      This attendance status cannot be corrected.
                     </Alert>
                   )}
                 </>
@@ -1273,9 +1323,7 @@ function AdminCheckinout() {
             disabled={
               correctionSaving ||
               correctionLoading ||
-              !correctionRecord ||
-              correctionReason.trim().length === 0 ||
-              correctionReason.trim().length > 1000
+              !correctionRecord
             }
           >
             <SaveOutlinedIcon />
@@ -1353,7 +1401,41 @@ function StatusPill({
    ATTENDANCE TABLE / MOBILE CARDS
 ========================================= */
 
-function AttendanceSection({
+const AttendanceCorrectionReasonField = memo(function AttendanceCorrectionReasonField({
+  onChange,
+  showRequiredError,
+}: {
+  onChange: (reason: string) => void;
+  showRequiredError: boolean;
+}) {
+  const [reason, setReason] = useState("");
+  const isReasonMissing = showRequiredError && !reason.trim();
+
+  return (
+    <TextField
+      className="admin-checkinout__correction-field admin-checkinout__correction-reason"
+      label="Reason for Attendance Correction"
+      value={reason}
+      onChange={(event) => {
+        setReason(event.target.value);
+        onChange(event.target.value);
+      }}
+      required
+      error={isReasonMissing}
+      multiline
+      minRows={3}
+      fullWidth
+      slotProps={{ htmlInput: { maxLength: 1000 } }}
+      helperText={
+        isReasonMissing
+          ? "Reason is required."
+          : `${reason.length}/1000`
+      }
+    />
+  );
+});
+
+const AttendanceSection = memo(function AttendanceSection({
   title,
   subtitle,
   records,
@@ -1378,7 +1460,8 @@ function AttendanceSection({
     useState<AttendanceFilterField>(
       showDay ? "date" : "employeeId"
     );
-  const [filterValue, setFilterValue] = useState("");
+  const [filterInputKey, setFilterInputKey] = useState(0);
+  const filterValueRef = useRef("");
   const [appliedFilter, setAppliedFilter] =
     useState<AttendanceFilter>({
       field: showDay ? "date" : "employeeId",
@@ -1474,12 +1557,16 @@ function AttendanceSection({
   };
 
   const applyFilter = () => {
-    setAppliedFilter({ field: filterField, value: filterValue });
+    setAppliedFilter({
+      field: filterField,
+      value: filterValueRef.current,
+    });
     setFilterAnchor(null);
   };
 
   const clearFilter = () => {
-    setFilterValue("");
+    filterValueRef.current = "";
+    setFilterInputKey((key) => key + 1);
     setAppliedFilter({ field: filterField, value: "" });
     setFilterAnchor(null);
   };
@@ -1537,12 +1624,15 @@ function AttendanceSection({
               onKeyDown={(event) => event.stopPropagation()}
             >
               <TextField
+                key={filterInputKey}
                 fullWidth
                 size="small"
                 type={filterField === "date" ? "date" : "text"}
                 label={filterField === "date" ? undefined : "Search"}
-                value={filterValue}
-                onChange={(event) => setFilterValue(event.target.value)}
+                defaultValue={filterValueRef.current}
+                onChange={(event) => {
+                  filterValueRef.current = event.target.value;
+                }}
                 onKeyDown={(event) => {
                   if (event.key === "Enter") applyFilter();
                 }}
@@ -1743,7 +1833,7 @@ function AttendanceSection({
                         align="right"
                         className="admin-checkinout__action-cell"
                       >
-                        {canCorrectAttendance(record.attendanceStatus) && (
+                        {shouldShowCorrectionAction(record) && (
                           <Button
                             size="small"
                             className="admin-checkinout__edit-button"
@@ -1777,7 +1867,7 @@ function AttendanceSection({
       )}
     </Paper>
   );
-}
+});
 
 /* =========================================
    MOBILE ATTENDANCE CARD
@@ -1898,7 +1988,7 @@ function AttendanceMobileCard({
       </Box>
       {showDay &&
         onCorrect &&
-        canCorrectAttendance(record.attendanceStatus) && (
+        shouldShowCorrectionAction(record) && (
         <Button
           size="small"
           className="admin-checkinout__edit-button"
