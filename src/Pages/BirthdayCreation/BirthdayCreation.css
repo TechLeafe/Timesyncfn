@@ -49,7 +49,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 200px;
+  min-height: 90px;
 }
 
 @media (max-width: 600px) {
@@ -199,4 +199,125 @@
 
 .MuiDialog-root .MuiButton-contained:hover {
   background-color: #014d2a;
+}
+
+
+/* BIRTHDAY TABLE ROW SPACING AND ALIGNMENT */
+
+.birthday-table-container .MuiTable-root {
+  border-collapse: separate;
+  border-spacing: 0 8px;
+}
+
+.birthday-table-container .MuiTableHead-root .MuiTableRow-root {
+  background-color: #e8f5e9;
+}
+
+.birthday-table-container .MuiTableBody-root .MuiTableRow-root {
+  background-color: #ffffff;
+}
+
+.birthday-table-container .MuiTableBody-root .MuiTableCell-root {
+  padding: 20px 16px;
+  vertical-align: middle;
+}
+
+/* Proper action column alignment */
+
+.birthday-table-container .MuiTableBody-root
+.MuiTableCell-root:last-child {
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Keep action buttons in one horizontal line */
+
+.birthday-table-container .birthday-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  white-space: nowrap;
+}
+
+
+/* REDUCE EMPLOYEE TABLE ROW HEIGHT */
+
+.birthday-table-container .MuiTableBody-root .MuiTableRow-root {
+  height: 50px !important;
+}
+
+.birthday-table-container .MuiTableBody-root .MuiTableCell-root {
+  padding: 10px 16px !important;
+  height: 50px !important;
+  line-height: 1 !important;
+  vertical-align: middle !important;
+}
+
+/* Remove unnecessary spacing between rows */
+.birthday-table-container .MuiTableBody-root .MuiTableRow-root td {
+  margin: 0 !important;
+}
+
+/* Keep table content properly aligned */
+.birthday-table-container .MuiTableBody-root .MuiTableCell-root {
+  box-sizing: border-box;
+}
+
+/* Responsive table */
+
+.birthday-table-container .MuiTable-root {
+  min-width: 650px;
+}
+
+
+/* BIRTHDAY TABLE ROW SPACING */
+
+.birthday-table-container .MuiTable-root {
+  border-collapse: separate;
+  border-spacing: 0 12px;
+}
+
+/* TABLE HEADER */
+
+.birthday-table-container .MuiTableHead-root .MuiTableCell-root {
+  font-weight: 600;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* TABLE BODY ROWS */
+
+.birthday-table-container .MuiTableBody-root .MuiTableRow-root {
+  background-color: #ffffff;
+}
+
+/* ROW LEFT AND RIGHT BORDERS */
+
+.birthday-table-container .MuiTableBody-root .MuiTableCell-root:first-of-type {
+  border-left: 1px solid #eeeeee;
+}
+
+.birthday-table-container .MuiTableBody-root .MuiTableCell-root:last-of-type {
+  border-right: 1px solid #eeeeee;
+}
+
+/* ACTION BUTTON ALIGNMENT */
+
+.birthday-table-container .MuiTableBody-root .MuiTableCell-alignCenter {
+  text-align: center;
+  white-space: nowrap;
+  min-width: 150px;
+}
+
+/* ACTION ICON SPACING */
+
+.birthday-table-container .MuiIconButton-root {
+  margin: 0 5px;
+}
+
+/* HOVER EFFECT */
+
+.birthday-table-container .MuiTableBody-root .MuiTableRow-root:hover {
+  background-color: #f9fcfa;
 }

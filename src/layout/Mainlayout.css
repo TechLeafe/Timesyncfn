@@ -329,3 +329,66 @@
   min-height: 0;
   height: 100%;
 }
+
+
+/* ==========================================
+   EMPLOYEE CREATION - DIRECTORY HEIGHT FIX
+========================================== */
+
+/* Give Employee Creation the available viewport height */
+.app-main-content:has(.employee-creation-page) {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Prevent footer spacing from reducing directory height */
+.app-main-layout-birthday-footer
+  .app-page-content:has(.employee-creation-page) {
+  padding-bottom: 20px;
+}
+
+/* Keep page content within the available space */
+.app-page-content:has(.employee-creation-page) {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  height: 0;
+  min-height: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Employee Creation uses all available content height */
+.app-page-content:has(.employee-creation-page)
+  .employee-creation-page {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+/* Header and overview retain their natural height */
+.employee-creation-fixed-section {
+  flex-shrink: 0;
+}
+
+/* Directory takes the remaining vertical space */
+.employee-creation-list-card.MuiPaper-root {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Only the employee records scroll */
+.employee-creation-directory-scroll {
+  flex: 1 1 0%;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: auto;
+}

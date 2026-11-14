@@ -1,6 +1,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 import {
   Alert,
@@ -13,6 +15,7 @@ import {
   Drawer,
   FormControlLabel,
   IconButton,
+  InputAdornment,
   Menu,
   MenuItem,
   Paper,
@@ -265,6 +268,7 @@ function Employee_Creation() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [form, setForm] = useState<EmployeeForm>(createEmptyForm);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [showPassword, setShowPassword] = useState(false);
 
   const [selectedEmployee, setSelectedEmployee] =
     useState<Employee | null>(null);
@@ -1150,7 +1154,7 @@ function Employee_Creation() {
               {isCreate && (
                 <TextField
                   label="Password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={form.password}
                   onChange={(event) =>
                     updateField(
@@ -1163,7 +1167,26 @@ function Employee_Creation() {
                     errors.password || "Enter exactly 6 digits"
                   }
                   slotProps={{
-                    htmlInput: {
+                    input: {
+                      endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                           type="button"
+                           aria-label={showPassword ? "Hide password" : "Show password"}
+                           onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                          size="small"
+                        >
+                          {showPassword ?  ( 
+                            <VisibilityOff /> 
+                          ) : ( 
+                            <Visibility />
+                          )}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                  htmlInput: {
                       inputMode: "numeric",
                       maxLength: 6,
                     },
