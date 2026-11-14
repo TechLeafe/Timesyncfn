@@ -5,8 +5,8 @@ import {
 } from "./globalLoader";
 
 const axiosInstance = axios.create({
-  //baseURL: "http://192.168.1.18:5000/api/",
-  baseURL: "https://time-sync-backend-4452.onrender.com/api/",
+  // baseURL: "http://localhost:5000/api/",
+   baseURL: "https://time-sync-backend-4452.onrender.com/api/",
   headers: {
     "Content-Type": "application/json",  },/////q
   timeout: 10000,

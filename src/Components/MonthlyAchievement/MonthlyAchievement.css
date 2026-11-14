@@ -1,0 +1,229 @@
+
+/* Default: full-width calendar */
+
+.cc-calendar-achievement-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  width: 100%;
+  align-items: start;
+}
+
+/* After employee clicks Monthly Achievement */
+
+.cc-calendar-achievement-layout.cc-achievement-visible {
+  grid-template-columns: minmax(0, 1fr) 360px;
+}
+
+.cc-calendar-main {
+  min-width: 0;
+  width: 100%;
+}
+
+.cc-achievement-sidebar {
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.cc-monthly-achievement-btn,
+.cc-declare-achievement-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border: none;
+  border-radius: 9px;
+  background: #087b4d;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cc-monthly-achievement-btn:hover {
+  background: #06613d;
+}
+
+.cc-declare-achievement-btn {
+  background: #087b4d;
+}
+
+.cc-declare-achievement-btn:hover {
+  background: #06613d;
+}
+
+/* Award card */
+
+.ma-award-card {
+  width: 100%;
+  max-width: 360px;
+  min-width: 0;
+  padding: 10px 8px 14px;
+  border-radius: 22px;
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #fff8e8 55%,
+    #fff1d6 100%
+  );
+  border: 1px solid #f2dfb6;
+  box-shadow: 0 8px 25px rgba(139, 99, 36, 0.12);
+  text-align: center;
+  color: #10243a;
+  font-family: Arial, sans-serif;
+}
+
+.ma-award-scene {
+  position: relative;
+  height: 230px;
+  overflow: hidden;
+  border-radius: 11px;
+}
+
+.ma-portrait {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 10px;
+  width: 220px;
+  height: 220px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: #005b75;
+  font-size: 48px;
+  font-weight: 800;
+}
+
+.ma-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+.ma-spark {
+  position: absolute;
+  z-index: 1;
+  top: 74px;
+  color: #f0ad17;
+  font-size: 21px;
+}
+
+.ma-spark-left {
+  left: 20px;
+}
+
+.ma-spark-right {
+  right: 20px;
+}
+
+.ma-employee-summary {
+  padding: 8px 10px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.ma-month-summary-ribbon {
+  position: relative;
+  isolation: isolate;
+  box-sizing: border-box;
+  width: 75%;
+  margin: 0 auto 4px;
+  padding: 10px 8px;
+  background: linear-gradient(180deg, #ffe995 0%, #ffdc70 48%, #f4b52f 100%);
+  color: #17202c;
+  font-size: 18px;
+  font-weight: 800;
+  text-align: center;
+  white-space: nowrap;
+  overflow-wrap: anywhere;
+  box-shadow: 0 2px 5px #d7a34155;
+}
+
+.ma-month-summary-ribbon::before,
+.ma-month-summary-ribbon::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 7px;
+  width: 30px;
+  height: 44px;
+  background: linear-gradient(180deg, #e4ad34, #d7971f);
+}
+
+.ma-month-summary-ribbon::before {
+  left: -21px;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 25% 50%);
+}
+
+.ma-month-summary-ribbon::after {
+  right: -21px;
+  clip-path: polygon(0 0, 100% 0, 75% 50%, 100% 100%, 0 100%);
+}
+
+.ma-designation {
+  color: #27313a;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ma-employee-star {
+  margin-top: 1px;
+  color: #f0ad17;
+}
+
+.ma-reason {
+  margin-top: 5px;
+  padding: 11px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border-radius: 14px;
+  background: transparent;
+  color: #173d55;
+  font-family: Arial;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 1.55;
+  border: 1px solid #9ea4a7;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.ma-reason-label {
+  color: #00566c;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+.ma-empty-sidebar {
+  width: 100%;
+  padding: 30px 12px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #e5e9ed;
+  text-align: center;
+  color: #64748b;
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .cc-calendar-achievement-layout.cc-achievement-visible {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cc-achievement-sidebar {
+    justify-content: center;
+  }
+}

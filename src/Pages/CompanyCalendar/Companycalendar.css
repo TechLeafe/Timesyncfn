@@ -1134,6 +1134,71 @@
   color: #267c13;
 }
 
+.company-calendar-page .cc-calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.company-calendar-page .cc-achievement-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.company-calendar-page .cc-monthly-achievement-btn,
+.company-calendar-page .cc-declare-achievement-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.company-calendar-page .cc-monthly-achievement-btn {
+  background: #087b4d;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.company-calendar-page .cc-declare-achievement-btn {
+  background: #087b4d;
+}
+
+.company-calendar-page .cc-monthly-achievement-btn:hover {
+  background: #06613d;
+}
+
+.company-calendar-page .cc-declare-achievement-btn:hover {
+  background: #06613d;
+}
+
+@media (max-width: 768px) {
+  .company-calendar-page .cc-calendar-header {
+    gap: 12px;
+  }
+
+  .company-calendar-page .cc-achievement-actions {
+    width: 100%;
+  }
+
+  .company-calendar-page .cc-monthly-achievement-btn,
+  .company-calendar-page .cc-declare-achievement-btn {
+    width: 100%;
+  }
+}
+
 /* ==========================================
    COMPANY CALENDAR - FIXED PAGE + INTERNAL SCROLL
    ========================================== */
