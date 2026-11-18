@@ -147,6 +147,7 @@ function normalizeDate(value: unknown): string {
 
 }
 
+/*
 function displayDate(key: string): string {
 
   const [y, m, d] = key.split("-").map(Number);
@@ -158,6 +159,7 @@ function displayDate(key: string): string {
   });
 
 }
+*/
 
 function readField(record: AttendanceRecord, names: string[]): string {
 
@@ -878,10 +880,10 @@ export default function CompanyCalendar() {
 
   const monthHolidays = holidays.filter((item) => normalizeDate(item.holidayDate).startsWith(monthPrefix));
 
-  const selectedHolidays = holidayByDay.get(selectedDay) || [];
+  //const selectedHolidays = holidayByDay.get(selectedDay) || [];
 
-  const selectedMark = attendance[selectedDay];
-  const selectedCompanyStatuses = employees.map((employee) => {
+  //const selectedMark = attendance[selectedDay];
+  /*const selectedCompanyStatuses = employees.map((employee) => {
     const record = companyAttendance[selectedDay]?.[employee.user_id];
     const isAwaitingFinalization =
       (selectedDay === today || selectedDay === getPreviousDayKey(today)) &&
@@ -907,6 +909,7 @@ export default function CompanyCalendar() {
           : attendanceStatus,
     };
   });
+  */
 
   const getCompanyDaySummary = (day: string) => {
     const counts: Partial<Record<AttendanceMark, number>> = {};
@@ -1245,9 +1248,10 @@ export default function CompanyCalendar() {
 
           </div>
 
-          <div className="cc-grid">
+          <div className="cc-grid-scroll">
+            <div className="cc-grid">
 
-            {calendarDays.map(({ date, key, inMonth }) => {
+             {calendarDays.map(({ date, key, inMonth }) => {
 
               const weekDay = date.getDay();
 
@@ -1344,8 +1348,9 @@ export default function CompanyCalendar() {
             })}
 
           </div>
+        </div>
 
-          <div className="cc-legend">
+        <div className="cc-legend">
 
             <span><i className="cc-legend-color cc-legend-color--sunday" />Sunday</span>
 
@@ -1373,6 +1378,7 @@ export default function CompanyCalendar() {
 
       </section>
 
+      {/*
       <section className="cc-selection-card" aria-label="Selected date details">
 
         <div className="cc-selection-header">
@@ -1459,6 +1465,7 @@ export default function CompanyCalendar() {
         </div>
 
       </section>
+     */}
 
         </div>
 
