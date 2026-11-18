@@ -81,13 +81,6 @@ const DailyInspiration = () => {
 
   const details = categoryDetails[inspiration.category];
 
-  const formattedDate = new Date(`${inspiration.date}T00:00:00+05:30`).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "Asia/Kolkata",
-  });
-
   return (
     <section className="daily-inspiration-card">
       <div className="inspiration-decoration inspiration-decoration-one" />
