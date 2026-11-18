@@ -14,6 +14,12 @@
   min-width: 0;
 }
 
+/* Remove the employee/portal footer allowance below the Admin table. */
+.app-main-layout-birthday-footer
+  .app-page-content:has(.admin-employee-match) {
+  padding-bottom: 0;
+}
+
 /* ADMIN-SPECIFIC ATTENDANCE PANEL */
 
 .admin-employee-match .admin-match-attendance {

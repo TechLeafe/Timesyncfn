@@ -5,9 +5,9 @@ import {
 } from "./globalLoader";
 
 const axiosInstance = axios.create({
-   baseURL: "http://localhost:5000/api/",
-  //  baseURL: "https://time-sync-backend-4452.onrender.com/api/",
-  headers: {
+   //baseURL: "http://localhost:5000/api/",
+   baseURL: "https://time-sync-backend-4452.onrender.com/api/",
+   headers: {
     "Content-Type": "application/json",  },/////q
   timeout: 10000,
 });
@@ -50,6 +50,24 @@ axiosInstance.interceptors.response.use(
           "Unauthorized / Token Expired:",
           data?.message || "401 Error"
         );
+
+        if (
+          [
+            "Authorization token is required",
+            "Invalid authorization format. Use Bearer token",
+            "Token has expired. Please login again",
+            "Invalid token",
+          ].includes(data?.message)
+        ) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("loggedInUser");
+          localStorage.removeItem("employeeLoginSession");
+          sessionStorage.clear();
+
+          if (window.location.pathname !== "/login") {
+            window.location.replace("/login");
+          }
+        }
       }
 
       if (status === 403) {

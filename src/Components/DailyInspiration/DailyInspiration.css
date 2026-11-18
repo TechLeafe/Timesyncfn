@@ -1,0 +1,99 @@
+
+
+.emp-welcome .daily-inspiration-card {
+  position: relative;
+  width: 100%;
+  margin: 12px 0 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  box-sizing: border-box;
+}
+
+.emp-welcome .daily-inspiration-content {
+  position: relative;
+  z-index: 2;
+}
+
+/* Category and date */
+.emp-welcome .inspiration-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.emp-welcome .inspiration-category {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #08794f;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+}
+
+.emp-welcome .inspiration-icon {
+  font-size: 16px;
+}
+
+.emp-welcome .inspiration-date {
+  color: #477e69;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* Dot before the date */
+.emp-welcome .inspiration-date::before {
+  content: "•";
+  display: inline-block;
+  margin-right: 10px;
+  color:#6b9b86;
+  font-weight: 700;
+}
+
+.emp-welcome .inspiration-message {
+  padding: 0;
+  max-width: 780px;
+}
+
+/* Inspirational quote */
+.emp-welcome .inspiration-message p {
+  margin: 0;
+  color: #315f4c !important;
+  font-size: 15px !important;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.emp-welcome .inspiration-quote-mark,
+.emp-welcome .inspiration-decoration {
+  display: none !important;
+}
+
+.emp-welcome .inspiration-attribution {
+  margin-top: 5px;
+  font-size: 10px;
+}
+
+.emp-welcome .daily-inspiration-loading {
+  min-height: auto;
+  padding: 5px 0;
+  color: #477e69;
+}
+
+@media (max-width: 600px) {
+  .emp-welcome .inspiration-message p {
+    font-size: 13px !important;
+  }
+}
+
+.emp-welcome .inspiration-message p::before {
+  content: "“";
+}
+
+.emp-welcome .inspiration-message p::after {
+  content: "”";
+}

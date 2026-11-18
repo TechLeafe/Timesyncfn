@@ -26,6 +26,12 @@
   justify-content: center;
 }
 
+.cc-achievement-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
 .cc-monthly-achievement-btn,
 .cc-declare-achievement-btn {
   display: inline-flex;
@@ -48,6 +54,8 @@
 
 .cc-declare-achievement-btn {
   background: #087b4d;
+  padding: 9px 12px;
+  font-size: 12px;
 }
 
 .cc-declare-achievement-btn:hover {
