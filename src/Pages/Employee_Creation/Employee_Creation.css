@@ -955,3 +955,118 @@
   width: 100%;
   overflow-x: auto;
 }
+
+/* ==========================================
+   EMPLOYEE CREATION - HEADER ACTION BUTTONS
+========================================== */
+
+.employee-creation-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-left: auto;
+}
+
+/* FILTER BUTTON */
+
+.employee-creation-header-actions
+.employee-creation-filter-button.MuiButton-root {
+  min-height: 42px;
+  padding: 8px 20px;
+  border: 1px solid #00a84f;
+  border-radius: 30px;
+  background: #ffffff;
+  color: #00a84f;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: none;
+  box-shadow: none;
+}
+
+.employee-creation-header-actions
+.employee-creation-filter-button.MuiButton-root:hover {
+  background: #effbf4;
+  border-color: #008c42;
+}
+
+.employee-creation-header-actions
+.employee-creation-filter-button .MuiButton-startIcon,
+.employee-creation-header-actions
+.employee-creation-filter-button .MuiButton-endIcon,
+.employee-creation-header-actions
+.employee-creation-filter-label {
+  color: #00a84f;
+}
+
+/* DOWNLOAD BUTTON */
+
+.employee-creation-header-actions
+.employee-creation-download-button.MuiButton-root {
+  min-height: 42px;
+  padding: 8px 20px;
+  border-radius: 30px;
+  background: #06773b;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: none;
+  box-shadow: none;
+}
+
+.employee-creation-header-actions
+.employee-creation-download-button.MuiButton-root:hover {
+  background: #06773b;
+}
+
+/* CREATE EMPLOYEE BUTTON */
+
+.employee-creation-header-actions
+.employee-creation-create-button.MuiButton-root {
+  min-height: 42px;
+  padding: 8px 22px;
+  border-radius: 30px;
+  background: #06773b;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: none;
+  box-shadow: none;
+}
+
+.employee-creation-header-actions
+.employee-creation-create-button.MuiButton-root:hover {
+  background: #06773b;
+}
+
+/* DISABLED STATE */
+
+.employee-creation-header-actions
+.MuiButton-root.Mui-disabled {
+  opacity: 0.55;
+  box-shadow: none;
+}
+
+/* MOBILE RESPONSIVE */
+
+@media (max-width: 600px) {
+  .employee-creation-header-actions {
+    width: 100%;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .employee-creation-header-actions
+  .MuiButton-root {
+    min-height: 38px;
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+
+  .employee-creation-header-actions
+  .employee-creation-create-button.MuiButton-root {
+    width: auto;
+  }
+}
+

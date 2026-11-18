@@ -13,7 +13,6 @@ import ThumbUpOutlinedIcon from "@mui/icons-material/ThumbUpOutlined";
 import PendingActionsOutlinedIcon from "@mui/icons-material/PendingActionsOutlined";
 import HighlightOffOutlinedIcon from "@mui/icons-material/HighlightOffOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
-import EventNoteOutlinedIcon from "@mui/icons-material/EventNoteOutlined";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import FilterListRoundedIcon from "@mui/icons-material/FilterListRounded";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
@@ -364,22 +363,6 @@ function AdminLeavesPermissions() {
 
   return (
     <Box className="admin-leaves-permissions">
-      <Box className="admin-leaves-permissions__header">
-        <Box className="admin-leaves-permissions__heading">
-          <Box className="admin-leaves-permissions__heading-icon">
-            <EventNoteOutlinedIcon />
-          </Box>
-          <Box>
-            <Typography component="h2" className="admin-leaves-permissions__title">
-              Leaves & Permissions
-            </Typography>
-            <Typography className="admin-leaves-permissions__subtitle">
-              Review and manage employee leave and permission requests.
-            </Typography>
-          </Box>
-        </Box>
-      </Box>
-
       {loadError && (
         <Alert
           severity="error"

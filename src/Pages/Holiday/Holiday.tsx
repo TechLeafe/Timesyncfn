@@ -980,60 +980,6 @@ export default function Holiday() {
 
         <>
 
-          <Box className="holiday-page-header">
-
-            <Box className="holiday-page-heading">
-
-              <Box className="holiday-page-icon">
-
-                <CalendarDays size={23} />
-
-              </Box>
-
-              <Box>
-
-                <Typography
-
-                  component="h2"
-
-                  className="holiday-page-title"
-
-                >
-
-                  Company Holidays
-
-                </Typography>
-
-                <Typography className="holiday-page-subtitle">
-
-                  Manage public and company holidays
-
-                  for your employees.
-
-                </Typography>
-
-              </Box>
-
-            </Box>
-
-            <Button
-
-              className="create-holiday-btn"
-
-              variant="contained"
-
-              startIcon={<Plus size={18} />}
-
-              onClick={openCreateModal}
-
-            >
-
-              Create Holiday
-
-            </Button>
-
-          </Box>
-
           <Box className="holiday-summary">
 
             <Box className="holiday-summary-icon">
@@ -1137,6 +1083,15 @@ export default function Holiday() {
                 </Typography>
 
               </Box>
+
+              <Button
+                className="create-holiday-btn"
+                variant="contained"
+                startIcon={<Plus size={18} />}
+                onClick={openCreateModal}
+              >
+                Create Holiday
+              </Button>
 
             </Box>
 

@@ -12,7 +12,6 @@ import {
   DialogContent,
   DialogTitle,
   Snackbar,
-  Stack,
   TextField,
   Typography,
 } from "@mui/material";
@@ -23,7 +22,7 @@ import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined
 import HealthAndSafetyOutlinedIcon from "@mui/icons-material/HealthAndSafetyOutlined";
 import WorkHistoryOutlinedIcon from "@mui/icons-material/WorkHistoryOutlined";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
-import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
+// import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 
 import api from "../../api/axiosInstance";
@@ -862,78 +861,6 @@ const LeavePolicies = () => {
     return (
       <Box className="leave-policies">
 
-        {/* HEADER */}
-
-        <Box className="leave-policies__detail-header">
-          <Box className="leave-policies__heading-content">
-            <Box className="leave-policies__heading-icon">
-              <DescriptionOutlinedIcon />
-            </Box>
-
-            <Box>
-              <Typography
-                component="h2"
-                className="leave-policies__title"
-              >
-                {displayPolicy.policyName}
-              </Typography>
-
-              <Typography className="leave-policies__subtitle">
-                Leave entitlement overview
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* HR / ADMIN ACTIONS */}
-
-          {canManage && (
-            <Stack
-              direction={{
-                xs: "column",
-                sm: "row",
-              }}
-              spacing={1}
-              sx={{
-                width: {
-                  xs: "100%",
-                  sm: "auto",
-                },
-              }}
-            >
-              <Button
-                variant="outlined"
-                className="leave-policies__outlined-button"
-                startIcon={<EditOutlinedIcon />}
-                onClick={() =>
-                  openEdit(employeePolicy ?? displayPolicy)
-                }
-              >
-                Edit Policy
-              </Button>
-
-              <Button
-                variant="outlined"
-                color="error"
-                className="leave-policies__delete-button"
-                startIcon={
-                  <DeleteOutlineRoundedIcon />
-                }
-                disabled={deletingId !== null}
-                onClick={() =>
-                  setPendingDeletePolicy(
-                    employeePolicy ?? displayPolicy
-                  )
-                }
-              >
-                {deletingId
-                  ? "Deleting..."
-                  : "Delete Policy"}
-              </Button>
-            </Stack>
-          )}
-
-        </Box>
-
         {/* FOUR ENTITLEMENT CARDS */}
 
         <Box className="leave-policies__detail-stat-grid">
@@ -964,13 +891,39 @@ const LeavePolicies = () => {
         {/* ENTITLEMENT DETAILS */}
 
         <Card className="leave-policies__detail-card">
-          <Typography className="leave-policies__section-title">
-            Leave Entitlements
-          </Typography>
+          <Box className="leave-policies__entitlements-header">
+            <Box className="leave-policies__entitlements-heading">
+              <Typography className="leave-policies__section-title">
+                Leave Entitlements
+              </Typography>
+              <Typography className="leave-policies__section-description">
+                Employee leave entitlements.
+              </Typography>
+            </Box>
 
-          <Typography className="leave-policies__section-description">
-            Employee leave entitlements.
-          </Typography>
+            {canManage && employeePolicy && (
+              <Box className="leave-policies__entitlements-actions">
+                <Button
+                  variant="outlined"
+                  className="leave-policies__outlined-button"
+                  startIcon={<EditOutlinedIcon />}
+                  onClick={() => openEdit(employeePolicy)}
+                >
+                  Edit Policy
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  className="leave-policies__delete-button"
+                  startIcon={<DeleteOutlineRoundedIcon />}
+                  disabled={deletingId !== null}
+                  onClick={() => setPendingDeletePolicy(employeePolicy)}
+                >
+                  {deletingId ? "Deleting..." : "Delete Policy"}
+                </Button>
+              </Box>
+            )}
+          </Box>
 
           <Box className="leave-policies__line-list">
             {values.map((item) => (
@@ -1007,11 +960,11 @@ const LeavePolicies = () => {
 
       <Box className="leave-policies__detail-header">
         <Box className="leave-policies__heading-content">
-          <Box className="leave-policies__heading-icon">
+          {/* <Box className="leave-policies__heading-icon">
             <DescriptionOutlinedIcon />
-          </Box>
+          </Box> */}
 
-          <Box>
+          {/* <Box>
             <Typography
               component="h2"
               className="leave-policies__title"
@@ -1022,7 +975,7 @@ const LeavePolicies = () => {
             <Typography className="leave-policies__subtitle">
               Leave entitlement overview
             </Typography>
-          </Box>
+          </Box> */}
         </Box>
 
       </Box>

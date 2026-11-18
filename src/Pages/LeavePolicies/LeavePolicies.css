@@ -553,13 +553,13 @@
 
 .leave-policies__line-label.MuiTypography-root {
   color: #546f5c;
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 650;
 }
 
 .leave-policies__line-value.MuiTypography-root {
   color: #172c21;
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 750;
   text-align: right;
 }
@@ -886,5 +886,50 @@
 @media (prefers-reduced-motion: reduce) {
   .leave-policies .MuiButton-root {
     transition: none !important;
+  }
+}
+
+
+/* Leave Entitlements: heading left, actions right */
+.leave-policies__detail-card .leave-policies__entitlements-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 24px;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.leave-policies__detail-card .leave-policies__entitlements-heading {
+  min-width: 0;
+}
+
+.leave-policies__detail-card .leave-policies__entitlements-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  width: auto;
+  margin-left: auto;
+}
+
+.leave-policies__detail-card .leave-policies__entitlements-actions .MuiButton-root {
+  white-space: nowrap;
+  text-transform: none;
+  min-height: 40px;
+  border-radius: 10px;
+}
+
+@media (max-width: 700px) {
+  .leave-policies__detail-card .leave-policies__entitlements-header {
+    grid-template-columns: 1fr;
+    row-gap: 14px;
+  }
+
+  .leave-policies__detail-card .leave-policies__entitlements-actions {
+    justify-content: flex-start;
+    margin-left: 0;
+    flex-wrap: wrap;
   }
 }

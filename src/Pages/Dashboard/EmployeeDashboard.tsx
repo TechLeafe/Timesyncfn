@@ -16,7 +16,7 @@ import {
 
   AssignmentTurnedInRounded,
 
-  ArrowForwardRounded,
+  // ArrowForwardRounded,
 
   CheckCircleRounded,
 
@@ -1265,7 +1265,7 @@ const EmployeeDashboard = () => {
 
                   <strong>
 
-                    {loading ? <DashboardSpinner small /> : `${item.value} days`}
+                    {loading ? (<DashboardSpinner small />) : (`${item.value} ${item.label === "Permission Hours" ? "hours" : "days"}`)}
 
                   </strong>
 
@@ -1625,7 +1625,7 @@ const EmployeeDashboard = () => {
 
               </div>
 
-              <ArrowForwardRounded />
+              {/* <ArrowForwardRounded /> */}
 
             </div>
 
@@ -1649,7 +1649,7 @@ const EmployeeDashboard = () => {
 
               </div>
 
-              <ArrowForwardRounded />
+              {/* <ArrowForwardRounded /> */}
 
             </div>
 
@@ -1673,7 +1673,7 @@ const EmployeeDashboard = () => {
 
               </div>
 
-              <ArrowForwardRounded />
+              {/* <ArrowForwardRounded /> */}
 
             </div>
 

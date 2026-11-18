@@ -251,7 +251,7 @@ export default function BirthdayCreation() {
       {/* PAGE HEADER */}
       <Box className="birthday-header">
 
-        <Box>
+        {/* <Box>
           <Typography 
               variant="h5" 
               sx={{ fontWeight: 600 }}
@@ -262,7 +262,7 @@ export default function BirthdayCreation() {
           <Typography variant="body2" color="text.secondary">
             Manage employee birthday details
           </Typography>
-        </Box>
+        </Box> */}
 
         <Button
           variant="contained"

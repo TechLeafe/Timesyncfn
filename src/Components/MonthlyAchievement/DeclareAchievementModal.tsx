@@ -15,6 +15,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { CalendarPlus } from "lucide-react";
 
 import api from "../../api/axiosInstance";
 
@@ -168,6 +169,12 @@ export default function DeclareAchievementModal({
       onClose={saving || readingPhoto ? undefined : onClose}
       maxWidth="sm"
       fullWidth
+      sx={{
+        "& .MuiDialog-paper": {
+          borderRadius: "20px",
+          overflow: "hidden",
+        },
+      }}
     >
       <DialogTitle
         sx={{
@@ -176,7 +183,7 @@ export default function DeclareAchievementModal({
           fontWeight: 700,
         }}
       >
-        🏆 Declare Monthly Achievement
+        <CalendarPlus size={22} aria-hidden="true" /> Declare Monthly Achievement
       </DialogTitle>
 
       <DialogContent>

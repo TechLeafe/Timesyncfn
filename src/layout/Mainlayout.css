@@ -67,6 +67,32 @@
   box-shadow: 0 2px 10px rgba(18, 38, 63, 0.025);
 }
 
+.app-page-header-leaves-admin {
+  --layout-header-height: 84px;
+  background: #fff;
+  border-bottom: 1px solid #edf0f4;
+  box-shadow: 0 2px 10px rgba(18, 38, 63, 0.025);
+}
+
+.app-page-heading-with-subtitle {
+  min-width: 0;
+}
+
+.app-page-header-leaves-admin .app-page-title.MuiTypography-root,
+.app-page-header-employee-leave .app-page-title.MuiTypography-root,
+.app-page-header-employee-leaves .app-page-title.MuiTypography-root,
+.app-page-header-employee-creation .app-page-title.MuiTypography-root,
+.app-page-header-employee-checkinout .app-page-title.MuiTypography-root {
+  font-size: 18px !important;
+}
+
+.app-page-subtitle.MuiTypography-root {
+  margin-top: 4px;
+  color: #8191a8;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
 /* ==========================================
    HEADER LEFT
 ========================================== */
@@ -166,11 +192,20 @@
   padding-bottom: 118px;
 }
 
-/* Employee dashboard has its own spacing */
-
-.app-page-content:has(.emp-premium-dashboard) {
-  padding: 0 0 118px;
+/* The celebration footer is disabled on admin leave requests. */
+.app-main-layout-birthday-footer
+  .app-page-content:has(.admin-leaves-permissions),
+.app-main-layout-birthday-footer
+  .app-page-content:has(.leave-policies) {
+  padding-bottom: 20px;
 }
+
+.app-main-layout-birthday-footer
+  .app-page-content:has(.employee-leaves-page) {
+  padding-bottom: 20px;
+}
+
+/* Employee dashboard has its own spacing */
 
 /* ==========================================
    LARGE DESKTOP
@@ -214,6 +249,10 @@
     font-size: 19px !important;
   }
 
+  .app-page-subtitle.MuiTypography-root {
+    font-size: 13px;
+  }
+
   .app-page-content {
     padding: 16px;
   }
@@ -222,7 +261,22 @@
     padding-bottom: 112px;
   }
 
+  .app-main-layout-birthday-footer
+    .app-page-content:has(.admin-leaves-permissions),
+  .app-main-layout-birthday-footer
+    .app-page-content:has(.leave-policies) {
+    padding-bottom: 16px;
+  }
+
+  .app-main-layout-birthday-footer
+    .app-page-content:has(.employee-leaves-page) {
+    padding-bottom: 16px;
+  }
+
   .app-page-content:has(.emp-premium-dashboard) {
+    height: auto;
+    min-height: calc(100vh - var(--layout-header-height));
+    overflow: visible;
     padding: 0 0 112px;
   }
 }
@@ -258,8 +312,32 @@
     padding-bottom: 126px;
   }
 
+  .app-main-layout-birthday-footer
+    .app-page-content:has(.admin-leaves-permissions),
+  .app-main-layout-birthday-footer
+    .app-page-content:has(.leave-policies) {
+    padding-bottom: 12px;
+  }
+
+  .app-main-layout-birthday-footer
+    .app-page-content:has(.employee-leaves-page) {
+    padding-bottom: 12px;
+  }
+
   .app-page-content:has(.emp-premium-dashboard) {
+    height: auto;
+    min-height: calc(100vh - var(--layout-header-height));
+    overflow: visible;
     padding: 0 0 126px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .app-page-content:has(.emp-premium-dashboard) {
+    height: auto;
+    min-height: calc(100dvh - var(--layout-header-height));
+    overflow: visible;
+    padding-bottom: 126px;
   }
 }
 
@@ -290,6 +368,9 @@
   }
 
   .app-page-content:has(.emp-premium-dashboard) {
+    height: auto;
+    min-height: calc(100vh - var(--layout-header-height));
+    overflow: visible;
     padding: 0 0 126px;
   }
 }
@@ -350,6 +431,7 @@
   padding-bottom: 20px;
 }
 
+
 /* Keep page content within the available space */
 .app-page-content:has(.employee-creation-page) {
   display: flex;
@@ -369,6 +451,16 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
+}
+
+.app-page-content:has(.employee-leaves-page) {
+  padding-top: 14px;
+}
+
+@media (max-width: 899.98px) {
+  .app-page-content:has(.employee-leaves-page) {
+    padding-top: 12px;
+  }
 }
 
 /* Header and overview retain their natural height */
@@ -393,6 +485,41 @@
   overflow-x: auto;
 }
 
+<<<<<<< HEAD
+.app-page-content:has(.employee-attendance-page) {
+  padding-bottom: 0;
+}
+
+
+/* ==========================================
+   FIX EXTRA SPACE ON ALL HRMS PAGES
+========================================== */
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+.app-main-layout {
+  min-height: 100dvh;
+  height: auto;
+}
+
+.app-main-content {
+  min-height: 0;
+  height: auto;
+}
+
+.app-page-content {
+  min-height: 0;
+  height: auto;
+  padding-bottom: 16px;
+}
+
+=======
 /* ==========================================
    COMPANY CALENDAR - PAGE SCROLL CONTROL
    ========================================== */
@@ -432,3 +559,4 @@
   min-height: 0;
   overflow: hidden;
 }
+>>>>>>> 02dbebb3d878e3801ebb407c2d42f7e0fe2d0dc4

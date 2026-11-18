@@ -29,13 +29,11 @@ import {
   TableHead,
   TableRow,
   TextField,
-  Tooltip,
   Typography,
 } from "@mui/material";
 
-import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
+// import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
-import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlined";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
@@ -743,45 +741,9 @@ function AdminCheckinout() {
   return (
     <Box className="admin-checkinout">
 
-      {/* PAGE HEADER */}
-
-      <Box className="admin-checkinout__toolbar">
-        <Box className="admin-checkinout__heading">
-          <Box className="admin-checkinout__heading-icon">
-            <AccessTimeOutlinedIcon />
-          </Box>
-
-          <Box className="admin-checkinout__heading-text">
-            <Typography
-              component="h2"
-              className="admin-checkinout__title"
-            >
-              Employee Check In / Out
-            </Typography>
-
-            <Typography className="admin-checkinout__subtitle">
-              Monitor daily attendance and employee
-              working hours.
-            </Typography>
-          </Box>
-        </Box>
-
-        <label className="admin-checkinout__date-field">
-          <span>Select Date</span>
-
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(event) =>
-              setSelectedDate(event.target.value)
-            }
-          />
-        </label>
-      </Box>
-
       {/* DATE BANNER */}
 
-      <Box className="admin-checkinout__date-banner">
+      {/* <Box className="admin-checkinout__date-banner">
         <Box className="admin-checkinout__date-banner-icon">
           <CalendarTodayOutlinedIcon />
         </Box>
@@ -810,7 +772,7 @@ function AdminCheckinout() {
             </IconButton>
           </span>
         </Tooltip>
-      </Box>
+      </Box> */}
 
       {/* DAILY ERROR */}
 
@@ -1003,6 +965,8 @@ function AdminCheckinout() {
         loading={dailyLoading}
         error={dailyError}
         showDay={false}
+        selectedDate={selectedDate}
+        onSelectedDateChange={setSelectedDate}
         emptyMessage="No attendance records found for this date."
       />
 
@@ -1442,6 +1406,8 @@ const AttendanceSection = memo(function AttendanceSection({
   loading,
   error,
   showDay,
+  selectedDate,
+  onSelectedDateChange,
   emptyMessage,
   onCorrect,
 }: {
@@ -1451,6 +1417,8 @@ const AttendanceSection = memo(function AttendanceSection({
   loading: boolean;
   error: string;
   showDay: boolean;
+  selectedDate?: string;
+  onSelectedDateChange?: (date: string) => void;
   emptyMessage: string;
   onCorrect?: (record: AttendanceRecord) => void;
 }) {
@@ -1588,6 +1556,17 @@ const AttendanceSection = memo(function AttendanceSection({
         </Box>
 
         <Box className="admin-checkinout__section-actions">
+          {!showDay && selectedDate !== undefined && onSelectedDateChange && (
+            <label className="admin-checkinout__date-field admin-checkinout__date-field--inline">
+              {/* <span>Select Date</span> */}
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(event) => onSelectedDateChange(event.target.value)}
+                aria-label="Select attendance date"
+              />
+            </label>
+          )}
           <Button
             variant="outlined"
             className="admin-checkinout__filter-button"

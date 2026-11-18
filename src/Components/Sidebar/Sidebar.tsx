@@ -1,4 +1,5 @@
-import { useLocation, useNavigate } from "react-router-dom"
+
+import { useLocation, useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
 
 import {
@@ -26,17 +27,21 @@ import TaskAltOutlinedIcon from "@mui/icons-material/TaskAltOutlined";
 import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import SupportAgentOutlinedIcon from "@mui/icons-material/SupportAgentOutlined";
-//import AccountTreeOutlinedIcon from "@mui/icons-material/AccountTreeOutlined";
 import CakeOutlinedIcon from "@mui/icons-material/CakeOutlined";
 
 import { HR, ADMIN, EMPLOYEE } from "../../data/permissions";
 
 import "./Sidebar.css";
 
+/* ==========================================
+   TYPES
+========================================== */
+
 interface SidebarProps {
   mobileOpen: boolean;
   isMobile: boolean;
   onClose: () => void;
+  onOpenSupport: () => void;
 }
 
 interface NavItem {
@@ -45,6 +50,10 @@ interface NavItem {
   path: string;
   roles: number[];
 }
+
+/* ==========================================
+   SIDEBAR NAVIGATION
+========================================== */
 
 const navItems: NavItem[] = [
   {
@@ -69,7 +78,7 @@ const navItems: NavItem[] = [
     label: "Daily Task",
     icon: <TaskAltOutlinedIcon />,
     path: "/daily-task",
-    roles: [ADMIN],
+    roles: [ADMIN, HR],
   },
   {
     label: "Employee Creation",
@@ -119,30 +128,30 @@ const navItems: NavItem[] = [
     path: "/employee-leaves-permissions",
     roles: [EMPLOYEE],
   },
-  // {
-  //   label: "Organisation Chart",
-  //   icon: <AccountTreeOutlinedIcon />,
-  //   path: "/organisation-chart",
-  //   roles: [EMPLOYEE, HR, ADMIN],
-  // },
   {
     label: "Birthday Creation",
     icon: <CakeOutlinedIcon />,
     path: "/birthday-creation",
     roles: [HR, ADMIN],
   },
-
-
-
 ];
+
+/* ==========================================
+   SIDEBAR COMPONENT
+========================================== */
 
 function Sidebar({
   mobileOpen,
   isMobile,
   onClose,
+  onOpenSupport,
 }: SidebarProps) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+
+  /* ==========================================
+     GET LOGGED-IN USER ROLE
+  ========================================== */
 
   const storedUser = localStorage.getItem("loggedInUser");
 
@@ -161,12 +170,20 @@ function Sidebar({
     }
   }
 
+  /* ==========================================
+     FILTER NAVIGATION BY ROLE
+  ========================================== */
+
   const visibleNavItems =
     userType !== null
       ? navItems.filter((item) =>
           item.roles.includes(userType)
         )
       : [];
+
+  /* ==========================================
+     NAVIGATION HANDLER
+  ========================================== */
 
   const handleNavigate = (path: string) => {
     navigate(path);
@@ -176,11 +193,31 @@ function Sidebar({
     }
   };
 
+  /* ==========================================
+     EMPLOYEE SUPPORT HANDLER
+  ========================================== */
+
+  const handleSupportClick = () => {
+    if (isMobile) {
+      onClose();
+    }
+
+    onOpenSupport();
+  };
+
+  /* ==========================================
+     LOGOUT HANDLER
+  ========================================== */
+
   const handleLogout = () => {
     localStorage.clear();
     sessionStorage.clear();
     window.location.replace("/login");
   };
+
+  /* ==========================================
+     JSX
+  ========================================== */
 
   return (
     <Drawer
@@ -198,9 +235,11 @@ function Sidebar({
     >
       <Box className="sidebar-container">
 
-        {/* LOGO AND WORKSPACE TITLE */}
-        <Box className="sidebar-logo">
+        {/* ======================================
+            LOGO AND WORKSPACE TITLE
+        ====================================== */}
 
+        <Box className="sidebar-logo">
           <Box className="sidebar-brand-info">
 
             <Box className="sidebar-logo-image">
@@ -226,10 +265,12 @@ function Sidebar({
               <CloseRoundedIcon />
             </IconButton>
           )}
-
         </Box>
 
-        {/* MENU TITLE */}
+        {/* ======================================
+            MENU TITLE
+        ====================================== */}
+
         <Typography
           className="sidebar-section-title"
           component="div"
@@ -237,7 +278,10 @@ function Sidebar({
           WORKSPACE
         </Typography>
 
-        {/* ROLE BASED NAVIGATION */}
+        {/* ======================================
+            ROLE-BASED NAVIGATION
+        ====================================== */}
+
         <List
           className="sidebar-nav"
           component="nav"
@@ -281,11 +325,41 @@ function Sidebar({
           })}
         </List>
 
-        {/* FOOTER */}
+        {/* ======================================
+            SIDEBAR FOOTER
+        ====================================== */}
+
         <Box className="sidebar-bottom">
 
-          <Box className="sidebar-support-card">
+          {/* ====================================
+              EMPLOYEE SUPPORT CARD
+          ==================================== */}
 
+          <Box
+            component="button"
+            type="button"
+            className="sidebar-support-card"
+            onClick={handleSupportClick}
+            aria-label="Open Employee Support"
+            sx={{
+              width: "100%",
+              display: "block",
+              textAlign: "left",
+              cursor: "pointer",
+              font: "inherit",
+              color: "inherit",
+              transition:
+                "background-color 0.2s ease, border-color 0.2s ease",
+              "&:hover": {
+                backgroundColor: "#DDF4E7",
+                borderColor: "#B7E5C9",
+              },
+              "&:focus-visible": {
+                outline: "2px solid #00875A",
+                outlineOffset: "3px",
+              },
+            }}
+          >
             <Box className="sidebar-support-icon">
               <SupportAgentOutlinedIcon />
             </Box>
@@ -297,10 +371,15 @@ function Sidebar({
             <Typography className="sidebar-support-description">
               Need assistance? Contact your HR team.
             </Typography>
-
           </Box>
 
+          {/* DIVIDER */}
+
           <Divider className="sidebar-divider" />
+
+          {/* ====================================
+              LOGOUT
+          ==================================== */}
 
           <Tooltip title="Log out" placement="right">
             <ListItemButton
