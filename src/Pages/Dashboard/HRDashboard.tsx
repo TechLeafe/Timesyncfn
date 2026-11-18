@@ -8,7 +8,6 @@ import {
   CircularProgress,
 } from "@mui/material";
 
-import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import TaskAltRoundedIcon from "@mui/icons-material/TaskAltRounded";
 import EventBusyRoundedIcon from "@mui/icons-material/EventBusyRounded";
 import BeachAccessRoundedIcon from "@mui/icons-material/BeachAccessRounded";
@@ -18,11 +17,14 @@ import Diversity3RoundedIcon from "@mui/icons-material/Diversity3Rounded";
 import StatCard from "../../Components/Dashboard/StatCard/StatCard";
 import ProjectsPieChart from "../../Components/Dashboard/Chart/ProjectsPieChart";
 import TeamAllocationChart from "../../Components/Dashboard/Chart/TeamAllocationChart";
+import DailyInspiration from "../../Components/DailyInspiration/DailyInspiration";
 
 import type { StatCardProps } from "../../Components/Dashboard/StatCard/StatCard";
 
 import api from "../../api/axiosInstance";
 import "./Dashboard.css";
+import "./EmployeeDashboard.css";
+import { EventAvailableRounded } from "@mui/icons-material";
 
 /* ================= TYPES ================= */
 
@@ -449,32 +451,51 @@ function HRDashboard() {
 
   /* ================= UI ================= */
 
+  const [now] = useState(() => new Date());
+
+  const greeting =
+   now.getHours() < 12
+     ? "Good Morning ☀️"
+     : now.getHours() < 17
+       ? "Good Afternoon ☀️"
+       : "Good Evening ✨";
+
+  const getHRName = () => {
+    try {
+      const raw = localStorage.getItem("loggedInUser");
+      if (!raw) return "HR";
+
+      const user = JSON.parse(raw);
+      return user.name || user.fullName || "HR";
+   } catch {
+    return "HR";
+  }
+};
+
+const [hrName] = useState(getHRName); 
   return (
     <Box component="main" className="admin-dashboard__main">
 
-      {/* HEADER ACTIONS */}
+      {/* HR WELCOME BANNER */}
 
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "flex-end",
-          marginBottom: 2,
-        }}
-      >
-        <Button
-          variant="outlined"
-          size="small"
-          startIcon={<RefreshRoundedIcon />}
-          onClick={refresh}
-          disabled={isRefreshing}
-          sx={{
-            color: "#087b4d",
-            borderColor: "#087b4d",
-          }}
+       <section className="emp-welcome hr-welcome">
+         <div className="emp-welcome-content">
+          <span className="emp-welcome-tag">
+            {greeting}
+          </span>
+
+          <h2>Welcome back, {hrName}!</h2>
+
+          <DailyInspiration />
+         </div>
+
+        <div
+           className="emp-welcome-decoration"
+           aria-hidden="true"
         >
-          Refresh
-        </Button>
-      </Box>
+       <EventAvailableRounded />
+       </div>
+      </section>
 
       {/* API ERROR MESSAGES */}
 
@@ -505,6 +526,8 @@ function HRDashboard() {
           {attendanceError}
         </Alert>
       )}
+      
+      <DailyInspiration />
 
       {/* STAT CARDS */}
 

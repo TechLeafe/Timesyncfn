@@ -1134,71 +1134,6 @@
   color: #267c13;
 }
 
-.company-calendar-page .cc-calendar-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.company-calendar-page .cc-achievement-actions {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.company-calendar-page .cc-monthly-achievement-btn,
-.company-calendar-page .cc-declare-achievement-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  padding: 12px 18px;
-  border: none;
-  border-radius: 10px;
-  color: #ffffff;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.company-calendar-page .cc-monthly-achievement-btn {
-  background: #087b4d;
-  gap: 7px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 13px;
-}
-
-.company-calendar-page .cc-declare-achievement-btn {
-  background: #087b4d;
-}
-
-.company-calendar-page .cc-monthly-achievement-btn:hover {
-  background: #06613d;
-}
-
-.company-calendar-page .cc-declare-achievement-btn:hover {
-  background: #06613d;
-}
-
-@media (max-width: 768px) {
-  .company-calendar-page .cc-calendar-header {
-    gap: 12px;
-  }
-
-  .company-calendar-page .cc-achievement-actions {
-    width: 100%;
-  }
-
-  .company-calendar-page .cc-monthly-achievement-btn,
-  .company-calendar-page .cc-declare-achievement-btn {
-    width: 100%;
-  }
-}
-
 /* ==========================================
    COMPANY CALENDAR - FIXED PAGE + INTERNAL SCROLL
    ========================================== */
@@ -1265,4 +1200,202 @@
   .company-calendar-page .cc-grid {
     grid-auto-rows: 76px;
   }
+}
+
+
+/* =====================================================
+   COMPANY CALENDAR - FIXED HEADER + SCROLLABLE DATE GRID
+   ===================================================== */
+
+/* Keep the calendar page within the available layout height */
+.company-calendar-page {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Page heading, refresh, filter and download stay visible */
+.company-calendar-page > .cc-page-header {
+  flex: 0 0 auto;
+}
+
+/* Calendar layout takes the remaining available height */
+.company-calendar-page .cc-calendar-achievement-layout {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Main calendar column must be allowed to shrink */
+.company-calendar-page .cc-calendar-main {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Calendar card fills the remaining page space */
+.company-calendar-page .cc-calendar-card {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Month heading and navigation remain fixed */
+.company-calendar-page .cc-calendar-header {
+  flex: 0 0 auto;
+}
+
+/* Calendar body uses the remaining card height */
+.company-calendar-page .cc-calendar-body {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Weekday headings remain visible */
+.company-calendar-page .cc-weekdays {
+  flex: 0 0 auto;
+}
+
+/* ONLY the date grid scrolls */
+.company-calendar-page .cc-grid-scroll {
+  flex: 1 1 0%;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+/* Keep calendar rows at their intended height */
+.company-calendar-page .cc-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-auto-rows: 112px;
+  align-content: start;
+  gap: 5px;
+}
+
+/* Preserve the existing date-cell appearance */
+.company-calendar-page .cc-grid .cc-day {
+  width: 100%;
+  height: 112px;
+  min-height: 112px;
+  max-height: none;
+  aspect-ratio: auto;
+}
+
+/* Legend stays visible below the scrolling date grid */
+.company-calendar-page .cc-legend {
+  flex: 0 0 auto;
+}
+
+/* Keep the hidden Selected Date section out of the layout */
+.company-calendar-page .cc-selection-card {
+  display: none;
+}
+
+
+/* ==========================================
+   COMPANY CALENDAR - DAILY MOTIVATION
+   ========================================== */
+
+.company-calendar-page .cc-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-width: 0;
+}
+
+.company-calendar-page .cc-header-actions {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+@media (max-width: 600px) {
+  .company-calendar-page .cc-page-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .company-calendar-page .cc-header-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+.cc-calendar-tools {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cc-calendar-tools .MuiButton-root {
+  text-transform: none;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+  .cc-calendar-tools {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+
+/* Match calendar action buttons with Declare Achievement */
+
+.cc-calendar-tools .MuiButton-root {
+  background-color: #087b4d !important;
+  color: #ffffff !important;
+  border: 1px solid #087b4d !important;
+  text-transform: none;
+  font-weight: 600;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.cc-calendar-tools .MuiButton-root:hover {
+  background-color: #06613d !important;
+  border-color: #06613d !important;
+  box-shadow: none;
+}
+
+/* Keep all three icons white */
+.cc-calendar-tools .MuiButton-root svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+/* Disabled Download button */
+.cc-calendar-tools .MuiButton-root.Mui-disabled {
+  background-color: #a8cbbb !important;
+  color: #ffffff !important;
+  border-color: #a8cbbb !important;
+}
+
+.cc-calendar-tools .MuiButton-root.Mui-disabled svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
 }

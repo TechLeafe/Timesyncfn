@@ -17,6 +17,7 @@ import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownR
 import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
 import MailOutlineRoundedIcon from "@mui/icons-material/MailOutlineRounded";
 import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
+import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 
 /* =========================================
    CONSTANTS
@@ -239,6 +240,15 @@ export default function ProfileDropdown() {
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  const handleLogout = () => {
+  handleClose();
+
+  localStorage.clear();
+  sessionStorage.clear();
+
+  window.location.replace("/login");
+};
 
   /* =========================================
      UI
@@ -558,27 +568,56 @@ export default function ProfileDropdown() {
         />
 
         {/* ===================================
-            FOOTER
+            LOGOUT FOOTER
         =================================== */}
 
         <Box
           sx={{
-            px: 2.2,
-            py: 1.4,
+            px: 1.5,
+            py: 0.5,
           }}
         >
+      
+        <ButtonBase
+             onClick={handleLogout}
+             sx={{
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-start",
+                  gap: 1.3,
+                  px: 1.5,
+                  py: 0.8,
+                  borderRadius: "10px",
+                  color: "#D32F2F",
+                  transition: "all 0.2s ease",
+
+                  "&:hover": {
+                      backgroundColor: "#FFF1F0",
+                  },
+
+                  "&:focus-visible": {
+                      outline: "2px solid #D32F2F",
+                      outlineOffset: "2px",
+                  },
+                }}
+        >
+          <LogoutOutlinedIcon sx={{ fontSize: 20 }} />
+
           <Typography
             sx={{
               fontFamily: FONT,
-              fontSize: 11,
-              color: "#8A98A8",
-              textAlign: "center",
+              fontSize: 13,
+              fontWeight: 700,
+              color: "#D32F2F",
             }}
           >
-            HRM Employee Management Portal
+            Logout
           </Typography>
+        </ButtonBase>
         </Box>
       </Menu>
     </>
   );
 }
+

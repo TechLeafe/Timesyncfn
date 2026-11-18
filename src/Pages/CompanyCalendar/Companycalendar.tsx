@@ -2,12 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 import {
-  CalendarDays,
+  //CalendarDays,
   ChevronLeft,
   ChevronRight,
   Download,
   Filter,
-  RefreshCw,
+  //RefreshCw,
   Trophy,
 } from "lucide-react";
 
@@ -1017,59 +1017,6 @@ export default function CompanyCalendar() {
 
     <div className="company-calendar-page">
 
-      <header className="cc-page-header">
-
-        <div className="cc-heading-icon"><CalendarDays size={21} /></div>
-
-        <div className="cc-heading-text">
-
-          <h1>Company Calendar</h1>
-
-          <p>
-            {isCompanyAdmin
-              ? "Company holidays and employee attendance at a glance."
-              : "Company holidays and your attendance at a glance."}
-          </p>
-
-        </div>
-
-        <div className="cc-header-actions">
-          <button
-            className="cc-refresh"
-            type="button"
-            onClick={() => void loadCalendar()}
-            disabled={loading}
-          >
-            <RefreshCw size={15} />
-            <span>Refresh</span>
-          </button>
-
-          {isCompanyAdmin && (
-            <>
-              <button
-                className="cc-filter-btn"
-                type="button"
-                onClick={() => setFilterOpen(true)}
-              >
-                <Filter size={16} />
-                <span>Filter</span>
-              </button>
-
-              <button
-                className="cc-download-btn"
-                type="button"
-                disabled={!appliedRange || downloading}
-                onClick={() => void handleDownload()}
-              >
-                <Download size={16} />
-                <span>{downloading ? "Downloading..." : "Download"}</span>
-              </button>
-            </>
-          )}
-        </div>
-
-      </header>
-
       {error && <p className="cc-alert" role="alert">{error}</p>}
 
       {isCompanyAdmin && (
@@ -1206,6 +1153,8 @@ export default function CompanyCalendar() {
 
           </div>
 
+          <span className="cc-month-summary">{loading ? "Loading..." : `${monthHolidays.length} holiday${monthHolidays.length === 1 ? "" : "s"} this month`}</span>
+
           <div className="cc-achievement-actions">
             {!isCompanyAdmin && monthlyAchievement && (
               <button
@@ -1220,19 +1169,50 @@ export default function CompanyCalendar() {
                 Monthly Achievement
               </button>
             )}
-            {isCompanyAdmin && (
+            {isCompanyAdmin && !loading && monthHolidays.length > 0 && (
               <button
                 type="button"
                 className="cc-declare-achievement-btn"
                 onClick={() => setDeclareAchievementOpen(true)}
               >
-                <Trophy size={20} />
+                <Trophy size={16} />
                 Declare Achievement
               </button>
             )}
           </div>
 
-          <span className="cc-month-summary">{loading ? "Loading..." : `${monthHolidays.length} holiday${monthHolidays.length === 1 ? "" : "s"} this month`}</span>
+          {isCompanyAdmin && (
+             <div className="cc-calendar-tools">
+              {/* <Button
+                variant="outlined"
+                size="small"
+                startIcon={<RefreshCw size={16} />}
+                onClick={() => void loadCalendar()}
+                disabled={loading}
+              >
+                Refresh
+               </Button> */}
+
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<Filter size={16} />}
+                onClick={() => setFilterOpen(true)}
+              >
+                Filter
+              </Button>
+
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<Download size={16} />}
+                onClick={handleDownload}
+                disabled={!appliedRange || downloading}
+              >
+                {downloading ? "Downloading..." : "Download"}
+              </Button>
+      </div>
+)}
 
         </div>
 

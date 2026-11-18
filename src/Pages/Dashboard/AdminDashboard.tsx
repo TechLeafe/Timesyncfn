@@ -23,6 +23,7 @@ import {
 } from "@mui/material";
 
 import api from "../../api/axiosInstance";
+import DailyInspiration from "../../Components/DailyInspiration/DailyInspiration";
 
 import "./Dashboard.css";
 import "./EmployeeDashboard.css";
@@ -396,10 +397,8 @@ const attendanceItems = [
 
           <h2>Welcome back, {userName}!</h2>
 
-          <p>
-            Monitor your workforce, manage attendance,
-            and stay updated with your workspace.
-          </p>
+          <DailyInspiration />
+
         </div>
 
         <div
@@ -427,6 +426,7 @@ const attendanceItems = [
           </div>
         </div>
       </section>
+      
 
       {(dashboardError || attendanceError) && (
         <div className="admin-match-errors">

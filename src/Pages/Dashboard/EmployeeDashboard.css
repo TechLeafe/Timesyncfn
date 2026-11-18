@@ -33,19 +33,72 @@
   width: 100%;
   min-height: 166px;
   padding: 26px 32px;
-  border-radius: 18px;
-  background: linear-gradient(
-    110deg,
-    #e7f8f0 0%,
-    #e0f4ea 55%,
-    #bee8d6 100%
+  border-radius: 22px;
+  background:
+  linear-gradient(
+    115deg,
+    rgba(232, 250, 241, 0.96) 0%,
+    rgba(207, 241, 224, 0.93) 48%,
+    rgba(176, 228, 204, 0.92) 100%
   );
-  border: 1px solid #d8eee3;
+
+  border: 1px solid rgba(71, 160, 117, 0.16);
+  box-shadow:
+     0 10px 30px rgba(31, 115, 77, 0.09),
+     inset 0 1px 0 rgba(255, 255, 255, 0.65);
+
+  border-radius: 22px;
   display: flex;
   align-items: center;
   gap: 22px;
   position: relative;
   overflow: hidden;
+}
+
+.emp-welcome-decoration {
+  display: none;
+}
+
+.emp-welcome::before {
+  content: "";
+  position: absolute;
+
+  width: 350px;
+  height: 350px;
+
+  right: 155px;
+  top: -145px;
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.38) 0%,
+    rgba(126, 211, 168, 0.16) 45%,
+    transparent 72%
+  );
+
+  pointer-events: none;
+  z-index: 0;
+}
+
+.emp-welcome::after {
+  content: "";
+  position: absolute;
+
+  width: 220px;
+  height: 220px;
+
+  right: 280px;
+  bottom: -155px;
+
+  border-radius: 50%;
+
+  background: rgba(65, 174, 119, 0.09);
+  filter: blur(12px);
+
+  pointer-events: none;
+  z-index: 0;
 }
 
 .emp-welcome-content {
@@ -101,10 +154,18 @@
   position: relative;
   z-index: 2;
   flex: 0 0 215px;
-  padding: 17px;
-  background: rgba(255, 255, 255, 0.96);
-  border-radius: 14px;
-  box-shadow: 0 8px 25px rgba(15, 90, 60, 0.07);
+  padding: 19px;
+
+  background: rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 17px;
+
+  box-shadow:
+    0 10px 30px rgba(22, 105, 70, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .emp-welcome-date-row {

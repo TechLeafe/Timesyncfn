@@ -23,6 +23,7 @@ import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import PersonAddAltOutlinedIcon from "@mui/icons-material/PersonAddAltOutlined";
 import ManageAccountsOutlinedIcon from "@mui/icons-material/ManageAccountsOutlined";
 import TaskAltOutlinedIcon from "@mui/icons-material/TaskAltOutlined";
+import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import SupportAgentOutlinedIcon from "@mui/icons-material/SupportAgentOutlined";
 //import AccountTreeOutlinedIcon from "@mui/icons-material/AccountTreeOutlined";
@@ -96,7 +97,7 @@ const navItems: NavItem[] = [
   },
   {
     label: "Leave Policies",
-    icon: <EventAvailableOutlinedIcon />,
+    icon: <VerifiedUserOutlinedIcon />,
     path: "/leave-policies",
     roles: [HR, ADMIN, EMPLOYEE],
   },

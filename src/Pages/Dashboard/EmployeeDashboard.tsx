@@ -31,6 +31,7 @@ import api from "../../api/axiosInstance";
 import "./Dashboard.css";
 
 import "./EmployeeDashboard.css";
+import DailyInspiration from "../../Components/DailyInspiration/DailyInspiration";
 
 /* ================= TYPES ================= */
 
@@ -974,23 +975,12 @@ const EmployeeDashboard = () => {
           <section className="emp-welcome">
 
         <div className="emp-welcome-content">
-
-          <span className="emp-welcome-tag">
-
-            {greeting}
-
-          </span>
+          <span className="emp-welcome-tag">{greeting.toUpperCase()}</span>
 
           <h2>Welcome back, {employeeName}!</h2>
 
-          <p>
-
-            Track your attendance, manage your leaves
-
-            and stay updated with your workspace.
-
-          </p>
-
+          <DailyInspiration />
+        
         </div>
 
         <div
@@ -1025,8 +1015,8 @@ const EmployeeDashboard = () => {
 
         </div>
 
-          </section>
-
+      </section>
+      
       {/* ERROR MESSAGE */}
 
       {error && (
