@@ -399,6 +399,28 @@
   font-size: 11px;
   line-height: 1.5;
 }
+/* Check In / Out - compact fixed card */
+@media (min-width: 1051px) {
+  .employee-Card-container {
+    overflow: hidden;
+  }
+
+  .employee-profile-content.MuiCardContent-root {
+    min-height: 0;
+  }
+
+  .timer-card-content.MuiCardContent-root {
+    min-height: 170px;
+  }
+
+  .attendance-right-section {
+    gap: 10px;
+  }
+
+  .details-column {
+    gap: 12px;
+  }
+}
 
 .attendance-page .attendance-detail-row .MuiTypography-root:last-child {
   color: #25364a;

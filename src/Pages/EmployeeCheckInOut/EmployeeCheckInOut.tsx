@@ -24,7 +24,7 @@ import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
 import BusinessCenterOutlinedIcon from "@mui/icons-material/BusinessCenterOutlined";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
-import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
+// import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 
@@ -663,31 +663,9 @@ const loadProfile = async () => {
         ) : undefined}
       </Snackbar>
 
-      {/* PAGE HEADER */}
-
-      <Box className="attendance-page-heading">
-        <Box className="attendance-page-heading-icon">
-          <AccessTimeOutlinedIcon />
-        </Box>
-
-        <Box>
-          <Typography
-            component="h2"
-            className="attendance-page-title"
-          >
-            Check In / Out
-          </Typography>
-
-          <Typography className="attendance-page-description">
-            Manage your daily attendance and
-            track your working session.
-          </Typography>
-        </Box>
-      </Box>
-
       {/* DATE AND STATUS */}
 
-      <Box className="attendance-overview">
+      {/* <Box className="attendance-overview">
         <Box className="attendance-overview-date">
           <CalendarTodayOutlinedIcon />
           <Typography>{todayLabel}</Typography>
@@ -699,7 +677,7 @@ const loadProfile = async () => {
           <span className="attendance-status-dot" />
           {loading ? "Loading status..." : statusLabel}
         </Box>
-      </Box>
+      </Box> */}
 
       {/* ERROR AND RETRY */}
 
@@ -755,6 +733,11 @@ const loadProfile = async () => {
             <Divider className="employee-profile-divider" />
 
             <Box className="employee-session-info">
+              <Box className="employee-session-row">
+                <span>Date</span>
+                <strong>{todayLabel}</strong>
+              </Box>
+
               <Box className="employee-session-row">
                 <span>Check In</span>
                 <strong>
@@ -821,7 +804,7 @@ const loadProfile = async () => {
             <CardContent className="timer-card-content">
               <Box className="timer-left">
                 <Box className="timer-heading">
-                  <AccessTimeOutlinedIcon />
+                  
                   <Typography>
                     Total Working Time Today
                   </Typography>

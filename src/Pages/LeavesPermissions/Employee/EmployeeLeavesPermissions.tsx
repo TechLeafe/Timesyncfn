@@ -648,14 +648,14 @@ function EmployeeLeavesPermissions() {
   };
 
   const clRemaining = remaining(
-    leavePolicy?.casualLeave,
-    usedDays("CL")
-  );
+  leavePolicy?.casualLeave,
+  usedDays("CL")
+);
 
-  const slRemaining = remaining(
-    leavePolicy?.sickLeave,
-    usedDays("SL")
-  );
+const slRemaining = remaining(
+  leavePolicy?.sickLeave,
+  usedDays("SL")
+);
 
   const compOffRemaining = remaining(
     leavePolicy?.compensatoryOff,
@@ -924,11 +924,11 @@ function EmployeeLeavesPermissions() {
 
       <Box className="employee-leaves-header">
         <Box className="employee-leaves-heading">
-          <Box className="employee-leaves-heading-icon">
+          {/* <Box className="employee-leaves-heading-icon">
             <EventAvailableOutlinedIcon />
-          </Box>
+          </Box> */}
 
-          <Box>
+          {/* <Box>
             <Typography
               component="h2"
               className="page-title"
@@ -940,7 +940,7 @@ function EmployeeLeavesPermissions() {
               Apply for time off and track your
               requests.
             </Typography>
-          </Box>
+          </Box> */}
         </Box>
 
         <Chip

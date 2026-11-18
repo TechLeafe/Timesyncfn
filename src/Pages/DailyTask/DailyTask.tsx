@@ -101,26 +101,6 @@ export default function DailyTask() {
 
   return (
     <div className="daily-task-page">
-      <header className="daily-task-header">
-        <div className="daily-task-heading">
-          <div className="daily-task-heading-icon" aria-hidden="true">
-            <ClipboardList size={23} strokeWidth={1.9} />
-          </div>
-          <div>
-            <h1>Daily Tasks</h1>
-            <p>Create, manage, and track employee tasks.</p>
-          </div>
-        </div>
-        <button
-          type="button"
-          className="add-task-button"
-          onClick={() => navigate("/daily-task/add")}
-        >
-          <Plus size={17} strokeWidth={2.5} aria-hidden="true" />
-          Add Task
-        </button>
-      </header>
-
       {error && (
         <div className="task-error" role="alert">
           <span>{error}</span>
@@ -186,6 +166,14 @@ export default function DailyTask() {
             <p>View task priorities, progress, and details.</p>
           </div>
           <div className="task-table-filters">
+            <button
+              type="button"
+              className="add-task-button"
+              onClick={() => navigate("/daily-task/add")}
+            >
+              <Plus size={17} strokeWidth={2.5} aria-hidden="true" />
+              Add Task
+            </button>
             <label className="task-search-field">
               <Search size={17} aria-hidden="true" />
               <input
