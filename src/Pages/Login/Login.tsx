@@ -167,6 +167,9 @@ export function Login() {
         {
           email: cleanEmail,
           password,
+        },
+        {
+          timeout: 60_000,
         }
       );
 
