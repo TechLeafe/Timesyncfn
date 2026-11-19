@@ -7,13 +7,16 @@ import CalendarEventsProvider from './context/CalendarEventsProvider'
 
 const preloadErrorReloadKey = `vite-preload-error-reloaded:${import.meta.url.split('?')[0]}`
 
-window.addEventListener('vite:preloadError', (event) => {
-  if (sessionStorage.getItem(preloadErrorReloadKey)) return
+    window.addEventListener('vite:preloadError', (event) => {
+      if (sessionStorage.getItem(preloadErrorReloadKey)) return
 
-  event.preventDefault()
-  sessionStorage.setItem(preloadErrorReloadKey, 'true')
-  window.location.reload()
-})
+      event.preventDefault()
+      sessionStorage.setItem(preloadErrorReloadKey, 'true')
+      window.location.reload()
+    })
+        window.addEventListener('load', () => {
+      sessionStorage.removeItem(preloadErrorReloadKey)
+    }, { once: true })
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
