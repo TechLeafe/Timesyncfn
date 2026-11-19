@@ -1,23 +1,21 @@
 
 export const isMobileDevice = (): boolean => {
-  if (typeof navigator === "undefined") {
-    return false;
-  }
+  if (typeof navigator === "undefined") return false;
 
-  const userAgent = navigator.userAgent || "";
+  const ua = navigator.userAgent || "";
   const platform = navigator.platform || "";
 
   const mobileUA =
-    /Android|iPhone|iPad|iPod|Mobile|Windows Phone|BlackBerry|Opera Mini|webOS/i.test(
-      userAgent
+    /Android|iPhone|iPad|iPod|Mobile|Windows Phone|webOS|BlackBerry/i.test(
+      ua
     );
 
   const mobilePlatform =
     /Android|iPhone|iPad|iPod/i.test(platform);
 
-  const touchMac =
+  const iPadDesktop =
     platform === "MacIntel" &&
     navigator.maxTouchPoints > 1;
 
-  return mobileUA || mobilePlatform || touchMac;
+  return mobileUA || mobilePlatform || iPadDesktop;
 };
