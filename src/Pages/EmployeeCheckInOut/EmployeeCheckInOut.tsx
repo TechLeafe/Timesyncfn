@@ -29,6 +29,7 @@ import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 
 import api from "../../api/axiosInstance";
+import { isMobileDevice } from "../../utils/deviceDetection";
 import "./EmployeeCheckInOut.css";
 
 interface Employee {
@@ -206,6 +207,7 @@ const getApiError = (
 
 const EmployeeCheckInOut = () => {
   const navigate = useNavigate();
+  const [mobileRestricted] = useState(() => isMobileDevice());
   const [employee, setEmployee] = useState<Employee>(
     () => makeEmployee(initialUser)
   );
@@ -457,6 +459,7 @@ const loadProfile = async () => {
   /* ================= CHECK IN ================= */
 
   const handleCheckIn = async () => {
+    if (mobileRestricted || isMobileDevice()) return;
     if (
       submitting ||
       loading ||
@@ -530,6 +533,7 @@ const loadProfile = async () => {
   /* ================= CHECK OUT ================= */
 
   const handleCheckOut = async () => {
+    if (mobileRestricted || isMobileDevice()) return;
     if (
       submitting ||
       loading ||
@@ -628,7 +632,7 @@ const loadProfile = async () => {
     .join("");
 
   const actionDisabled =
-    loading || submitting || status === "unknown";
+    loading || submitting || status === "unknown" || mobileRestricted;
 
   const timerValue = isCheckedIn || isCheckedOut
     ? elapsedSeconds
@@ -752,6 +756,12 @@ const loadProfile = async () => {
                 </strong>
               </Box>
             </Box>
+
+            {mobileRestricted && (
+              <Alert severity="warning" sx={{ mt: 2, mb: 1, textAlign: "left" }}>
+                Check In and Check Out are available only on laptops and desktop computers.
+              </Alert>
+            )}
 
             <Box className="attendance-actions">
               <Button
