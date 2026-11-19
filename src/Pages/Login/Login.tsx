@@ -77,7 +77,7 @@ export function Login() {
   const [loginError, setLoginError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // MOBILE DEVICE DETECTION
+  // DEVICE DETECTION
   const isMobile = isMobileDevice();
 
   // ======================================
@@ -122,10 +122,6 @@ export function Login() {
   // ROLE-BASED NAVIGATION
   // ======================================
 
-  // 1 = Admin
-  // 2 = HR
-  // 3 = Employee
-
   const redirectUser = (userType: UserType): void => {
     switch (userType) {
       case 1:
@@ -160,10 +156,10 @@ export function Login() {
   ): Promise<void> => {
     event.preventDefault();
 
-    // BLOCK LOGIN ON DETECTED MOBILE DEVICES
+    // BLOCK DETECTED MOBILE DEVICES
     if (isMobileDevice()) {
       setLoginError(
-        "Login is allowed only on laptop or desktop."
+        "Login is allowed only on laptop."
       );
       return;
     }
@@ -340,7 +336,7 @@ export function Login() {
             </p>
           </div>
 
-          {/* GLOBAL LOGIN ERROR */}
+          {/* TOP LOGIN WARNING / ERROR */}
           {(loginError || isMobile) && (
             <div
               className="login-error-message login-global-error"
