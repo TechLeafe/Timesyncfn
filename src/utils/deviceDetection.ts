@@ -1,29 +1,24 @@
 
-/**
- * Detect whether the user is accessing
- * TimeSync HRMS from a mobile or tablet.
- *
- * true  = Mobile / Tablet (Restricted)
- * false = Desktop / Laptop (Allowed)
- */
-
 export const isMobileDevice = (): boolean => {
-  if (typeof navigator === "undefined") {
-    return false;
-  }
+  if (typeof window === "undefined") return false;
 
-  const userAgent = navigator.userAgent || "";
+  const ua = navigator.userAgent || "";
 
-  // Detect mobile and tablet devices
   const mobileRegex =
     /Android|iPhone|iPad|iPod|Mobile|Windows Phone|webOS|BlackBerry|Opera Mini/i;
 
-  const isMobile = mobileRegex.test(userAgent);
+  const mobileUA = mobileRegex.test(ua);
 
-  // Detect iPad using desktop browser mode
-  const isIPad =
-    /Macintosh/i.test(userAgent) &&
+  const mobilePlatform =
+    /Android|iPhone|iPad|iPod/i.test(
+      navigator.userAgentData?.platform ||
+      navigator.platform ||
+      ""
+    );
+
+  const touchMac =
+    navigator.platform === "MacIntel" &&
     navigator.maxTouchPoints > 1;
 
-  return isMobile || isIPad;
+  return mobileUA || mobilePlatform || touchMac;
 };

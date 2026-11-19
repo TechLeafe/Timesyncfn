@@ -12,7 +12,12 @@ import {
 } from "lucide-react";
 
 import api from "../../api/axiosInstance";
+import { isMobileDevice } from "../../utils/deviceDetection";
 import "./Login.css";
+
+// ======================================
+// TYPES
+// ======================================
 
 type UserType = 1 | 2 | 3;
 
@@ -55,6 +60,10 @@ type LoginResponse = {
   };
 };
 
+// ======================================
+// LOGIN COMPONENT
+// ======================================
+
 export function Login() {
   const navigate = useNavigate();
 
@@ -68,7 +77,13 @@ export function Login() {
   const [loginError, setLoginError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // MOBILE DEVICE DETECTION
+  const isMobile = isMobileDevice();
+
+  // ======================================
   // CURRENT DATE
+  // ======================================
+
   const getTodayDate = (): string => {
     const now = new Date();
 
@@ -79,7 +94,10 @@ export function Login() {
     return `${year}-${month}-${day}`;
   };
 
+  // ======================================
   // SAVE LOGIN SESSION
+  // ======================================
+
   const storeLogin = (user: LoginUser): void => {
     const session: LoginSession = {
       userId: user.userId,
@@ -100,23 +118,32 @@ export function Login() {
     );
   };
 
+  // ======================================
   // ROLE-BASED NAVIGATION
-  // Backend roles:
+  // ======================================
+
   // 1 = Admin
   // 2 = HR
   // 3 = Employee
+
   const redirectUser = (userType: UserType): void => {
     switch (userType) {
       case 1:
-        navigate("/admindashboard", { replace: true });
+        navigate("/admindashboard", {
+          replace: true,
+        });
         break;
 
       case 2:
-        navigate("/hrdashboard", { replace: true });
+        navigate("/hrdashboard", {
+          replace: true,
+        });
         break;
 
       case 3:
-        navigate("/employeedashboard", { replace: true });
+        navigate("/employeedashboard", {
+          replace: true,
+        });
         break;
 
       default:
@@ -124,11 +151,22 @@ export function Login() {
     }
   };
 
+  // ======================================
   // LOGIN SUBMISSION
+  // ======================================
+
   const handleSubmit = async (
     event: FormEvent<HTMLFormElement>
   ): Promise<void> => {
     event.preventDefault();
+
+    // BLOCK LOGIN ON DETECTED MOBILE DEVICES
+    if (isMobileDevice()) {
+      setLoginError(
+        "Login is allowed only on laptop or desktop."
+      );
+      return;
+    }
 
     setEmailError("");
     setPasswordError("");
@@ -161,7 +199,7 @@ export function Login() {
     try {
       setLoading(true);
 
-      // The deployed backend exposes login at /api/login.
+      // LOGIN API
       const response = await api.post<LoginResponse>(
         "/login",
         {
@@ -186,7 +224,9 @@ export function Login() {
       const backendUser = result.data?.employee;
 
       if (!token) {
-        throw new Error("Authentication token not found");
+        throw new Error(
+          "Authentication token not found"
+        );
       }
 
       if (!backendUser) {
@@ -194,7 +234,9 @@ export function Login() {
       }
 
       // CHECK ROLE
-      const userType = Number(backendUser.userType);
+      const userType = Number(
+        backendUser.userType
+      );
 
       if (
         userType !== 1 &&
@@ -249,12 +291,18 @@ export function Login() {
       } else if (error instanceof Error) {
         setLoginError(error.message);
       } else {
-        setLoginError("Unable to login. Please try again.");
+        setLoginError(
+          "Unable to login. Please try again."
+        );
       }
     } finally {
       setLoading(false);
     }
   };
+
+  // ======================================
+  // LOGIN UI
+  // ======================================
 
   return (
     <div className="login-page">
@@ -287,17 +335,19 @@ export function Login() {
           <div className="login-heading">
             <h1>Enter Workspace</h1>
             <p>
-              Enter your email and password to continue.
+              Enter your email and password to
+              continue.
             </p>
           </div>
 
           {/* GLOBAL LOGIN ERROR */}
-          {loginError && (
+          {(loginError || isMobile) && (
             <div
               className="login-error-message login-global-error"
               role="alert"
             >
-              {loginError}
+              {loginError ||
+                "Login is allowed only on laptop."}
             </div>
           )}
 
@@ -309,11 +359,15 @@ export function Login() {
           >
             {/* EMAIL */}
             <div className="login-form-group">
-              <label htmlFor="email">Email ID</label>
+              <label htmlFor="email">
+                Email ID
+              </label>
 
               <div
                 className={`login-input-box ${
-                  emailError ? "login-input-error" : ""
+                  emailError
+                    ? "login-input-error"
+                    : ""
                 }`}
               >
                 <Mail
@@ -349,11 +403,15 @@ export function Login() {
 
             {/* PASSWORD */}
             <div className="login-form-group">
-              <label htmlFor="password">Password</label>
+              <label htmlFor="password">
+                Password
+              </label>
 
               <div
                 className={`login-input-box ${
-                  passwordError ? "login-input-error" : ""
+                  passwordError
+                    ? "login-input-error"
+                    : ""
                 }`}
               >
                 <LockKeyhole
@@ -364,7 +422,11 @@ export function Login() {
                 <input
                   id="password"
                   name="password"
-                  type={showPassword ? "text" : "password"}
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
                   autoComplete="current-password"
                   placeholder="Enter your password"
                   value={password}
@@ -380,7 +442,9 @@ export function Login() {
                   type="button"
                   className="login-eye-button"
                   onClick={() =>
-                    setShowPassword((current) => !current)
+                    setShowPassword(
+                      (current) => !current
+                    )
                   }
                   aria-label={
                     showPassword
@@ -410,13 +474,15 @@ export function Login() {
             <button
               type="submit"
               className="login-submit-button"
-              disabled={loading}
+              disabled={loading || isMobile}
             >
               <span>
                 {loading ? "Logging in..." : "Login"}
               </span>
 
-              {!loading && <ArrowRight size={21} />}
+              {!loading && !isMobile && (
+                <ArrowRight size={21} />
+              )}
             </button>
           </form>
 
