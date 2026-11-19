@@ -1,5 +1,6 @@
 
 
+import axios from "axios";
 import { useEffect, useState } from "react";
 
 import {
@@ -306,6 +307,34 @@ const getLoggedInUser = (): LoggedInUser | null => {
 
 };
 
+const getDashboardErrorMessage = (error: unknown): string => {
+  if (axios.isAxiosError(error)) {
+    if (error.code === "ECONNABORTED") {
+      return "The dashboard request timed out. It will retry automatically.";
+    }
+
+    const status = error.response?.status;
+
+    if (status === 401) {
+      return "Your session has expired. Please sign in again.";
+    }
+
+    if (status === 403) {
+      return "Your account is not authorized to load this dashboard.";
+    }
+
+    if (status && status >= 500) {
+      return `The dashboard service is unavailable (HTTP ${status}). It will retry automatically.`;
+    }
+
+    if (!error.response) {
+      return "Cannot reach the dashboard service. Check your connection.";
+    }
+  }
+
+  return "Unable to load dashboard data. It will retry automatically.";
+};
+
 /* ================= WORKING HOURS ================= */
 
 const computeWorkingHours = (
@@ -491,8 +520,12 @@ const EmployeeDashboard = () => {
   useEffect(() => {
 
     let cancelled = false;
+    let requestInProgress = false;
+    let hasLoadedData = false;
 
     const loadDashboard = async (backgroundRefresh = false) => {
+      if (requestInProgress) return;
+      requestInProgress = true;
 
       if (!backgroundRefresh) {
         setLoading(true);
@@ -679,6 +712,7 @@ const EmployeeDashboard = () => {
 
         if (!cancelled) {
 
+          hasLoadedData = true;
           setData({
 
             workingHours,
@@ -690,6 +724,7 @@ const EmployeeDashboard = () => {
             todaysAttendance: attendance,
 
           });
+          setError("");
 
         }
 
@@ -700,14 +735,15 @@ const EmployeeDashboard = () => {
         if (!cancelled) {
 
           setError(
-
-            "Unable to load dashboard data. Please refresh the page."
-
+            backgroundRefresh && hasLoadedData
+              ? "Dashboard refresh failed. Showing the last loaded data."
+              : getDashboardErrorMessage(err)
           );
 
         }
 
       } finally {
+        requestInProgress = false;
 
         if (!cancelled && !backgroundRefresh) {
 
