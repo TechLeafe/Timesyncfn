@@ -19,7 +19,6 @@ import {
 import {
   Alert,
   Button,
-  CircularProgress,
 } from "@mui/material";
 
 import api from "../../api/axiosInstance";
@@ -556,10 +555,10 @@ const attendanceItems = [
           </div>
 
           {loading ? (
-            <div className="emp-no-requests">
-              <CircularProgress size={25} />
-              <p>Loading attendance...</p>
-            </div>
+            <div 
+              className="emp-no-requests"
+              aria-hidden="true"
+            />
           ) : !dashboard ? (
             <div className="emp-no-requests">
               <p>Attendance data is unavailable.</p>
@@ -630,9 +629,9 @@ const attendanceItems = [
           </div>
 
           {loading ? (
-            <div className="emp-no-requests">
-              <p>Loading leave requests...</p>
-            </div>
+            <div className="emp-no-requests"
+                 aria-hidden="true"
+            /> 
           ) : !dashboard ? (
             <div className="emp-no-requests">
               <p>Leave request data is unavailable.</p>

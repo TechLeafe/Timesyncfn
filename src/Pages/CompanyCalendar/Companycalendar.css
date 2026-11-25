@@ -1411,3 +1411,62 @@
   display: none;               /* Chrome, Safari, Edge */
 }
 
+
+/* ==========================================
+   MONTHLY ACHIEVEMENT - SIDE BY SIDE LAYOUT
+   ========================================== */
+
+/* When Monthly Achievement is clicked, arrange
+   the calendar and achievement card horizontally */
+.company-calendar-page .cc-calendar-achievement-layout.cc-achievement-visible {
+  flex-direction: row;
+  align-items: stretch;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Calendar occupies the larger left section */
+.company-calendar-page
+  .cc-achievement-visible
+  .cc-calendar-main {
+  flex: 1 1 0%;
+  width: 0;
+  min-width: 0;
+}
+
+/* Achievement card occupies the right section */
+.company-calendar-page
+  .cc-achievement-visible
+  .cc-achievement-sidebar {
+  flex: 0 0 clamp(260px, 28%, 340px);
+  width: clamp(260px, 28%, 340px);
+  min-width: 0;
+  min-height: 0;
+  align-self: stretch;
+  overflow-y: auto;
+}
+
+/* On smaller screens, stack the sections */
+@media (max-width: 900px) {
+  .company-calendar-page
+    .cc-calendar-achievement-layout.cc-achievement-visible {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .company-calendar-page
+    .cc-achievement-visible
+    .cc-calendar-main {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
+  .company-calendar-page
+    .cc-achievement-visible
+    .cc-achievement-sidebar {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+}
+

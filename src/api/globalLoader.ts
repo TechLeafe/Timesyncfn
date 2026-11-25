@@ -4,6 +4,7 @@ const listeners = new Set<(loading: boolean) => void>();
 
 const notify = () => {
   const loading = activeRequests > 0;
+
   listeners.forEach((listener) => listener(loading));
 };
 

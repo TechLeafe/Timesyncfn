@@ -1525,15 +1525,10 @@ function RequestTable({
       </Box>
 
       {loading ? (
-        <Box className="empty-requests">
-          <CircularProgress
-            size={24}
-            sx={{ color: "#087b4d" }}
-          />
-          <Typography className="empty-requests-text">
-            Loading requests...
-          </Typography>
-        </Box>
+        <Box 
+            className="empty-requests"
+            aria-hidden="true"
+        />
       ) : requests.length === 0 ? (
         <Box className="empty-requests">
           <DescriptionOutlinedIcon className="empty-requests-icon" />

@@ -1,0 +1,30 @@
+
+@keyframes classic-spinner-fade {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.15;
+  }
+}
+
+.classic-spinner {
+  position: relative;
+  display: inline-block;
+  width: 42px;
+  height: 42px;
+  color: #087b4d;
+}
+
+.classic-spinner-spoke {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  width: 24%;
+  height: 8%;
+  border-radius: 999px;
+  background-color: currentColor;
+  animation: classic-spinner-fade 1.2s linear infinite;
+}

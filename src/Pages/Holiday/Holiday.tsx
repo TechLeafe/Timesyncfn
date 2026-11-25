@@ -1096,25 +1096,10 @@ export default function Holiday() {
             </Box>
 
             {loading ? (
-
-              <Box className="holiday-empty-panel">
-
-                <CircularProgress
-
-                  size={26}
-
-                  sx={{ color: "#087b4d" }}
-
-                />
-
-                <Typography>
-
-                  Loading holidays...
-
-                </Typography>
-
-              </Box>
-
+              <Box 
+                 className="holiday-empty-panel"
+                 aria-hidden="true"
+               />
             ) : loadError ? (
 
               <Box className="holiday-empty-panel">

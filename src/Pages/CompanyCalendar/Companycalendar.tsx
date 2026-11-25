@@ -764,27 +764,9 @@ export default function CompanyCalendar() {
   }, [isCompanyAdmin, user]);
 
   useEffect(() => {
-    void loadCalendar();
-
-    const refreshWhenVisible = () => {
-      if (document.visibilityState === "visible") {
-        void loadCalendar();
-      }
-    };
-    const refreshInterval = window.setInterval(
-      () => void loadCalendar(),
-      30_000
-    );
-
-    window.addEventListener("focus", refreshWhenVisible);
-    document.addEventListener("visibilitychange", refreshWhenVisible);
-
-    return () => {
-      window.clearInterval(refreshInterval);
-      window.removeEventListener("focus", refreshWhenVisible);
-      document.removeEventListener("visibilitychange", refreshWhenVisible);
-    };
-  }, [loadCalendar]);
+       void loadCalendar();
+    }, [loadCalendar]);
+   
 
   useEffect(() => {
     let cancelled = false;

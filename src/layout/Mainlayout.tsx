@@ -1,5 +1,8 @@
 
 import { useEffect, useState } from "react";
+import { Suspense } from "react";
+import GlobalLoader from "../Components/Loader/GlobalLoader";
+import ClassicSpinner from "../Components/Loader/ClassicSpinner";
 
 import {
   Box,
@@ -275,10 +278,34 @@ const MainLayout = () => {
             PAGE CONTENT
         ==================================== */}
 
-        <Box className="app-page-content">
-          <Outlet />
+        
+        {/* ====================================
+            PAGE CONTENT
+        ==================================== */}
+
+        <Box
+          className="app-page-content"
+          sx={{ position: "relative" }}
+        >
+          <Suspense
+            fallback={
+              <Box
+                className="global-loader-overlay"
+                role="status"
+                aria-label="Loading page"
+              >
+                <ClassicSpinner />
+              </Box>
+            }
+          >
+            <Outlet />
+          </Suspense>
+
+          <GlobalLoader />
         </Box>
-      </Box>
+
+      </Box> {/* This closes app-main-content */}
+
 
       {/* ======================================
           EMPLOYEE SUPPORT POPUP

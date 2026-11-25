@@ -1,5 +1,4 @@
 
-
 import axios from "axios";
 import { useEffect, useState } from "react";
 
@@ -479,14 +478,6 @@ const formatTime = (time: string | null): string => {
 
 /* ================= MAIN COMPONENT ================= */
 
-const DashboardSpinner = ({ small = false }: { small?: boolean }) => (
-  <span
-    className={`emp-loading-spinner${small ? " emp-loading-spinner-small" : ""}`}
-    role="status"
-    aria-label="Loading"
-  />
-);
-
 const EmployeeDashboard = () => {
 
   const [data, setData] =
@@ -496,8 +487,6 @@ const EmployeeDashboard = () => {
   const [history, setHistory] =
 
     useState<AttendanceHistoryRecord[]>([]);
-
-  const [loading, setLoading] = useState(true);
 
   const [error, setError] = useState("");
 
@@ -519,6 +508,7 @@ const EmployeeDashboard = () => {
 
   useEffect(() => {
 
+    const controller = new AbortController();
     let cancelled = false;
     let requestInProgress = false;
     let hasLoadedData = false;
@@ -526,10 +516,6 @@ const EmployeeDashboard = () => {
     const loadDashboard = async (backgroundRefresh = false) => {
       if (requestInProgress) return;
       requestInProgress = true;
-
-      if (!backgroundRefresh) {
-        setLoading(true);
-      }
 
       if (!backgroundRefresh) {
         setError("");
@@ -545,6 +531,8 @@ const EmployeeDashboard = () => {
 
           date: "",
 
+        }, {
+          signal: controller.signal,
         });
 
         const payload = dashboardResponse.data.data;
@@ -581,6 +569,8 @@ const EmployeeDashboard = () => {
 
             date: "",
 
+          }, {
+            signal: controller.signal,
           });
 
           const allHistory = historyResponse.data.data;
@@ -743,53 +733,21 @@ const EmployeeDashboard = () => {
         }
 
       } finally {
-        requestInProgress = false;
-
-        if (!cancelled && !backgroundRefresh) {
-
-          setLoading(false);
-
-        }
-
+          requestInProgress = false;
       }
 
     };
 
-    const refreshDashboardWhenVisible = () => {
-      if (document.visibilityState === "visible") {
-        void loadDashboard(true);
-      }
-    };
-
-    document.addEventListener(
-      "visibilitychange",
-      refreshDashboardWhenVisible
-    );
-    window.addEventListener(
-      "focus",
-      refreshDashboardWhenVisible
-    );
-    const refreshInterval = window.setInterval(
-      () => void loadDashboard(true),
-      30_000
-    );
-
+    
+    // Fetch dashboard data only once when the page mounts
     void loadDashboard();
 
+    // Cancel state updates when the page unmounts
     return () => {
-
       cancelled = true;
-      document.removeEventListener(
-        "visibilitychange",
-        refreshDashboardWhenVisible
-      );
-      window.removeEventListener(
-        "focus",
-        refreshDashboardWhenVisible
-      );
-      window.clearInterval(refreshInterval);
-
+      controller.abort();
     };
+
 
   }, []);
 
@@ -1045,7 +1003,7 @@ const EmployeeDashboard = () => {
 
             <AccessTimeRounded />
 
-            <span>{loading ? <DashboardSpinner small /> : attendanceStatus}</span>
+            <span>{attendanceStatus}</span>
 
           </div>
 
@@ -1094,7 +1052,7 @@ const EmployeeDashboard = () => {
 
           <h3>
 
-            {loading ? <DashboardSpinner /> : formatDuration(workingHours.today)}
+            {formatDuration(workingHours.today)}
 
           </h3>
 
@@ -1102,7 +1060,7 @@ const EmployeeDashboard = () => {
 
             <span className="emp-stat-dot" />
 
-            <span>{loading ? <DashboardSpinner small /> : attendanceStatus}</span>
+            <span>{attendanceStatus}</span>
 
           </div>
 
@@ -1134,7 +1092,7 @@ const EmployeeDashboard = () => {
 
           <h3>
 
-            {loading ? <DashboardSpinner /> : formatDuration(workingHours.thisMonth)}
+            {formatDuration(workingHours.thisMonth)}
 
           </h3>
 
@@ -1146,7 +1104,7 @@ const EmployeeDashboard = () => {
 
               Avg{" "}
 
-              {loading ? <DashboardSpinner small /> : formatDuration(workingHours.averagePerDay)}
+              {formatDuration(workingHours.averagePerDay)}
 
               /day
 
@@ -1182,7 +1140,7 @@ const EmployeeDashboard = () => {
 
           <h3>
 
-            {loading ? <DashboardSpinner /> : pendingRequests}
+            {pendingRequests}
 
           </h3>
 
@@ -1192,11 +1150,11 @@ const EmployeeDashboard = () => {
 
             <span>
 
-              {loading ? <DashboardSpinner small /> : approvedRequests} approved
+              {approvedRequests} approved
 
               {" · "}
 
-              {loading ? <DashboardSpinner small /> : rejectedRequests} rejected
+              {rejectedRequests} rejected
 
             </span>
 
@@ -1261,7 +1219,7 @@ const EmployeeDashboard = () => {
 
                 <strong>
 
-                  {loading ? <DashboardSpinner small /> : totalLeaves}
+                  {totalLeaves}
 
                 </strong>
 
@@ -1301,7 +1259,7 @@ const EmployeeDashboard = () => {
 
                   <strong>
 
-                    {loading ? (<DashboardSpinner small />) : (`${item.value} ${item.label === "Permission Hours" ? "hours" : "days"}`)}
+                    {`${item.value} ${item.label === "Permission Hours" ? "hours" : "days"}`}
 
                   </strong>
 
@@ -1321,7 +1279,7 @@ const EmployeeDashboard = () => {
 
           <div className="emp-panel-heading">
 
-            <div>
+            totalRequests === 0 ? (<div>
 
               <h3>Leave requests by status</h3>
 
@@ -1341,15 +1299,7 @@ const EmployeeDashboard = () => {
 
           </div>
 
-          {loading ? (
-
-            <div className="emp-no-requests">
-
-              <DashboardSpinner />
-
-            </div>
-
-          ) : totalRequests === 0 ? (
+          {totalRequests === 0 ? (
 
             <div className="emp-no-requests">
 
@@ -1516,8 +1466,8 @@ const EmployeeDashboard = () => {
                   <tr>
 
                     <td colSpan={5} className="emp-table-empty">
-
-                      {loading ? <DashboardSpinner /> : "No attendance records available"}
+                    
+                    No attendance records available  
 
                     </td>
 
@@ -1655,7 +1605,7 @@ const EmployeeDashboard = () => {
 
                 <strong>
 
-                  {loading ? <DashboardSpinner small /> : formatDuration(workingHours.thisMonth)}
+                  {formatDuration(workingHours.thisMonth)}
 
                 </strong>
 
@@ -1679,7 +1629,7 @@ const EmployeeDashboard = () => {
 
                 <strong>
 
-                  {loading ? <DashboardSpinner small /> : formatDuration(workingHours.averagePerDay)}
+                  {formatDuration(workingHours.averagePerDay)}
 
                 </strong>
 
@@ -1703,7 +1653,7 @@ const EmployeeDashboard = () => {
 
                 <strong>
 
-                  {loading ? <DashboardSpinner small /> : `${totalLeaves} days`}
+                  {totalLeaves}
 
                 </strong>
 

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Alert, Box, Button, Chip, CircularProgress, IconButton,
+  Alert, Box, Button, Chip, IconButton,
   Menu, MenuItem, Paper, Select, Table, TableBody, TableCell,
   TableHead, TableRow, TextField, Tooltip, Typography,
 } from "@mui/material";
@@ -566,10 +566,10 @@ function AdminLeavesPermissions() {
         )}
 
         {loading ? (
-          <Box className="admin-leaves-permissions__empty-state">
-            <CircularProgress size={25} sx={{ color: "#087b4d" }} />
-            <Typography>Loading requests...</Typography>
-          </Box>
+          <Box 
+            className="admin-leaves-permissions__empty-state"
+            aria-hidden="true"
+          />
         ) : loadError ? (
           <Box className="admin-leaves-permissions__empty-state">
             <Typography>Request information is unavailable.</Typography>

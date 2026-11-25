@@ -855,7 +855,7 @@ const LeavePolicies = () => {
      DIRECT EMPLOYEE LEAVE OVERVIEW
   ========================================= */
 
-  if (!loading && !loadError && (!policyDeleted || employeePolicy)) {
+  if (!loadError && (!policyDeleted || employeePolicy)) {
     const values = getPolicyValues(displayPolicy);
 
     return (
@@ -980,17 +980,7 @@ const LeavePolicies = () => {
 
       </Box>
 
-      {loading ? (
-        <Card className="leave-policies__detail-card">
-          <Box className="leave-policies__loading">
-            <CircularProgress size={28} />
-
-            <Typography>
-              Loading Employee Leave policy...
-            </Typography>
-          </Box>
-        </Card>
-      ) : loadError ? (
+      {loading ? null : loadError ? (
         <Alert
           severity="error"
           className="leave-policies__error"

@@ -83,7 +83,6 @@ export default function BirthdayCreation() {
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -324,97 +323,88 @@ export default function BirthdayCreation() {
       </Typography>
       </Box>
      </Box>
-
-      {/* BIRTHDAY TABLE */}
       
-      {/* BIRTHDAY TABLE */}
-      <TableContainer
-        component={Paper}
-        className="birthday-table-container"
-      >
-        {loading ? (
-          <Box className="birthday-loading">
-            <CircularProgress />
-          </Box>
+      
+{/* BIRTHDAY TABLE */}
+<TableContainer
+  component={Paper}
+  className="birthday-table-container"
+>
+  {loading ? (
+    <Box
+      className="birthday-loading"
+      aria-hidden="true"
+    />
+  ) : (
+    <Table>
+      <TableHead>
+        <TableRow>
+          <TableCell>Employee Name</TableCell>
+          <TableCell>Employee ID</TableCell>
+          <TableCell>Date of Birth</TableCell>
+          <TableCell align="center">Action</TableCell>
+        </TableRow>
+      </TableHead>
+
+      <TableBody>
+        {birthdays.length > 0 ? (
+          birthdays.map((birthday) => (
+            <TableRow key={birthday._id} hover>
+              <TableCell>
+                {birthday.employeeName}
+              </TableCell>
+
+              <TableCell>
+                {birthday.employeeId}
+              </TableCell>
+
+              <TableCell>
+                {formatDOB(birthday.dob)}
+              </TableCell>
+
+              <TableCell align="center">
+                <IconButton
+                  sx={{
+                    color: "#016637",
+                    "&:hover": {
+                      backgroundColor: "rgba(1, 102, 55, 0.08)",
+                    },
+                  }}
+                  onClick={() => handleEdit(birthday)}
+                  title="Edit"
+                >
+                  <Edit />
+                </IconButton>
+
+                <IconButton
+                  sx={{
+                    color: "#d32f2f",
+                    "&:hover": {
+                      backgroundColor: "rgba(211, 47, 47, 0.08)",
+                    },
+                  }}
+                  onClick={() =>
+                    handleDeleteClick(birthday.employeeId)
+                  }
+                  title="Delete"
+                >
+                  <Delete />
+                </IconButton>
+              </TableCell>
+            </TableRow>
+          ))
         ) : (
-          <Table>
-
-            <TableHead>
-              <TableRow>
-                <TableCell>Employee Name</TableCell>
-                <TableCell>Employee ID</TableCell>
-                <TableCell>Date of Birth</TableCell>
-                <TableCell align="center">Action</TableCell>
-              </TableRow>
-            </TableHead>
-
-            <TableBody>
-
-              {birthdays.length > 0 ? (
-                birthdays.map((birthday) => (
-                  <TableRow key={birthday._id} hover>
-
-                    <TableCell>
-                      {birthday.employeeName}
-                    </TableCell>
-
-                    <TableCell>
-                      {birthday.employeeId}
-                    </TableCell>
-
-                    <TableCell>
-                      {formatDOB(birthday.dob)}
-                    </TableCell>
-
-                    <TableCell align="center">
-
-                      {/* EDIT BUTTON */}
-                      <IconButton
-                        sx={{
-                          color: "#016637",
-                          "&:hover": {
-                            backgroundColor: "rgba(1, 102, 55, 0.08)",
-                          },
-                        }}
-                        onClick={() => handleEdit(birthday)}
-                        title="Edit"
-                      >
-                        <Edit />
-                      </IconButton>
-
-                      {/* DELETE BUTTON */}
-                      <IconButton
-                        sx={{
-                          color: "#d32f2f",
-                          "&:hover": {
-                            backgroundColor: "rgba(211, 47, 47, 0.08)",
-                          },
-                        }}
-                        onClick={() =>
-                          handleDeleteClick(birthday.employeeId)
-                        }
-                        title="Delete"
-                      >
-                        <Delete />
-                      </IconButton>
-
-                    </TableCell>
-
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={4} align="center">
-                    No birthday records found
-                  </TableCell>
-                </TableRow>
-              )}
-
-            </TableBody>
-
-          </Table>
+          <TableRow>
+            <TableCell colSpan={4} align="center">
+              No birthday records found
+            </TableCell>
+          </TableRow>
         )}
-      </TableContainer>
+      </TableBody>
+    </Table>
+  )}
+</TableContainer>
+
 
 
       {/* CREATE / EDIT POPUP */}

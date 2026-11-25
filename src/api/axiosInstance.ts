@@ -1,19 +1,22 @@
-﻿import axios from "axios";
+﻿
+import axios from "axios";
 import {
   startGlobalLoading,
   stopGlobalLoading,
 } from "./globalLoader";
 
 const axiosInstance = axios.create({
-   //baseURL: "http://localhost:5000/api/",
-   baseURL: "https://time-sync-backend-4452.onrender.com/api/",
-   headers: {
-    "Content-Type": "application/json",  },/////q
+  baseURL: "http://localhost:5000/api/",
+  //baseURL: "https://time-sync-backend-4452.onrender.com/api/",
+  headers: {
+    "Content-Type": "application/json",
+  },
   timeout: 10000,
 });
 
+let redirectingToLogin = false;
 
-
+// REQUEST INTERCEPTOR
 axiosInstance.interceptors.request.use(
   (config) => {
     startGlobalLoading();
@@ -33,8 +36,7 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-
-
+// RESPONSE INTERCEPTOR
 axiosInstance.interceptors.response.use(
   (response) => {
     stopGlobalLoading();
@@ -65,7 +67,11 @@ axiosInstance.interceptors.response.use(
           localStorage.removeItem("employeeLoginSession");
           sessionStorage.clear();
 
-          if (window.location.pathname !== "/login") {
+          if (
+            !redirectingToLogin &&
+            window.location.pathname !== "/login"
+          ) {
+            redirectingToLogin = true;
             window.location.replace("/login");
           }
         }
@@ -96,6 +102,5 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
 
 export default axiosInstance;

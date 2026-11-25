@@ -996,16 +996,7 @@ function AdminCheckinout() {
         <Button
           variant="outlined"
           className="admin-checkinout__history-refresh"
-          startIcon={
-            historyLoading ? (
-              <CircularProgress
-                size={15}
-                color="inherit"
-              />
-            ) : (
-              <RefreshRoundedIcon />
-            )
-          }
+          startIcon={<RefreshRoundedIcon />}
           disabled={historyLoading}
           onClick={() =>
             setHistoryRefresh((value) => value + 1)
@@ -1663,16 +1654,10 @@ const AttendanceSection = memo(function AttendanceSection({
       </Box>
 
       {loading ? (
-        <Box className="admin-checkinout__empty">
-          <CircularProgress
-            size={26}
-            sx={{ color: "#087b4d" }}
-          />
-
-          <Typography>
-            Loading attendance records...
-          </Typography>
-        </Box>
+        <Box 
+            className="admin-checkinout__empty"
+            aria-hidden="true"
+        />
       ) : error ? (
         <Box className="admin-checkinout__empty">
           <Typography>

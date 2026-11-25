@@ -1008,3 +1008,31 @@
     animation: none !important;
   }
 }
+
+.dashboard-spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  vertical-align: middle;
+}
+
+.dashboard-spinner-small {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+}
+
+.dashboard-spinner .classic-spinner {
+  width: 28px;
+  height: 28px;
+}
+
+.dashboard-spinner-small .classic-spinner {
+  width: 16px;
+  height: 16px;
+}
