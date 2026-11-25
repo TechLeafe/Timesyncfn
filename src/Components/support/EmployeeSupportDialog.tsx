@@ -152,7 +152,8 @@ const EmployeeSupportDialog = ({
         {
           subject,
           message: message.trim(),
-        }
+        },
+        { timeout: 60000 }
       );
 
       if (response.data?.success === false) {
