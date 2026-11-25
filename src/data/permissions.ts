@@ -1,7 +1,8 @@
 export type UserType = 1 | 2 | 3;
 
-export const HR: UserType = 1;
-export const ADMIN: UserType = 2;
+// Keep these IDs aligned with the employee role form and backend records.
+export const ADMIN: UserType = 1;
+export const HR: UserType = 2;
 export const EMPLOYEE: UserType = 3;
 
 export const permissions = {

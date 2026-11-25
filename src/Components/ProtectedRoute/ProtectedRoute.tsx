@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import type { ReactNode } from "react";
+import { ADMIN, EMPLOYEE, HR } from "../../data/permissions";
 
 interface ProtectedRouteProps {
   allowedRoles: number[];
@@ -7,15 +8,15 @@ interface ProtectedRouteProps {
 }
 
 function getDashboardPath(userType: number) {
-  if (userType === 1) {
+  if (userType === HR) {
     return "/hrdashboard";
   }
 
-  if (userType === 2) {
+  if (userType === ADMIN) {
     return "/admindashboard";
   }
 
-  if (userType === 3) {
+  if (userType === EMPLOYEE) {
     return "/employeedashboard";
   }
 

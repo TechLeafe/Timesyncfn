@@ -104,11 +104,19 @@ export const route = createBrowserRouter([
             },
             {
                 path: "admindashboard",
-                element: <Admin />
+                element: (
+                    <ProtectedRoute allowedRoles={[ADMIN]}>
+                        <Admin />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: "hrdashboard",
-                element: <HRDashboard />
+                element: (
+                    <ProtectedRoute allowedRoles={[HR]}>
+                        <HRDashboard />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: "calendar",

@@ -1,48 +1,26 @@
-
 import { useState } from "react";
-import axios from "axios";
 
 import {
-  Alert,
   Box,
-  Button,
-  CircularProgress,
   Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  MenuItem,
-  TextField,
   Typography,
+  IconButton,
+  TextField,
+  MenuItem,
+  Button,
+  Alert,
+  CircularProgress,
 } from "@mui/material";
 
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import SupportAgentRoundedIcon from "@mui/icons-material/SupportAgentRounded";
-import SendRoundedIcon from "@mui/icons-material/SendRounded";
+import CloseIcon from "@mui/icons-material/Close";
+import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
-
-// Request From icon hidden
-// import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
+import SendIcon from "@mui/icons-material/Send";
 
 import api from "../../api/axiosInstance";
 
 /* ==========================================
-   TYPES
-========================================== */
-
-interface EmployeeSupportDialogProps {
-  open: boolean;
-  onClose: () => void;
-}
-
-interface SupportResponse {
-  success: boolean;
-  message: string;
-}
-
-/* ==========================================
-   SUPPORT CONFIGURATION
+   CONSTANTS
 ========================================== */
 
 const SUPPORT_EMAIL = "hr@techleafe.com";
@@ -56,8 +34,56 @@ const SUPPORT_SUBJECTS = [
   "General HR Enquiry",
 ];
 
+const MAX_MESSAGE_LENGTH = 5000;
+
 /* ==========================================
-   EMPLOYEE SUPPORT COMPONENT
+   TYPES
+========================================== */
+
+interface EmployeeSupportDialogProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+interface SupportResponse {
+  success: boolean;
+  message?: string;
+}
+
+/* ==========================================
+   ERROR HANDLER
+========================================== */
+
+const getErrorMessage = (error: unknown): string => {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "response" in error
+  ) {
+    const response = (
+      error as {
+        response?: {
+          data?: {
+            message?: string;
+          };
+        };
+      }
+    ).response;
+
+    if (response?.data?.message) {
+      return response.data.message;
+    }
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "Unable to send request. Please try again.";
+};
+
+/* ==========================================
+   EMPLOYEE SUPPORT DIALOG
 ========================================== */
 
 const EmployeeSupportDialog = ({
@@ -68,8 +94,8 @@ const EmployeeSupportDialog = ({
   const [message, setMessage] = useState("");
 
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   /* ==========================================
      RESET FORM
@@ -78,8 +104,8 @@ const EmployeeSupportDialog = ({
   const resetForm = () => {
     setSubject("");
     setMessage("");
-    setSuccess("");
     setError("");
+    setSuccess("");
   };
 
   /* ==========================================
@@ -97,34 +123,29 @@ const EmployeeSupportDialog = ({
      SEND SUPPORT REQUEST
   ========================================== */
 
-  const handleSend = async () => {
+  const handleSendRequest = async () => {
     if (loading) return;
 
     setError("");
     setSuccess("");
 
-    // Validate subject
-    if (!SUPPORT_SUBJECTS.includes(subject)) {
-      setError("Please select a valid subject.");
+    if (!subject) {
+      setError("Please select a subject.");
       return;
     }
 
-    // Validate message
     if (!message.trim()) {
       setError("Please enter your message.");
       return;
     }
 
-    if (message.trim().length > 5000) {
+    if (message.length > MAX_MESSAGE_LENGTH) {
       setError("Message cannot exceed 5000 characters.");
       return;
     }
 
-    setLoading(true);
-
     try {
-      // Backend identifies the logged-in employee
-      // using the authenticated JWT token.
+      setLoading(true);
 
       const response = await api.post<SupportResponse>(
         "/support/send-email",
@@ -134,547 +155,757 @@ const EmployeeSupportDialog = ({
         }
       );
 
-      if (response.data?.success !== true) {
-        setError(
-          response.data?.message ||
+      if (response.data?.success === false) {
+        throw new Error(
+          response.data.message ||
             "Unable to send support request."
         );
-        return;
       }
 
-      // Success message
       setSuccess(
-        response.data.message ||
-          "Your support request has been sent successfully."
+        response.data?.message ||
+          "Support request sent successfully."
       );
 
-      // Clear form
       setSubject("");
       setMessage("");
-
-    } catch (err: unknown) {
-      if (axios.isAxiosError<SupportResponse>(err)) {
-        const status = err.response?.status;
-        const apiMessage = err.response?.data?.message;
-
-        console.error("Employee Support API Error:", {
-          status,
-          message: apiMessage || err.message,
-        });
-
-        if (status === 400) {
-          setError(
-            apiMessage ||
-              "Please check your subject and message."
-          );
-
-        } else if (status === 401) {
-          setError(
-            "Your login session is invalid or expired. Please log in again."
-          );
-
-        } else if (status === 403) {
-          setError(
-            apiMessage ||
-              "You do not have permission to send this request."
-          );
-
-        } else if (status === 404) {
-          setError(
-            apiMessage ||
-              "Support service or employee account not found."
-          );
-
-        } else if (status === 429) {
-          setError(
-            "Too many support requests. Please try again later."
-          );
-
-        } else if (status === 500) {
-          setError(
-            apiMessage ||
-              "Unable to send support email. Please contact HR."
-          );
-
-        } else if (status === 503) {
-          setError(
-            "Support email service is not configured. Please contact the administrator."
-          );
-
-        } else if (!err.response) {
-          setError(
-            "Cannot connect to the backend server. Please check your connection."
-          );
-
-        } else {
-          setError(
-            apiMessage ||
-              "Unable to send your request. Please try again."
-          );
-        }
-
-      } else {
-        setError(
-          "An unexpected error occurred. Please try again."
-        );
-      }
-
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
   };
 
+  const canSubmit =
+    subject !== "" &&
+    message.trim() !== "" &&
+    message.length <= MAX_MESSAGE_LENGTH &&
+    !loading;
+
   /* ==========================================
-     COMPONENT UI
+     UI
   ========================================== */
 
   return (
     <Dialog
       open={open}
       onClose={handleClose}
+      maxWidth={false}
       fullWidth
-      maxWidth="sm"
       aria-labelledby="employee-support-title"
       sx={{
         "& .MuiDialog-paper": {
+          width: "780px",
+          maxWidth: "calc(100% - 32px)",
+          maxHeight: "calc(100dvh - 32px)",
+          margin: "16px",
           borderRadius: "18px",
           overflow: "hidden",
-          maxHeight: "90vh",
+          backgroundColor: "#ffffff",
+          boxShadow: "0 15px 45px rgba(0,0,0,0.15)",
         },
       }}
     >
-      {/* ======================================
-          HEADER
-      ====================================== */}
+      {/* MAIN CARD */}
 
-      <DialogTitle
-        id="employee-support-title"
+      <Box
         sx={{
-          px: 3,
-          py: 2.5,
-          borderBottom: "1px solid #E8EEF2",
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "minmax(0, 1fr)",
+            sm: "220px minmax(0, 1fr)",
+          },
+          minHeight: 0,
+          overflow: "hidden",
         }}
       >
+        {/* ==========================================
+            LEFT SIDE DESIGN
+        ========================================== */}
+
         <Box
           sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 2,
+            display: {
+              xs: "none",
+              sm: "flex",
+            },
+            position: "relative",
+            isolation: "isolate",
+            overflow: "hidden",
+            flexDirection: "column",
+            justifyContent: "center",
+            padding: "24px 20px",
+            color: "#ffffff",
+
+            background:
+              "linear-gradient(145deg, #14845e 0%, #075443 55%, #309b68 100%)",
+
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              width: "240px",
+              height: "200px",
+              top: "-130px",
+              right: "-90px",
+              borderRadius: "50%",
+              background: "rgba(255,255,255,0.10)",
+              zIndex: -1,
+            },
+
+            "&::after": {
+              content: '""',
+              position: "absolute",
+              width: "250px",
+              height: "160px",
+              bottom: "-120px",
+              left: "-70px",
+              borderRadius: "50%",
+              background: "rgba(181,235,83,0.20)",
+              zIndex: -1,
+            },
           }}
         >
+          <Typography
+            sx={{
+              fontSize: "25px",
+              fontWeight: 750,
+              lineHeight: 1.3,
+              color: "#ffffff",
+              marginBottom: "12px",
+            }}
+          >
+            We're here
+            <br />
+            for you.
+          </Typography>
+
+          <Typography
+            sx={{
+              fontSize: "13px",
+              lineHeight: 1.7,
+              color: "#e4f5ed",
+            }}
+          >
+            Connect with our HR team for assistance,
+            guidance and workplace support.
+          </Typography>
+
+          {/* SMALL ACCENT LINE */}
+
+          <Box
+            sx={{
+              width: "38px",
+              height: "4px",
+              borderRadius: "10px",
+              backgroundColor: "#b5eb53",
+              margin: "18px 0",
+            }}
+          />
+
+          {/* ==========================================
+              EMPLOYEE SUPPORT IMAGE
+          ========================================== */}
+
+          <Box
+            component="img"
+            src="/employee-support.png"
+            alt="Employee support assistant"
+            sx={{
+              display: "block",
+              width: "100%",
+              maxWidth: "180px",
+              height: "auto",
+              maxHeight: "210px",
+              objectFit: "contain",
+              objectPosition: "center",
+              margin: "0 auto 18px",
+              borderRadius: "12px",
+              flexShrink: 0,
+            }}
+          />
+
+          {/* HELP DESK LABEL */}
+
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
-              gap: 1.5,
+              gap: "8px",
+              padding: "10px 12px",
+              borderRadius: "9px",
+              backgroundColor: "rgba(255,255,255,0.10)",
+              border: "1px solid rgba(255,255,255,0.15)",
             }}
           >
-            {/* Support Icon */}
+            <Box
+              sx={{
+                width: "8px",
+                height: "8px",
+                borderRadius: "50%",
+                backgroundColor: "#b5eb53",
+                flexShrink: 0,
+              }}
+            />
+
+            <Typography
+              sx={{
+                fontSize: "12px",
+                fontWeight: 600,
+                color: "#ffffff",
+              }}
+            >
+              Employee Help Desk
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* ==========================================
+            RIGHT SIDE FORM
+        ========================================== */}
+
+        <Box
+          sx={{
+            minWidth: 0,
+            minHeight: 0,
+            display: "flex",
+            flexDirection: "column",
+            backgroundColor: "#ffffff",
+          }}
+        >
+          {/* HEADER */}
+
+          <Box
+            sx={{
+              position: "relative",
+              isolation: "isolate",
+              overflow: "hidden",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              padding: "20px",
+              paddingRight: "48px",
+              flexShrink: 0,
+
+              background:
+                "linear-gradient(110deg, #f5fbf7, #dff2e7)",
+
+              borderBottom: "1px solid #e2eee6",
+
+              "&::after": {
+                content: '""',
+                position: "absolute",
+                width: "250px",
+                height: "100px",
+                right: "-45px",
+                bottom: "-78px",
+                borderRadius: "50%",
+                backgroundColor: "#a9dfbf",
+                zIndex: -1,
+              },
+            }}
+          >
+            {/* HEADER ICON */}
 
             <Box
               sx={{
-                width: 52,
-                height: 52,
-                borderRadius: "14px",
-                backgroundColor: "#E6F6ED",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#00875A",
+                width: "46px",
+                height: "46px",
                 flexShrink: 0,
+                borderRadius: "12px",
+                backgroundColor: "#d6efe1",
+                color: "#087b4d",
+                display: "grid",
+                placeItems: "center",
               }}
             >
-              <SupportAgentRoundedIcon
-                sx={{ fontSize: 28 }}
+              <SupportAgentIcon
+                sx={{
+                  fontSize: "27px",
+                }}
               />
             </Box>
 
-            {/* Header Text */}
+            {/* HEADER TEXT */}
 
             <Box>
               <Typography
-                component="span"
+                id="employee-support-title"
                 sx={{
-                  display: "block",
                   fontSize: {
-                    xs: 19,
-                    sm: 23,
+                    xs: "18px",
+                    sm: "22px",
                   },
-                  fontWeight: 700,
-                  color: "#14233B",
+                  fontWeight: 750,
+                  color: "#143a2b",
+                  lineHeight: 1.3,
                 }}
               >
                 Employee Support
               </Typography>
 
               <Typography
-                component="span"
                 sx={{
-                  display: "block",
-                  fontSize: 14,
-                  color: "#8191A8",
-                  mt: 0.5,
+                  fontSize: "12px",
+                  color: "#70877b",
+                  marginTop: "4px",
                 }}
               >
-                We're here to help you.
+                How can we help you today?
               </Typography>
             </Box>
+
+            {/* CLOSE BUTTON */}
+
+            <IconButton
+              onClick={handleClose}
+              disabled={loading}
+              aria-label="Close employee support"
+              sx={{
+                position: "absolute",
+                top: "12px",
+                right: "12px",
+                width: "30px",
+                height: "30px",
+                backgroundColor: "#ffffff",
+                color: "#087b4d",
+
+                "&:hover": {
+                  backgroundColor: "#ffffff",
+                },
+              }}
+            >
+              <CloseIcon sx={{ fontSize: "19px" }} />
+            </IconButton>
           </Box>
 
-          {/* Close Button */}
+          {/* ==========================================
+              FORM CONTENT
+          ========================================== */}
 
-          <IconButton
-            onClick={handleClose}
-            disabled={loading}
-            aria-label="Close employee support"
-          >
-            <CloseRoundedIcon />
-          </IconButton>
-        </Box>
-      </DialogTitle>
-
-      {/* ======================================
-          CONTENT
-      ====================================== */}
-
-      <DialogContent
-        sx={{
-          px: {
-            xs: 2,
-            sm: 3,
-          },
-          py: 3,
-        }}
-      >
-        <Typography
-          sx={{
-            fontSize: 15,
-            color: "#71839A",
-            mb: 3,
-            lineHeight: 1.6,
-          }}
-        >
-          Have a question or concern? Submit your
-          request directly to our HR team.
-        </Typography>
-
-        {/* ====================================
-            REQUEST FROM - COMMENTED OUT
-        ==================================== */}
-
-        {/*
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1.5,
-            backgroundColor: "#F8FAFC",
-            border: "1px solid #E2E8F0",
-            borderRadius: "12px",
-            p: 2,
-            mb: 2,
-          }}
-        >
           <Box
             sx={{
-              width: 42,
-              height: 42,
-              borderRadius: "10px",
-              backgroundColor: "#E8EEF5",
-              color: "#475569",
+              padding: "20px",
               display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
+              flexDirection: "column",
+              gap: "16px",
+              flex: "1 1 auto",
+              minHeight: 0,
+              overflowY: "auto",
+
+              "&::-webkit-scrollbar": {
+                width: "5px",
+              },
+
+              "&::-webkit-scrollbar-thumb": {
+                backgroundColor: "#c5dfcf",
+                borderRadius: "10px",
+              },
             }}
           >
-            <PersonOutlineRoundedIcon />
-          </Box>
+            {/* ERROR MESSAGE */}
 
-          <Box sx={{ minWidth: 0 }}>
-            <Typography
+            {error && (
+              <Alert
+                severity="error"
+                onClose={() => setError("")}
+                sx={{
+                  borderRadius: "8px",
+                  fontSize: "12px",
+                }}
+              >
+                {error}
+              </Alert>
+            )}
+
+            {/* SUCCESS MESSAGE */}
+
+            {success && (
+              <Alert
+                severity="success"
+                onClose={() => setSuccess("")}
+                sx={{
+                  borderRadius: "8px",
+                  fontSize: "12px",
+                }}
+              >
+                {success}
+              </Alert>
+            )}
+
+            {/* SEND TO EMAIL CARD */}
+
+            <Box
               sx={{
-                fontSize: 13,
-                color: "#64748B",
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                padding: "12px",
+                borderRadius: "10px",
+                backgroundColor: "#f0f8f3",
+                border: "1px solid #d5eadd",
               }}
             >
-              Request From
-            </Typography>
+              <Box
+                sx={{
+                  width: "40px",
+                  height: "40px",
+                  flexShrink: 0,
+                  display: "grid",
+                  placeItems: "center",
+                  borderRadius: "10px",
+                  backgroundColor: "#ddf1e5",
+                  color: "#087b4d",
+                }}
+              >
+                <EmailOutlinedIcon
+                  sx={{
+                    fontSize: "23px",
+                  }}
+                />
+              </Box>
 
-            <Typography
-              sx={{
-                fontSize: 15,
-                fontWeight: 600,
-                color: "#14233B",
-                mt: 0.3,
-              }}
-            >
-              Logged-in Employee
-            </Typography>
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: "12px",
+                    color: "#789486",
+                  }}
+                >
+                  Send To
+                </Typography>
 
-            <Typography
-              sx={{
-                fontSize: 12,
-                color: "#8191A8",
-                mt: 0.4,
-              }}
-            >
-              Your employee details are included automatically.
-            </Typography>
-          </Box>
-        </Box>
-        */}
+                <Typography
+                  sx={{
+                    fontSize: "15px",
+                    fontWeight: 700,
+                    color: "#087b4d",
+                    marginTop: "3px",
+                    overflowWrap: "anywhere",
+                  }}
+                >
+                  {SUPPORT_EMAIL}
+                </Typography>
+              </Box>
+            </Box>
 
-        {/* ====================================
-            SEND TO EMAIL
-        ==================================== */}
+            {/* ==========================================
+                SUBJECT FIELD
+            ========================================== */}
 
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1.5,
-            backgroundColor: "#F3FAF6",
-            border: "1px solid #DCEFE4",
-            borderRadius: "12px",
-            p: 2,
-            mb: 3,
-          }}
-        >
-          <Box
-            sx={{
-              width: 42,
-              height: 42,
-              backgroundColor: "#E0F3E8",
-              borderRadius: "10px",
-              color: "#00875A",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            <EmailOutlinedIcon />
-          </Box>
+            <Box>
+              <Typography
+                component="label"
+                htmlFor="support-subject"
+                sx={{
+                  display: "block",
+                  fontSize: "13px",
+                  fontWeight: 650,
+                  color: "#17263b",
+                  marginBottom: "7px",
+                }}
+              >
+                Subject{" "}
+                <Box
+                  component="span"
+                  sx={{ color: "#dc2626" }}
+                >
+                  *
+                </Box>
+              </Typography>
 
-          <Box sx={{ minWidth: 0 }}>
-            <Typography
-              sx={{
-                fontSize: 14,
-                color: "#789486",
-              }}
-            >
-              Send To
-            </Typography>
+              <TextField
+                id="support-subject"
+                select
+                fullWidth
+                required
+                size="small"
+                value={subject}
+                disabled={loading}
+                onChange={(event) => {
+                  setSubject(event.target.value);
+                  setError("");
+                  setSuccess("");
+                }}
+                slotProps={{
+                  select: {
+                    displayEmpty: true,
+                  },
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    height: "40px",
+                    borderRadius: "9px",
+                    fontSize: "13px",
+                    backgroundColor: "#ffffff",
+                  },
 
-            <Typography
-              sx={{
-                fontSize: 16,
-                fontWeight: 700,
-                color: "#00875A",
-                mt: 0.5,
-                overflowWrap: "anywhere",
-              }}
-            >
-              {SUPPORT_EMAIL}
-            </Typography>
-          </Box>
-        </Box>
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#cfe2d5",
+                  },
 
-        {/* ====================================
-            SUCCESS MESSAGE
-        ==================================== */}
+                  "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
+                    {
+                      borderColor: "#8ebda0",
+                    },
 
-        {success && (
-          <Alert
-            severity="success"
-            onClose={() => setSuccess("")}
-            sx={{
-              mb: 3,
-              borderRadius: "12px",
-            }}
-          >
-            {success}
-          </Alert>
-        )}
+                  "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                    {
+                      borderColor: "#087b4d",
+                      borderWidth: "1.5px",
+                    },
+                }}
+              >
+                <MenuItem value="" disabled>
+                  <Typography
+                    sx={{
+                      fontSize: "13px",
+                      color: "#94a3a0",
+                    }}
+                  >
+                    Select a subject
+                  </Typography>
+                </MenuItem>
 
-        {/* ====================================
-            ERROR MESSAGE
-        ==================================== */}
+                {SUPPORT_SUBJECTS.map((item) => (
+                  <MenuItem
+                    key={item}
+                    value={item}
+                    sx={{
+                      fontSize: "13px",
+                    }}
+                  >
+                    {item}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Box>
 
-        {error && (
-          <Alert
-            severity="error"
-            onClose={() => setError("")}
-            sx={{
-              mb: 3,
-              borderRadius: "12px",
-            }}
-          >
-            {error}
-          </Alert>
-        )}
+            {/* ==========================================
+                MESSAGE FIELD
+            ========================================== */}
 
-        {/* ====================================
-            SUBJECT DROPDOWN
-        ==================================== */}
+            <Box>
+              <Typography
+                component="label"
+                htmlFor="support-message"
+                sx={{
+                  display: "block",
+                  fontSize: "13px",
+                  fontWeight: 650,
+                  color: "#17263b",
+                  marginBottom: "7px",
+                }}
+              >
+                Your Message{" "}
+                <Box
+                  component="span"
+                  sx={{ color: "#dc2626" }}
+                >
+                  *
+                </Box>
+              </Typography>
 
-        <TextField
-          select
-          fullWidth
-          required
-          label="Subject"
-          value={subject}
-          onChange={(event) => {
-            setSubject(event.target.value);
-            setError("");
-            setSuccess("");
-          }}
-          disabled={loading}
-          sx={{
-            mb: 3,
-            "& .MuiOutlinedInput-root": {
-              borderRadius: "12px",
-            },
-          }}
-        >
-          {SUPPORT_SUBJECTS.map((item) => (
-            <MenuItem
-              key={item}
-              value={item}
-            >
-              {item}
-            </MenuItem>
-          ))}
-        </TextField>
+              <TextField
+                id="support-message"
+                fullWidth
+                required
+                multiline
+                rows={4}
+                value={message}
+                disabled={loading}
+                placeholder="Describe your issue or request..."
+                onChange={(event) => {
+                  setMessage(
+                    event.target.value.slice(
+                      0,
+                      MAX_MESSAGE_LENGTH
+                    )
+                  );
 
-        {/* ====================================
-            EMPLOYEE MESSAGE
-        ==================================== */}
+                  setError("");
+                  setSuccess("");
+                }}
+                slotProps={{
+                  htmlInput: {
+                    maxLength: MAX_MESSAGE_LENGTH,
+                  },
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "10px",
+                    padding: "12px",
+                    fontSize: "13px",
+                    lineHeight: 1.6,
+                    backgroundColor: "#ffffff",
+                  },
 
-        <TextField
-          fullWidth
-          required
-          multiline
-          minRows={5}
-          maxRows={8}
-          label="Your Message"
-          placeholder="Please describe your issue or request in detail..."
-          value={message}
-          disabled={loading}
-          onChange={(event) => {
-            setMessage(
-              event.target.value.slice(0, 5000)
-            );
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#cfe2d5",
+                  },
 
-            setError("");
-            setSuccess("");
-          }}
-          helperText={`${message.length}/5000 characters`}
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              borderRadius: "12px",
-            },
+                  "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
+                    {
+                      borderColor: "#8ebda0",
+                    },
 
-            "& .MuiFormHelperText-root": {
-              textAlign: "right",
-              marginRight: 0,
-            },
-          }}
-        />
-
-        {/* ====================================
-            REPLY INFORMATION
-        ==================================== */}
-
-        <Typography
-          sx={{
-            fontSize: 12,
-            color: "#8191A8",
-            mt: 1.5,
-            lineHeight: 1.6,
-          }}
-        >
-          HR can reply directly to your registered
-          employee email address.
-        </Typography>
-
-      </DialogContent>
-
-      {/* ======================================
-          FOOTER BUTTONS
-      ====================================== */}
-
-      <DialogActions
-        sx={{
-          px: 3,
-          py: 2.5,
-          borderTop: "1px solid #E8EEF2",
-          gap: 1,
-        }}
-      >
-        {/* Cancel Button */}
-
-        <Button
-          onClick={handleClose}
-          disabled={loading}
-          sx={{
-            color: "#64748B",
-            textTransform: "none",
-            fontWeight: 600,
-            borderRadius: "10px",
-            px: 2,
-          }}
-        >
-          {success ? "Close" : "Cancel"}
-        </Button>
-
-        {/* Send Request Button */}
-
-        <Button
-          variant="contained"
-          onClick={handleSend}
-          disabled={
-            loading ||
-            !subject ||
-            !message.trim()
-          }
-          startIcon={
-            loading ? (
-              <CircularProgress
-                size={18}
-                color="inherit"
+                  "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                    {
+                      borderColor: "#087b4d",
+                      borderWidth: "1.5px",
+                    },
+                }}
               />
-            ) : (
-              <SendRoundedIcon />
-            )
-          }
-          sx={{
-            backgroundColor: "#00875A",
-            color: "#FFFFFF",
-            textTransform: "none",
-            fontWeight: 700,
-            borderRadius: "12px",
-            px: 3,
-            minHeight: 46,
-            boxShadow: "none",
 
-            "&:hover": {
-              backgroundColor: "#006F49",
-              boxShadow: "none",
-            },
+              {/* MESSAGE COUNT */}
 
-            "&.Mui-disabled": {
-              backgroundColor: "#E2E8F0",
-              color: "#94A3B8",
-            },
-          }}
-        >
-          {loading ? "Sending..." : "Send Request"}
-        </Button>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: "8px",
+                  marginTop: "6px",
+                }}
+              >
+                {/* <Typography
+                  sx={{
+                    fontSize: "11px",
+                    color: "#81968a",
+                  }}
+                >
+                  Please provide relevant details.
+                </Typography> */}
 
-      </DialogActions>
+                <Typography
+                  sx={{
+                    fontSize: "11px",
+                    color:
+                      message.length >= MAX_MESSAGE_LENGTH
+                        ? "#dc2626"
+                        : "#81968a",
+                  }}
+                >
+                  {message.length}/{MAX_MESSAGE_LENGTH}
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* ==========================================
+                INFORMATION NOTE
+            ========================================== */}
+
+            {/* <Box
+              sx={{
+                padding: "10px 12px",
+                borderRadius: "7px",
+                borderLeft: "3px solid #087b4d",
+                backgroundColor: "#f3f7f5",
+              }} */}
+            {/* > */}
+              {/* <Typography
+                sx={{
+                  fontSize: "11.5px",
+                  color: "#668073",
+                  lineHeight: 1.6,
+                }}
+              >
+                HR can reply directly to your registered
+                employee email address.
+              </Typography> */}
+            {/* </Box> */}
+          </Box>
+
+          {/* ==========================================
+              FOOTER BUTTONS - STATIC
+          ========================================== */}
+
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              alignItems: "center",
+              gap: "10px",
+              padding: "14px 20px",
+              borderTop: "1px solid #e5eee8",
+              backgroundColor: "#ffffff",
+              flexShrink: 0,
+            }}
+          >
+            {/* CANCEL BUTTON */}
+
+            <Button
+              variant="outlined"
+              onClick={handleClose}
+              disabled={loading}
+              sx={{
+                minWidth: "85px",
+                height: "36px",
+                padding: "6px 16px",
+                borderRadius: "8px",
+                borderColor: "#b7d9c4",
+                color: "#087b4d",
+                textTransform: "none",
+                fontSize: "12px",
+                fontWeight: 650,
+
+                "&:hover": {
+                  borderColor: "#087b4d",
+                  backgroundColor: "#f3faf5",
+                },
+              }}
+            >
+              Cancel
+            </Button>
+
+            {/* SEND REQUEST BUTTON */}
+
+            <Button
+              variant="contained"
+              disabled={!canSubmit}
+              onClick={() => void handleSendRequest()}
+              startIcon={
+                loading ? (
+                  <CircularProgress
+                    size={15}
+                    color="inherit"
+                  />
+                ) : (
+                  <SendIcon
+                    sx={{
+                      fontSize: "16px !important",
+                    }}
+                  />
+                )
+              }
+              sx={{
+                minWidth: "130px",
+                height: "36px",
+                padding: "6px 16px",
+                borderRadius: "8px",
+                background:
+                  "linear-gradient(110deg, #087b4d, #05663e)",
+                color: "#ffffff",
+                textTransform: "none",
+                fontSize: "12px",
+                fontWeight: 700,
+                boxShadow: "none",
+
+                "&:hover": {
+                  backgroundColor: "#05663e",
+                  boxShadow: "none",
+                },
+
+                "&.Mui-disabled": {
+                  background: "#e2e8e5",
+                  color: "#94a39b",
+                },
+              }}
+            >
+              {loading ? "Sending..." : "Send Request"}
+            </Button>
+          </Box>
+        </Box>
+      </Box>
     </Dialog>
   );
 };

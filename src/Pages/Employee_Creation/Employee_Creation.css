@@ -1070,3 +1070,281 @@
   }
 }
 
+
+/* Reference design: employee form only */
+.employee-creation-drawer .MuiDrawer-paper { width: 720px !important; max-width: 100vw !important; height: 100dvh; overflow: hidden; border-radius: 18px 0 0 18px; }
+.employee-creation-drawer-body { height: 100%; min-height: 0; }
+.employee-creation-drawer .employee-creation-drawer-header { position: relative; isolation: isolate; overflow: hidden; flex-shrink: 0; min-height: 150px; padding: 24px; background: linear-gradient(115deg,#fff 30%,#e0f5e8 100%); }
+.employee-creation-drawer-header::before { content: ''; position: absolute; z-index: -1; width: 115%; height: 85px; bottom: -55px; left: -12%; border-radius: 50%; background: #ccebd9; }
+.ec-header-art { position: absolute; right: 48px; bottom: 4px; width: 155px; height: 130px; object-fit: contain; mix-blend-mode: multiply; z-index: -1; }
+.employee-creation-drawer-title-row { max-width: calc(100% - 175px); }
+.employee-creation-drawer-icon { background: linear-gradient(135deg,#09975b,#016637); color: white; width: 48px; height: 48px; box-shadow: 0 5px 12px #01663726; }
+.employee-creation-drawer-header > .MuiIconButton-root { align-self: flex-start; background: #fff; color: #016637; }
+.employee-creation-drawer .employee-creation-drawer-content { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 24px; gap: 22px; }
+.employee-creation-drawer .employee-creation-form-section { display: flex; align-items: center; gap: 10px; position: relative; padding-bottom: 14px; }
+.employee-creation-form-section::after { content: ''; position: absolute; bottom: 0; left: 0; width: 45px; height: 3px; border-radius: 4px; background: #016637; }
+.employee-creation-form-section svg { color: #016637; background: #e5f5eb; padding: 6px; width: 34px; height: 34px; border-radius: 9px; }
+.employee-creation-drawer .employee-creation-form-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px 16px; align-items: start; }
+.ec-full-field { grid-column: 1 / -1; }
+.employee-creation-drawer .MuiOutlinedInput-root { padding-left: 4px; min-height: 49px; }
+.employee-creation-drawer .MuiInputAdornment-positionStart { width: 38px; height: 38px; max-height: none; display: grid; place-items: center; background: #e8f5ed; color: #016637; border-radius: 7px; margin-right: 0; flex-shrink: 0; }
+.employee-creation-drawer .MuiInputLabel-shrink { background: white; padding: 0 4px; }
+.employee-creation-drawer .employee-creation-drawer-actions { flex-shrink: 0; background: radial-gradient(ellipse at bottom left,#d9f1e2,transparent 60%),white; padding: 18px 24px; }
+.employee-creation-drawer .employee-creation-save.MuiButton-contained { background: linear-gradient(110deg,#087b4d,#016637); padding-inline: 18px; }
+@media(max-width:600px) { .employee-creation-drawer .MuiDrawer-paper { border-radius: 0; } .ec-header-art { display:none; } .employee-creation-drawer-title-row { max-width: calc(100% - 40px); } .employee-creation-drawer .employee-creation-drawer-header { min-height: 105px; padding: 16px; } .employee-creation-drawer .employee-creation-form-grid { grid-template-columns: minmax(0,1fr); } .employee-creation-drawer .employee-creation-drawer-content { padding: 20px 16px; } }
+/* ==========================================
+   CREATE EMPLOYEE - COMPACT CARD SIZE
+========================================== */
+
+/* Reduce overall drawer width */
+
+.employee-creation-drawer .MuiDrawer-paper {
+  width: 580px !important;
+  max-width: 100vw !important;
+  height: 100dvh !important;
+  border-radius: 16px 0 0 16px !important;
+  overflow: hidden;
+}
+
+/* Drawer body */
+
+.employee-creation-drawer-body {
+  height: 100%;
+  min-height: 0 !important;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Reduce header height */
+
+.employee-creation-drawer
+.employee-creation-drawer-header {
+  padding: 16px 20px !important;
+  min-height: 115px !important;
+  height: 115px !important;
+  flex-shrink: 0;
+}
+
+/* Header title */
+
+.employee-creation-drawer
+.employee-creation-drawer-title.MuiTypography-root {
+  font-size: 19px !important;
+  font-weight: 700 !important;
+}
+
+/* Header subtitle */
+
+.employee-creation-drawer
+.employee-creation-drawer-subtitle.MuiTypography-root {
+  font-size: 11px !important;
+  margin-top: 4px !important;
+}
+
+/* Header icon */
+
+.employee-creation-drawer-icon {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 10px !important;
+}
+
+.employee-creation-drawer-icon svg {
+  font-size: 23px !important;
+}
+
+/* Header illustration */
+
+.employee-creation-drawer-header img {
+  width: 125px !important;
+  height: 90px !important;
+  object-fit: contain;
+}
+
+/* Reduce form content spacing */
+
+.employee-creation-drawer
+.employee-creation-drawer-content {
+  padding: 18px 20px !important;
+  gap: 15px !important;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Basic Information heading */
+
+.employee-creation-drawer
+.employee-creation-form-section.MuiTypography-root {
+  font-size: 14px !important;
+  padding-bottom: 10px !important;
+  margin: 0 !important;
+}
+
+/* Two-column form layout */
+
+.employee-creation-drawer
+.employee-creation-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 14px !important;
+}
+
+/* Reduce input field height */
+
+.employee-creation-drawer .MuiOutlinedInput-root {
+  min-height: 44px !important;
+  border-radius: 9px !important;
+  padding-left: 5px !important;
+}
+
+/* Input text size */
+
+.employee-creation-drawer .MuiInputBase-input {
+  font-size: 13px !important;
+  padding: 10px 10px !important;
+}
+
+/* Input label size */
+
+.employee-creation-drawer .MuiInputLabel-root {
+  font-size: 13px !important;
+}
+
+/* Reduce input icon background */
+
+.employee-creation-drawer
+.MuiInputAdornment-positionStart {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  max-height: none !important;
+  margin-right: 4px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e5f4eb;
+  border-radius: 7px;
+}
+
+/* Input icon alignment */
+
+.employee-creation-drawer
+.MuiInputAdornment-positionStart svg {
+  width: 19px !important;
+  height: 19px !important;
+  color: #016637;
+  margin: 0 !important;
+  transform: none !important;
+}
+
+/* Password helper text */
+
+.employee-creation-drawer .MuiFormHelperText-root {
+  font-size: 11px !important;
+  margin-top: 4px !important;
+}
+
+/* Role options */
+
+.employee-creation-drawer
+.employee-creation-role-options {
+  gap: 4px !important;
+}
+
+.employee-creation-drawer .MuiFormControlLabel-label {
+  font-size: 12px !important;
+}
+
+/* Compact fixed footer */
+
+.employee-creation-drawer
+.employee-creation-drawer-actions {
+  padding: 12px 20px !important;
+  gap: 10px !important;
+  flex-shrink: 0;
+  background: #ffffff;
+  border-top: 1px solid #e5eee8;
+}
+
+/* Cancel and Create Employee buttons */
+
+.employee-creation-drawer
+.employee-creation-drawer-actions .MuiButton-root {
+  min-height: 38px !important;
+  padding: 8px 16px !important;
+  font-size: 12px !important;
+  border-radius: 8px !important;
+  text-transform: none !important;
+}
+
+/* Responsive mobile layout */
+
+@media (max-width: 600px) {
+  .employee-creation-drawer .MuiDrawer-paper {
+    width: 100vw !important;
+    border-radius: 0 !important;
+  }
+
+  .employee-creation-drawer-header img {
+    display: none !important;
+  }
+
+  .employee-creation-drawer
+  .employee-creation-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .employee-creation-drawer
+  .employee-creation-drawer-content {
+    padding: 16px !important;
+  }
+}
+/* REDUCE INPUT BOX WIDTH ONLY */
+
+.employee-creation-drawer .MuiTextField-root {
+  width: 90% !important;
+}
+/* REDUCE FOOTER BUTTON SIZE */
+
+.employee-creation-drawer
+.employee-creation-drawer-actions .MuiButton-root {
+  height: 32px !important;
+  min-height: 32px !important;
+  min-width: unset !important;
+  padding: 4px 12px !important;
+  border-radius: 7px !important;
+}
+
+/* Cancel button width */
+
+.employee-creation-drawer .employee-creation-cancel {
+  width: 90px !important;
+}
+
+/* Create Employee button width */
+
+.employee-creation-drawer .employee-creation-save {
+  width: 155px !important;
+}
+
+/* Reduce gap between buttons */
+
+.employee-creation-drawer
+.employee-creation-drawer-actions {
+  gap: 8px !important;
+}
+/* REMOVE FOOTER BUTTON ICONS */
+
+.employee-creation-drawer
+.employee-creation-drawer-actions .MuiButton-startIcon {
+  display: none !important;
+}
+/* SECTION HEADING FONT SIZE */
+
+.employee-creation-drawer
+.employee-creation-form-section.MuiTypography-root {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+}

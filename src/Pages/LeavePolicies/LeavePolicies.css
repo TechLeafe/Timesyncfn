@@ -927,9 +927,94 @@
     row-gap: 14px;
   }
 
+  
   .leave-policies__detail-card .leave-policies__entitlements-actions {
     justify-content: flex-start;
     margin-left: 0;
     flex-wrap: wrap;
   }
+}
+
+/* Reference-inspired edit/create modal only */
+.lp-premium .MuiDialog-paper { width: 900px; max-width: calc(100% - 32px); border: 1px solid #e0ece5; border-radius: 20px; overflow: auto; }
+.lp-shell { display: grid; grid-template-columns: 215px minmax(0,1fr); min-height: 480px; }
+.lp-side { position: relative; overflow: hidden; background: radial-gradient(ellipse at bottom left,#66b96e,transparent 55%),linear-gradient(145deg,#087b4d,#034d42 55%,#167c58); color: white; padding: 30px 22px; display:flex; flex-direction:column; justify-content:center; border-radius: 18px 0 24px 18px; }
+.lp-art { width:100%; margin-bottom:22px; }
+.lp-side-line { width:40px; height:5px; background:#b7ed45; border-radius:5px; margin-bottom:12px; }
+.lp-side-title.MuiTypography-root { font-size:23px; font-weight:750; }
+.lp-side-copy.MuiTypography-root { font-size:13px; line-height:1.6; margin-top:8px; }
+.lp-main { min-width:0; display:flex; flex-direction:column; }
+.lp-premium .MuiDialogTitle-root { display:flex; align-items:center; gap:14px; position:relative; padding:24px 52px 24px 24px; background:radial-gradient(ellipse at bottom right,#c6efce,transparent 65%),#f7fcf9; font-size:23px; }
+.lp-header-icon,.lp-field-icon { display:grid; place-items:center; flex-shrink:0; background:#e2f5e9; color:#087b4d; border-radius:10px; width:42px; height:42px; }
+.lp-header-icon { width:48px; height:48px; }
+.lp-close.MuiIconButton-root { position:absolute; top:12px; right:12px; background:white; color:#075b3d; }
+.lp-premium .leave-policies__dialog-content { padding:26px 24px; gap:24px; flex:1; overflow:visible; }
+.lp-premium .leave-policies__policy-name-field { padding:0; }
+.lp-premium .leave-policies__form-grid { gap:22px 16px; }
+.lp-field { display:flex; align-items:flex-start; gap:10px; min-width:0; }
+.lp-field .MuiTextField-root { min-width:0; }
+.lp-premium .MuiOutlinedInput-root { min-height:42px; background:#fff; }
+.lp-premium .MuiOutlinedInput-input { padding:12px; }
+.lp-premium .MuiInputLabel-root { font-size:13px; }
+.lp-premium .MuiOutlinedInput-root.Mui-disabled { background:#edf1f3; }
+.lp-premium .MuiFormHelperText-root { font-size:11px; }
+.lp-premium .leave-policies__business-year { margin-top:4px; background:#e5f5eb; }
+.lp-premium .leave-policies__dialog-actions { padding:16px 24px; }
+.lp-premium .MuiButton-root { min-height:36px; padding:7px 16px; }
+@media(max-width:760px) { .lp-shell { grid-template-columns:1fr; } .lp-side { display:none; } }
+@media(max-width:520px) { .lp-premium .leave-policies__form-grid { grid-template-columns:1fr; } .lp-premium .MuiDialogTitle-root { font-size:18px; padding-left:16px; } .lp-premium .leave-policies__dialog-content { padding:20px 16px; } }
+/* REDUCE LEFT SIDE LEAVE POLICY CARD WIDTH */
+
+@media (min-width: 761px) {
+  .lp-shell {
+    grid-template-columns: 170px minmax(0, 1fr) !important;
+  }
+
+  .lp-side {
+    width: 170px !important;
+    padding: 20px 16px !important;
+    box-sizing: border-box;
+  }
+}
+/* REDUCE OVERALL LEAVE POLICY POPUP WIDTH */
+
+.leave-policies-dialog .MuiDialog-paper {
+  width: 750px !important;
+  max-width: calc(100vw - 32px) !important;
+}
+
+/* Maintain left sidebar width */
+
+.lp-shell {
+  grid-template-columns: 170px minmax(0, 1fr) !important;
+}
+
+/* Responsive layout */
+
+@media (max-width: 760px) {
+  .leave-policies-dialog .MuiDialog-paper {
+    width: calc(100vw - 24px) !important;
+  }
+
+  .lp-shell {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+/* REMOVE OUTER WHITE BORDER */
+
+.leave-policies-dialog .MuiDialog-paper {
+  border: none !important;
+  outline: none !important;
+}
+
+/* REMOVE SIDEBAR WHITE BORDER */
+
+.lp-shell,
+.lp-side {
+  border: none !important;
+  outline: none !important;
+}
+
+.lp-side {
+  border-radius: 20px 0 20px 20px !important;
 }

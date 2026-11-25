@@ -847,3 +847,45 @@ tr:hover {
   }
 
 }
+
+/* HR dashboard stat cards */
+.admin-dashboard__stats:is(.hr-dashboard__stats, .hr-dashboard-stats) {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.hr-stat-card {
+  --stat-color: #1688ef;
+  --stat-bg: #e8f3ff;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  min-height: 145px;
+  padding: 22px;
+  border: 1px solid color-mix(in srgb, var(--stat-color) 35%, white);
+  border-radius: 18px;
+  background: linear-gradient(135deg, #fff 35%, var(--stat-bg));
+  box-shadow: 0 5px 18px rgba(15, 23, 42, .06);
+  box-sizing: border-box;
+}
+.hr-stat-card--blue { --stat-color: #1688ef; --stat-bg: #e8f3ff; }
+.hr-stat-card--green { --stat-color: #16a34a; --stat-bg: #e7f7ec; }
+.hr-stat-card--teal { --stat-color: #009e9b; --stat-bg: #e4f7f5; }
+.hr-stat-card--red { --stat-color: #ef4444; --stat-bg: #fff0f0; }
+.hr-stat-card--orange { --stat-color: #e58b08; --stat-bg: #fff5e5; }
+.hr-stat-content { position: relative; z-index: 1; min-width: 0; }
+.hr-stat-label { font-size: 14px; font-weight: 600; color: #475569; }
+.hr-stat-accent { width: 32px; height: 3px; border-radius: 8px; background: var(--stat-color); margin: 10px 0; }
+.hr-stat-value { margin: 0; font-size: 36px; font-weight: 750; line-height: 1.1; color: #101c29; }
+.hr-stat-icon { position: relative; z-index: 1; flex-shrink: 0; display: grid; place-items: center; width: 60px; height: 60px; border-radius: 42% 55% 40% 48%; background: var(--stat-bg); color: var(--stat-color); }
+.hr-stat-icon svg { width: 34px; height: 34px; }
+.hr-stat-wave { position: absolute; right: 0; bottom: 0; width: 52%; height: 45px; color: var(--stat-color); pointer-events: none; z-index: -1; }
+@media (max-width: 1000px) { .admin-dashboard__stats:is(.hr-dashboard__stats, .hr-dashboard-stats) { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .admin-dashboard__stats:is(.hr-dashboard__stats, .hr-dashboard-stats) { grid-template-columns: minmax(0, 1fr); } .hr-stat-card { min-height: 125px; padding: 18px; } }
+
+@media (min-width: 1600px) { .admin-dashboard__stats:is(.hr-dashboard__stats, .hr-dashboard-stats) { grid-template-columns: repeat(5, minmax(0, 1fr)); } }

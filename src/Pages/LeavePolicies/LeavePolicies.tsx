@@ -11,6 +11,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  IconButton,
   Snackbar,
   TextField,
   Typography,
@@ -25,6 +26,7 @@ import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 // import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import api from "../../api/axiosInstance";
 import { HR, ADMIN } from "../../data/permissions";
 
@@ -630,14 +632,35 @@ const LeavePolicies = () => {
 
   const policyDialog = (
     <Dialog
-      className="leave-policies-dialog"
+      className="leave-policies-dialog lp-premium"
       open={dialogOpen}
       onClose={closeDialog}
       fullWidth
-      maxWidth="sm"
+      maxWidth={false}
       aria-labelledby="leave-policy-dialog-title"
     >
+      <Box className="lp-shell">
+        <Box className="lp-side">
+          <Box className="lp-art" aria-hidden="true">
+            <svg viewBox="0 0 200 190" width="100%">
+              <ellipse cx="100" cy="174" rx="75" ry="10" fill="#003e30" opacity=".35" />
+              <rect x="34" y="26" width="115" height="145" rx="15" fill="#74c994" />
+              <rect x="44" y="36" width="95" height="125" rx="9" fill="#fff" />
+              <rect x="68" y="16" width="48" height="29" rx="8" fill="#a6dc50" />
+              {[58, 89, 120].map(y => <g key={y}><rect x="55" y={y} width="19" height="19" rx="4" fill="#23985c"/><path d={`M59 ${y+9} l5 5 l7 -9`} stroke="white" strokeWidth="3" fill="none"/><rect x="81" y={y+5} width="45" height="5" rx="2" fill="#a4d4bd"/></g>)}
+              <rect x="112" y="119" width="67" height="57" rx="8" fill="#fff" stroke="#65b58b" strokeWidth="3" />
+              <path d="M113 134 H178" stroke="#65b58b" strokeWidth="4" />
+              {[0,1,2].map(row => [0,1,2].map(col => <rect key={`${row}-${col}`} x={123+col*16} y={141+row*10} width="9" height="6" rx="1" fill="#75bfa1"/>))}
+            </svg>
+          </Box>
+          <Box className="lp-side-line" />
+          <Typography className="lp-side-title">Leave Policy</Typography>
+          <Typography className="lp-side-copy">Manage and update employee leave entitlements.</Typography>
+        </Box>
+        <Box className="lp-main">
       <DialogTitle id="leave-policy-dialog-title">
+        <Box className="lp-header-icon"><CalendarTodayOutlinedIcon /></Box>
+        <Box className="lp-heading">
         {editingId
           ? "Edit Leave Policy"
           : "Create Leave Policy"}
@@ -646,6 +669,8 @@ const LeavePolicies = () => {
           Configure the company's employee leave
           entitlements.
         </Typography>
+        </Box>
+        <IconButton className="lp-close" aria-label="Close dialog" onClick={closeDialog} disabled={saving}><CloseRoundedIcon /></IconButton>
       </DialogTitle>
 
       <DialogContent className="leave-policies__dialog-content">
@@ -659,7 +684,7 @@ const LeavePolicies = () => {
         )}
 
         <Box className="leave-policies__policy-name-field">
-          <TextField
+          <Box className="lp-field"><Box className="lp-field-icon"><WorkHistoryOutlinedIcon /></Box><TextField
             className="leave-policies__policy-name"
             label="Policy Name"
             value={form.policyName}
@@ -678,7 +703,7 @@ const LeavePolicies = () => {
             slotProps={{
               inputLabel: { shrink: true },
             }}
-          />
+          /></Box>
         </Box>
 
         <Box className="leave-policies__form-grid">
@@ -702,8 +727,9 @@ const LeavePolicies = () => {
               },
             ] as const
           ).map((field) => (
+            <Box className="lp-field" key={field.key}>
+              <Box className="lp-field-icon">{field.key === "casualLeave" ? <CalendarTodayOutlinedIcon /> : field.key === "sickLeave" ? <HealthAndSafetyOutlinedIcon /> : field.key === "compensatoryOff" ? <WorkHistoryOutlinedIcon /> : <AccessTimeOutlinedIcon />}</Box>
             <TextField
-              key={field.key}
               label={field.label}
               value={form[field.key]}
               disabled={
@@ -733,7 +759,7 @@ const LeavePolicies = () => {
               }}
               fullWidth
               required
-            />
+            /></Box>
           ))}
         </Box>
 
@@ -777,6 +803,8 @@ const LeavePolicies = () => {
               : "Create Policy"}
         </Button>
       </DialogActions>
+        </Box>
+      </Box>
     </Dialog>
   );
 

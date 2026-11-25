@@ -396,7 +396,7 @@
 .employee-location svg {
   flex-shrink: 0;
   font-size: 17px;
-  color: #719c83;
+  color: #e53935;
 }
 
 .employee-location .MuiTypography-root {
@@ -928,29 +928,57 @@
     flex-direction: column;
     height: 0;
     min-height: 0;
-    padding: 10px 20px 0;
-    overflow: hidden;
+    position:  sticky;
+    padding: 10px 20px 20px;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
   .app-page-content:has(.employee-attendance-page) .employee-attendance-page {
     display: flex;
-    flex: 1 1 0%;
+    flex: 1 1 auto;
     flex-direction: column;
     min-height: 0;
-    overflow: hidden;
+    overflow: visible;
+  }
+@media (min-width: 1051px) {
+  .employee-profile-top-label {
+    font-size: 11px;
   }
 
+  .employee-name.MuiTypography-root,
+  .details-heading.MuiTypography-root {
+    font-size: 18px;
+  }
+
+  .timer-value.MuiTypography-root {
+    font-size: clamp(34px, 3.8vw, 44px);
+  }
+
+  .employee-session-row span,
+  .employee-session-row strong,
+  .detail-value.MuiTypography-root {
+    font-size: 13px;
+  }
+
+  .detail-label.MuiTypography-root,
+  .details-subheading.MuiTypography-root,
+  .timer-labels .MuiTypography-root {
+    font-size: 11px;
+  }
+}
   .employee-attendance-container {
-    flex: 0.5 1 auto;
+    flex: 0 0.8 auto;
     min-height: 0;
     max-width: 1250px;
-    margin-bottom: 0px;
-    padding: 16px 22px;
-    position: static;
+    margin-bottom:4px;
+    padding: 12px 18px;
+    position: sticky;
+    margin: 0 auto 10px;
   }
   .employee-profile-content.MuiCardContent-root {
-    min-height: 0;
-    padding: 18px 22px;
+    min-height: auto;
+    padding: 14px 18px;
   }
 
   .employee-profile-avatar.MuiAvatar-root {
@@ -961,7 +989,7 @@
   }
 
   .employee-name.MuiTypography-root {
-    font-size: 23px;
+    font-size: 20px;
   }
 
   .employee-designation.MuiTypography-root {
@@ -974,7 +1002,7 @@
 
   .employee-session-row span,
   .employee-session-row strong {
-    font-size: 13px;
+    font-size: 12px;
   }
 
   .employee-profile-divider.MuiDivider-root {
@@ -990,7 +1018,7 @@
   }
 
   .timer-card-content.MuiCardContent-root {
-    min-height: 140px;
+    min-height: 120px;
     padding: 14px 4px 18px;
   }
 
@@ -1023,7 +1051,7 @@
 }
 
   .details-heading.MuiTypography-root {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .details-subheading.MuiTypography-root,
@@ -1034,4 +1062,39 @@
   .detail-value.MuiTypography-root {
     font-size: 14px;
   }
+}
+@media (min-width: 1051px) {
+  .employee-profile-card.MuiCard-root {
+    overflow: visible;
+  }
+}
+
+@media (min-width: 1051px) {
+  html:has(.employee-attendance-page),
+  body:has(.employee-attendance-page) {
+    height: 100%;
+    overflow: hidden !important;
+  }
+
+  .app-main-layout:has(.employee-attendance-page),
+  .app-main-content:has(.employee-attendance-page) {
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden !important;
+  }
+
+  .app-page-content:has(.employee-attendance-page) {
+    height: 0;
+    min-height: 0;
+    overflow: hidden !important;
+  }
+
+  .app-page-content:has(.employee-attendance-page)
+    .employee-attendance-page {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  
 }

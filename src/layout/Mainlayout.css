@@ -558,6 +558,49 @@ body,
   overflow: hidden;
 }
 
+/* Remove extra bottom spacing */
+.app-main-layout {
+  min-height: 100dvh;
+}
+
+.app-main-content {
+  min-height: 0;
+}
+
+.app-page-content {
+  min-height: 0 !important;
+  height: auto !important;
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* Dashboard last section */
+.app-page-content > :last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Company Calendar uses the document/page scroll so every week stays reachable. */
+.app-main-content:has(.company-calendar-page) {
+  height: auto;
+  min-height: calc(100dvh - var(--layout-header-height));
+  overflow: visible;
+}
+
+.app-page-content:has(.company-calendar-page) {
+  flex: 0 0 auto;
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+}
+
+.app-page-content:has(.company-calendar-page)
+  .company-calendar-page {
+  flex: 0 0 auto;
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+}
+
 
 /* ==========================================
    GLOBAL LOADER - VISIBLE PAGE VIEWPORT

@@ -74,7 +74,7 @@ interface LeaveApiData {
   toTime: string | null;
   totalDays: number;
   totalHours: number;
-  compensatingDate: string | null;
+  compOffDate: string | null;
   reason: string;
   status: RequestStatus;
   reviewedBy: string | null;
@@ -122,6 +122,12 @@ interface LeavePolicy {
   sickLeave: number;
   compensatoryOff: number;
   permissionsPerMonth: number;
+}
+
+interface LeaveBalance {
+  compensatoryOff: {
+    total: number;
+  };
 }
 
 interface ApiResponse<T> {
@@ -275,6 +281,21 @@ const diffDaysInclusive = (
   );
 };
 
+const isWithinNextMonth = (
+  workedDate: string,
+  leaveDate: string
+): boolean => {
+  const [workedYear, workedMonth, workedDay] =
+    workedDate.split("-").map(Number);
+  const [leaveYear, leaveMonth, leaveDay] =
+    leaveDate.split("-").map(Number);
+  const worked = Date.UTC(workedYear, workedMonth - 1, workedDay);
+  const leave = Date.UTC(leaveYear, leaveMonth - 1, leaveDay);
+  const monthDifference =
+    (leaveYear - workedYear) * 12 + leaveMonth - workedMonth;
+  return leave > worked && monthDifference <= 1;
+};
+
 const timeToMinutes = (
   value: string
 ): number => {
@@ -308,12 +329,21 @@ const getErrorMessage = (
     const response = (
       error as {
         response?: {
-          data?: { message?: string };
+          data?: {
+            message?: string;
+            errors?: Record<string, string>;
+          };
         };
       }
     ).response;
 
     if (response?.data?.message) {
+      const validationDetails = response.data.errors
+        ? Object.values(response.data.errors).filter(Boolean).join(" ")
+        : "";
+      if (validationDetails) {
+        return `${response.data.message}: ${validationDetails}`;
+      }
       return response.data.message;
     }
   }
@@ -377,7 +407,6 @@ const mapApiRequest = (
 const isCountedRequest = (
   request: LeaveRequest
 ): boolean =>
-  request.status === "Pending" ||
   request.status === "Approved";
 
 const getDuration = (
@@ -426,6 +455,9 @@ function EmployeeLeavesPermissions() {
 
   const [leavePolicy, setLeavePolicy] =
     useState<LeavePolicy | null>(null);
+
+  const [compOffAllocation, setCompOffAllocation] =
+    useState<number | null>(null);
 
   const [statusFilter, setStatusFilter] =
     useState<StatusFilter>("All");
@@ -532,9 +564,24 @@ function EmployeeLeavesPermissions() {
         }
 
         setLeavePolicy(matchingPolicy);
+        try {
+          const balanceResponse = await api.post<
+            ApiResponse<LeaveBalance>
+          >("/leave-apply/balance", {
+            businessYear: getBusinessYear(),
+          });
+          if (balanceResponse.data.success && balanceResponse.data.data) {
+            setCompOffAllocation(
+              balanceResponse.data.data.compensatoryOff.total
+            );
+          }
+        } catch {
+          setCompOffAllocation(null);
+        }
         setPolicyError("");
       } catch (error) {
         setLeavePolicy(null);
+        setCompOffAllocation(null);
         setPolicyError(
           getErrorMessage(
             error,
@@ -658,7 +705,7 @@ const slRemaining = remaining(
 );
 
   const compOffRemaining = remaining(
-    leavePolicy?.compensatoryOff,
+    compOffAllocation ?? leavePolicy?.compensatoryOff,
     usedDays("COMP_OFF")
   );
 
@@ -786,6 +833,16 @@ const slRemaining = remaining(
         errors.compOffDate =
           "Comp off date is required.";
       }
+
+      if (
+        form.leaveType === "COMP_OFF" &&
+        form.compOffDate &&
+        form.startDate &&
+        !isWithinNextMonth(form.compOffDate, form.startDate)
+      ) {
+        errors.compOffDate =
+          "Leave must be after the worked date, in the same month or the following month.";
+      }
     }
 
     if (!form.reason.trim()) {
@@ -838,8 +895,7 @@ const slRemaining = remaining(
             toDate: form.endDate,
             totalDays,
             ...(form.leaveType === "COMP_OFF" && {
-              compensatingDate:
-                form.compOffDate,
+              compOffDate: form.compOffDate,
             }),
             reason: form.reason.trim(),
             businessYear: getBusinessYear(),
@@ -1025,8 +1081,7 @@ const slRemaining = remaining(
             </Typography>
 
             <Typography className="apply-card-description">
-              Submit a leave application or request
-              a short permission.
+              Submit a leave application or request a short permission.
             </Typography>
           </Box>
         </Box>
@@ -1075,7 +1130,9 @@ const slRemaining = remaining(
                 </Typography>
 
                 <Typography className="form-subtitle">
-                  Enter your request information below.
+                  {form.leaveType === "COMP_OFF"
+                    ? "Your comp-off balance will decrease after HR approves this request."
+                    : "Enter your request information below."}
                 </Typography>
               </Box>
             </Box>
@@ -1232,7 +1289,11 @@ const slRemaining = remaining(
             ) : (
               <>
                 <FieldRow
-                  label="Start Date"
+                  label={
+                    form.leaveType === "COMP_OFF"
+                      ? "Leave Start Date"
+                      : "Start Date"
+                  }
                   required
                 >
                   <TextField
@@ -1255,7 +1316,11 @@ const slRemaining = remaining(
                 </FieldRow>
 
                 <FieldRow
-                  label="End Date"
+                  label={
+                    form.leaveType === "COMP_OFF"
+                      ? "Leave End Date"
+                      : "End Date"
+                  }
                   required
                 >
                   <TextField
@@ -1285,7 +1350,7 @@ const slRemaining = remaining(
 
                 {form.leaveType === "COMP_OFF" && (
                   <FieldRow
-                    label="Comp Off Date"
+                    label="Worked Date (Comp Off Earned)"
                     required
                   >
                     <TextField
@@ -1297,9 +1362,8 @@ const slRemaining = remaining(
                       error={Boolean(
                         fieldErrors.compOffDate
                       )}
-                      helperText={
-                        fieldErrors.compOffDate
-                      }
+                      helperText={fieldErrors.compOffDate ||
+                        "Take the earned leave in the same month or the following month."}
                       onChange={(event) =>
                         updateField(
                           "compOffDate",

@@ -1,5 +1,5 @@
 
-import { MonitorX, ShieldAlert } from "lucide-react";
+import { ShieldAlert } from "lucide-react";
 
 export default function MobileAccessRestriction() {
   return (
@@ -7,52 +7,37 @@ export default function MobileAccessRestriction() {
       style={{
         minHeight: "100dvh",
         display: "flex",
-        alignItems: "center",
         justifyContent: "center",
-        background: "#F3F7F9",
-        padding: "24px",
+        alignItems: "center",
+        background: "#F4F8FA",
+        padding: "20px",
         boxSizing: "border-box",
       }}
     >
       <div
         style={{
-          width: "100%",
-          maxWidth: "420px",
           background: "#FFFFFF",
-          padding: "32px 24px",
           borderRadius: "16px",
+          padding: "36px 24px",
+          maxWidth: "420px",
+          width: "100%",
           textAlign: "center",
           boxShadow: "0 8px 30px rgba(0,0,0,0.08)",
         }}
       >
         <ShieldAlert
-          size={48}
+          size={52}
           color="#D32F2F"
-          style={{ marginBottom: "16px" }}
         />
 
-        <h2
-          style={{
-            fontSize: "24px",
-            fontWeight: 700,
-            color: "#D32F2F",
-            marginBottom: "12px",
-          }}
-        >
+        <h2 style={{ color: "#D32F2F" }}>
           Access Restricted
         </h2>
 
-        <MonitorX
-          size={32}
-          color="#025B82"
-          style={{ marginBottom: "12px" }}
-        />
-
         <p
           style={{
-            fontSize: "16px",
             fontWeight: 600,
-            color: "#333333",
+            lineHeight: 1.6,
           }}
         >
           Desktop mode is not allowed on mobile devices.
@@ -60,7 +45,6 @@ export default function MobileAccessRestriction() {
 
         <p
           style={{
-            fontSize: "14px",
             color: "#666666",
             lineHeight: 1.6,
           }}

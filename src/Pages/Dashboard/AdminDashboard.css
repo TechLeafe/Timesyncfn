@@ -1,131 +1,258 @@
+/* Admin dashboard: scoped premium workforce cards */
+.admin-employee-match { width:100%; min-width:0; }
+.app-main-layout-birthday-footer .app-page-content:has(.admin-employee-match) { padding-bottom:0; }
+.admin-kpi-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; width:100%; }
+.admin-kpi-green { --kpi-color:#059669; --kpi-light:#e0f7eb; --kpi-border:#d2eadd; --kpi-wave:#8edab5; }
+.admin-kpi-blue { --kpi-color:#1685e5; --kpi-light:#e1efff; --kpi-border:#d9e7f7; --kpi-wave:#94c6f5; }
+.admin-kpi-orange { --kpi-color:#e9950b; --kpi-light:#fff1d9; --kpi-border:#f3e6d2; --kpi-wave:#f8cd83; }
+.admin-kpi-card { box-sizing:border-box; position:relative; isolation:isolate; overflow:hidden; display:flex; flex-direction:column; min-width:0; min-height:210px; padding:20px; background:#fff; border:1px solid var(--kpi-border); border-radius:20px; box-shadow:0 5px 18px #1428320d; font-family:Inter,Arial,sans-serif; }
+.admin-kpi-card::before { content:""; position:absolute; top:0; right:0; width:80px; height:40px; border-top:3px solid var(--kpi-color); border-right:2px solid var(--kpi-color); border-radius:0 20px 0 0; pointer-events:none; }
+.admin-kpi-header { display:flex; align-items:center; gap:12px; min-width:0; }
+.admin-kpi-header h3 { margin:0; font-size:15px; font-weight:700; line-height:1.4; color:#17263b; }
+.admin-kpi-icon { display:grid; place-items:center; width:48px; height:48px; flex-shrink:0; border-radius:13px; background:var(--kpi-light); color:var(--kpi-color); }
+.admin-kpi-icon svg { width:27px; height:27px; }
+.admin-kpi-body { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:100px; margin:8px 0; }
+.admin-kpi-value { font-size:44px; font-weight:750; line-height:1; letter-spacing:-1.5px; color:#142338; }
+.admin-kpi-ring { box-sizing:border-box; width:90px; height:90px; flex-shrink:0; padding:8px; border-radius:50%; display:grid; place-items:center; }
+.admin-kpi-ring-inner { width:100%; height:100%; border-radius:50%; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; }
+.admin-kpi-ring-inner strong { font-size:19px; font-weight:750; color:#17263b; }
+.admin-kpi-ring-inner small { font-size:10px; color:#64748b; }
+.admin-kpi-leave-chart { width:65%; max-width:190px; min-width:0; }
+.admin-kpi-progress { display:flex; width:100%; height:12px; overflow:hidden; border-radius:20px; background:#edf1f4; }
+.admin-kpi-approved { height:100%; background:#16a34a; }
+.admin-kpi-rejected { height:100%; background:#ef4444; }
+.admin-kpi-legend { display:flex; align-items:center; flex-wrap:wrap; gap:7px 12px; margin-top:10px; }
+.admin-kpi-legend span { display:flex; align-items:center; gap:5px; font-size:10px; color:#526176; }
+.admin-kpi-legend i { display:inline-block; width:7px; height:7px; border-radius:50%; }
+.admin-kpi-legend .approved-dot { background:#16a34a; }
+.admin-kpi-legend .rejected-dot { background:#ef4444; }
+.admin-kpi-footer { display:flex; align-items:center; gap:8px; margin-top:auto; padding-top:8px; font-size:12px; font-weight:500; color:#64748b; }
+.admin-kpi-dot { width:8px; height:8px; flex-shrink:0; border-radius:50%; background:var(--kpi-color); }
+.admin-kpi-wave { position:absolute; z-index:-1; bottom:-25px; right:-20px; width:70%; height:65px; border-radius:65% 0 0 0; background:var(--kpi-wave); opacity:.23; transform:rotate(-8deg); pointer-events:none; }
+.admin-kpi-wave::before { content:""; position:absolute; right:-10px; bottom:5px; width:75%; height:65px; border-radius:80% 0 0 0; background:var(--kpi-wave); opacity:.65; transform:rotate(-10deg); }
+/* Existing attendance panel */
+.admin-employee-match .admin-match-attendance { min-width:0; }
+.admin-employee-match .admin-match-panel-actions { display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:10px; }
+.admin-employee-match .admin-match-panel-actions .MuiButton-outlined { min-height:36px; padding:7px 13px; border:1px solid #b8ddc9; border-radius:9px; background:#fff; color:#087f55; font-family:Inter,Arial,sans-serif; font-size:11px; font-weight:700; text-transform:none; }
+.admin-employee-match .admin-match-panel-actions .MuiButton-outlined:hover { background:#edf9f2; border-color:#087f55; }
+.admin-employee-match .admin-match-panel-actions .MuiButton-outlined.Mui-disabled { color:#8eaaa0; border-color:#e0eae4; }
+.admin-match-errors { display:flex; flex-direction:column; gap:10px; }
+.admin-match-errors .MuiAlert-root { border-radius:10px; font-family:Inter,Arial,sans-serif; font-size:12px; }
+.admin-employee-match .emp-attendance-table { min-width:760px; }
+.admin-employee-match .emp-attendance-table td,.admin-employee-match .emp-attendance-table th { overflow-wrap:anywhere; }
+.admin-employee-match .emp-attendance-table tbody td:first-child { color:#087f55; font-weight:750; }
+@media(max-width:1200px) { .admin-kpi-grid { gap:12px; } .admin-kpi-card { padding:16px; } .admin-kpi-header h3 { font-size:13px; } .admin-kpi-icon { width:40px; height:40px; } .admin-kpi-ring { width:76px; height:76px; padding:6px; } .admin-kpi-ring-inner strong { font-size:16px; } .admin-kpi-value { font-size:38px; } }
+@media(max-width:1024px) { .admin-kpi-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .admin-employee-match .admin-match-attendance { overflow:hidden; } }
+@media(max-width:767px) { .admin-kpi-grid { grid-template-columns:minmax(0,1fr); gap:14px; } .admin-kpi-card { min-height:185px; padding:18px; } .admin-kpi-header h3 { font-size:15px; } .admin-employee-match .admin-match-panel-actions { width:100%; justify-content:space-between; } .admin-employee-match .admin-match-attendance .emp-panel-heading { flex-wrap:wrap; } }
+@media(max-width:480px) { .admin-employee-match .admin-match-panel-actions { align-items:stretch; } .admin-employee-match .admin-match-panel-actions .MuiButton-root { flex:1; } }
 
+/* Compact cards — preserve original corner accent and wave */
+.admin-employee-match .admin-kpi-grid { gap:14px; }
+.admin-employee-match .admin-kpi-card { min-height:150px; padding:12px 14px; border-radius:16px; }
+.admin-employee-match .admin-kpi-card::before { width:60px; height:28px; border-radius:0 16px 0 0; border-top-width:2px; }
+.admin-employee-match .admin-kpi-header { gap:10px; }
+.admin-employee-match .admin-kpi-header h3 { font-size:13px; }
+.admin-employee-match .admin-kpi-icon { width:36px; height:36px; border-radius:10px; }
+.admin-employee-match .admin-kpi-icon svg { width:23px; height:23px; }
+.admin-employee-match .admin-kpi-body { min-height:62px; margin:4px 0; gap:8px; }
+.admin-employee-match .admin-kpi-value { font-size:34px; letter-spacing:-1px; }
+.admin-employee-match .admin-kpi-ring { width:62px; height:62px; padding:5px; }
+.admin-employee-match .admin-kpi-ring-inner { gap:1px; }
+.admin-employee-match .admin-kpi-ring-inner strong { font-size:15px; }
+.admin-employee-match .admin-kpi-ring-inner small { font-size:8px; }
+.admin-employee-match .admin-kpi-progress { height:9px; }
+.admin-employee-match .admin-kpi-legend { margin-top:6px; gap:4px 8px; }
+.admin-employee-match .admin-kpi-legend span { font-size:10px; }
+.admin-employee-match .admin-kpi-footer { padding-top:4px; font-size:11px; gap:6px; }
+.admin-employee-match .admin-kpi-dot { width:6px; height:6px; }
+.admin-employee-match .admin-kpi-wave { height:45px; bottom:-18px; }
+.admin-employee-match .admin-kpi-wave::before { height:45px; }
+@media(max-width:767px) { .admin-employee-match .admin-kpi-grid { gap:12px; } }
 /* ==========================================
-   ADMIN DASHBOARD
-   MATCH EMPLOYEE DASHBOARD
+   PREMIUM SOFT WAVE CARD DESIGN
 ========================================== */
 
-/*
-  Base layout and responsive styling are
-  inherited from EmployeeDashboard.css.
-*/
-
-.admin-employee-match {
-  width: 100%;
-  min-width: 0;
+.admin-kpi-grid {
+  gap: 14px;
 }
 
-/* Remove the employee/portal footer allowance below the Admin table. */
-.app-main-layout-birthday-footer
-  .app-page-content:has(.admin-employee-match) {
-  padding-bottom: 0;
+.admin-kpi-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  min-height: 150px;
+  padding: 12px 14px;
+
+  box-sizing: border-box;
+  background: #ffffff;
+  border: 1px solid var(--kpi-border);
+  border-radius: 16px;
+
+  box-shadow: 0 3px 12px rgba(15, 23, 42, 0.04);
 }
 
-/* ADMIN-SPECIFIC ATTENDANCE PANEL */
+/* REMOVE TOP RIGHT CORNER LINE */
 
-.admin-employee-match .admin-match-attendance {
-  min-width: 0;
+.admin-kpi-card::before {
+  content: none !important;
+  display: none !important;
 }
 
-.admin-employee-match .admin-match-panel-actions {
+/* CARD HEADER */
+
+.admin-kpi-header {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  flex-wrap: wrap;
   gap: 10px;
 }
 
-.admin-employee-match
-  .admin-match-panel-actions
-  .MuiButton-outlined {
-  min-height: 36px;
-  padding: 7px 13px;
-  border: 1px solid #b8ddc9;
-  border-radius: 9px;
-  background: #ffffff;
-  color: #087f55;
-  font-family: Inter, Arial, sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: none;
+.admin-kpi-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 650;
+  color: #142338;
 }
 
-.admin-employee-match
-  .admin-match-panel-actions
-  .MuiButton-outlined:hover {
-  background: #edf9f2;
-  border-color: #087f55;
-}
+/* ICON */
 
-/* STATUS AND ERROR MESSAGES */
-
-.admin-match-errors {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.admin-match-errors .MuiAlert-root {
+.admin-kpi-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
   border-radius: 10px;
-  font-family: Inter, Arial, sans-serif;
-  font-size: 12px;
 }
 
-/* ATTENDANCE TABLE */
-
-.admin-employee-match .emp-attendance-table {
-  min-width: 760px;
+.admin-kpi-icon svg {
+  width: 22px;
+  height: 22px;
 }
 
-.admin-employee-match .emp-attendance-table td,
-.admin-employee-match .emp-attendance-table th {
-  overflow-wrap: anywhere;
+/* CARD BODY */
+
+.admin-kpi-body {
+  min-height: 62px;
+  margin: 5px 0;
+  gap: 10px;
 }
 
-.admin-employee-match .emp-attendance-table tbody td:first-child {
-  color: #087f55;
+.admin-kpi-value {
+  font-size: 34px;
+  font-weight: 750;
+  line-height: 1;
+  letter-spacing: -1px;
+  color: #142338;
+}
+
+/* CIRCULAR PROGRESS */
+
+.admin-kpi-ring {
+  width: 62px;
+  height: 62px;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+.admin-kpi-ring-inner strong {
+  font-size: 15px;
   font-weight: 750;
 }
 
-/* REFRESH BUTTON DISABLED STATE */
-
-.admin-employee-match
-  .admin-match-panel-actions
-  .MuiButton-outlined.Mui-disabled {
-  color: #8eaaa0;
-  border-color: #e0eae4;
+.admin-kpi-ring-inner small {
+  font-size: 8px;
 }
 
-/* TABLET */
+/* LEAVE PROGRESS */
 
-@media (max-width: 1024px) {
-  .admin-employee-match .admin-match-attendance {
-    overflow: hidden;
+.admin-kpi-progress {
+  height: 9px;
+  border-radius: 20px;
+}
+
+.admin-kpi-legend {
+  margin-top: 8px;
+  gap: 8px;
+}
+
+.admin-kpi-legend span {
+  font-size: 10px;
+}
+
+/* FOOTER */
+
+.admin-kpi-footer {
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: none;
+  font-size: 11px;
+  color: #64748b;
+}
+
+.admin-kpi-dot {
+  width: 7px;
+  height: 7px;
+}
+
+/* NEW SOFT LAYERED WAVE */
+
+.admin-kpi-wave {
+  position: absolute;
+  z-index: -1;
+
+  right: 0;
+  bottom: 0;
+
+  width: 65%;
+  height: 65px;
+
+  background: var(--kpi-light);
+
+  border-radius: 0;
+  clip-path: ellipse(85% 80% at 85% 100%);
+
+  transform: none;
+  opacity: 0.8;
+
+  pointer-events: none;
+}
+
+.admin-kpi-wave::before {
+  content: "";
+
+  position: absolute;
+  right: -10px;
+  bottom: -12px;
+
+  width: 85%;
+  height: 45px;
+
+  background: var(--kpi-color);
+  border-radius: 50% 0 0 0;
+
+  opacity: 0.08;
+  transform: rotate(-12deg);
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1200px) {
+  .admin-kpi-card {
+    padding: 12px;
+  }
+
+  .admin-kpi-header h3 {
+    font-size: 12px;
   }
 }
-
-/* MOBILE */
 
 @media (max-width: 767px) {
-  .admin-employee-match .admin-match-panel-actions {
-    width: 100%;
-    justify-content: space-between;
+  .admin-kpi-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
-  .admin-employee-match
-    .admin-match-attendance
-    .emp-panel-heading {
-    flex-wrap: wrap;
-  }
-}
-
-@media (max-width: 480px) {
-  .admin-employee-match .admin-match-panel-actions {
-    align-items: stretch;
-  }
-
-  .admin-employee-match
-    .admin-match-panel-actions
-    .MuiButton-root {
-    flex: 1;
+  .admin-kpi-card {
+    min-height: 145px;
+    padding: 14px;
   }
 }

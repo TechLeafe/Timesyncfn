@@ -130,7 +130,7 @@ const makeEmployee = (user: StoredUser | null): Employee => ({
   department: user?.department || "-",
   email: user?.email || "-",
   reportingManager: user?.reportingManager || "-",
-  location: user?.location || "Office - TechLeafe",
+  location: user?.location || "Office - Tech Leafe Technologies ",
 });
 
 const formatTimer = (seconds: number): string => {
