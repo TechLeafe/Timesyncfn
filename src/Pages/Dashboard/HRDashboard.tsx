@@ -1,4 +1,3 @@
-
 import { useCallback, useEffect, useState } from "react";
 
 import {
@@ -14,12 +13,12 @@ import BeachAccessRoundedIcon from "@mui/icons-material/BeachAccessRounded";
 import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
 import Diversity3RoundedIcon from "@mui/icons-material/Diversity3Rounded";
 
-import StatCard from "../../Components/Dashboard/StatCard/StatCard";
+import type { ReactNode } from "react";
 import ProjectsPieChart from "../../Components/Dashboard/Chart/ProjectsPieChart";
 import TeamAllocationChart from "../../Components/Dashboard/Chart/TeamAllocationChart";
 import DailyInspiration from "../../Components/DailyInspiration/DailyInspiration";
 
-import type { StatCardProps } from "../../Components/Dashboard/StatCard/StatCard";
+
 
 import api from "../../api/axiosInstance";
 import "./Dashboard.css";
@@ -181,6 +180,40 @@ const statusPillClass = (status: string) => {
 };
 
 /* ================= MAIN COMPONENT ================= */
+
+type HRStatCardProps = {
+  label: string;
+  value: number;
+  icon: ReactNode;
+  trend: string;
+  trendDirection: "up" | "down" | "neutral";
+};
+
+const cardThemes: Record<string, string> = {
+  "Total employees": "blue",
+  "Active employees": "green",
+  "Present today": "teal",
+  "Absent today": "red",
+  "On leave today": "orange",
+};
+
+function HRStatCard({ label, value, icon }: HRStatCardProps) {
+  return (
+    <div className={`hr-stat-card hr-stat-card--${cardThemes[label] || "green"}`}>
+      <div className="hr-stat-content">
+        <span className="hr-stat-label">{label}</span>
+        <div className="hr-stat-accent" />
+        <h2 className="hr-stat-value">{value}</h2>
+      </div>
+      <div className="hr-stat-icon" aria-hidden="true">{icon}</div>
+      <svg className="hr-stat-wave" viewBox="0 0 300 90" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 90 C100 90 160 0 300 30 V90 Z" fill="currentColor" opacity="0.15" />
+        <path d="M65 90 C160 90 220 10 300 12 V90 Z" fill="currentColor" opacity="0.35" />
+        <path d="M150 90 C220 70 250 35 300 25 V90 Z" fill="currentColor" opacity="0.85" />
+      </svg>
+    </div>
+  );
+}
 
 function HRDashboard() {
   const [dashboard, setDashboard] =
@@ -347,7 +380,7 @@ function HRDashboard() {
 
   /* ================= STAT CARDS ================= */
 
-  const STATS: StatCardProps[] = [];
+  const STATS: HRStatCardProps[] = [];
 
   if (employeeStats) {
     STATS.push(
@@ -409,30 +442,34 @@ function HRDashboard() {
   /* ================= CHART DATA ================= */
 
   const ATTENDANCE_DISTRIBUTION = [
-    {
-      label: "Present",
-      value:
-        presentToday ??
-        safeCount(
-          attendanceStats?.presentToday ??
-          attendanceStats?.present
-        ),
-    },
-    {
-      label: "Absent",
-      value: safeCount(attendanceStats?.absent),
-    },
-    {
-      label: "On leave",
-      value: safeCount(attendanceStats?.onLeave),
-    },
-    {
-      label: "Not checked in",
-      value:
-        notCheckedIn ??
-        safeCount(attendanceStats?.notCheckedIn),
-    },
-  ];
+  {
+    label: "Present",
+    color: "#16A34A",
+    value:
+      presentToday ??
+      safeCount(
+        attendanceStats?.presentToday ??
+        attendanceStats?.present
+      ),
+  },
+  {
+    label: "Absent",
+    color: "#EF4444",
+    value: safeCount(attendanceStats?.absent),
+  },
+  {
+    label: "On leave",
+    color: "#F59E0B",
+    value: safeCount(attendanceStats?.onLeave),
+  },
+  {
+    label: "Not checked in",
+    color: "#3B82F6",
+    value:
+      notCheckedIn ??
+      safeCount(attendanceStats?.notCheckedIn),
+  },
+];
 
   const LEAVE_REQUESTS_BY_STATUS = [
     {
@@ -527,11 +564,10 @@ const [hrName] = useState(getHRName);
         </Alert>
       )}
       
-      <DailyInspiration />
 
       {/* STAT CARDS */}
 
-      <Box className="admin-dashboard__stats">
+      <Box className="admin-dashboard__stats hr-dashboard-stats">
         {isRefreshing && STATS.length === 0 ? (
           <Box
             sx={{
@@ -545,7 +581,7 @@ const [hrName] = useState(getHRName);
           </Box>
         ) : STATS.length > 0 ? (
           STATS.map((stat) => (
-            <StatCard key={stat.label} {...stat} />
+            <HRStatCard key={stat.label} {...stat} />
           ))
         ) : (
           <Alert severity="info" sx={{ width: "100%" }}>

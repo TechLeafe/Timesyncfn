@@ -13,11 +13,9 @@ import {
 
 import api from "../../api/axiosInstance";
 import { isMobileDevice } from "../../utils/deviceDetection";
+import MobileAccessRestriction from "../../Components/MobileAccessRestriction";
+import { ADMIN, EMPLOYEE, HR } from "../../data/permissions";
 import "./Login.css";
-
-// ======================================
-// TYPES
-// ======================================
 
 type UserType = 1 | 2 | 3;
 
@@ -60,10 +58,6 @@ type LoginResponse = {
   };
 };
 
-// ======================================
-// LOGIN COMPONENT
-// ======================================
-
 export function Login() {
   const navigate = useNavigate();
 
@@ -80,10 +74,7 @@ export function Login() {
   // DEVICE DETECTION
   const isMobile = isMobileDevice();
 
-  // ======================================
   // CURRENT DATE
-  // ======================================
-
   const getTodayDate = (): string => {
     const now = new Date();
 
@@ -94,10 +85,7 @@ export function Login() {
     return `${year}-${month}-${day}`;
   };
 
-  // ======================================
   // SAVE LOGIN SESSION
-  // ======================================
-
   const storeLogin = (user: LoginUser): void => {
     const session: LoginSession = {
       userId: user.userId,
@@ -118,25 +106,22 @@ export function Login() {
     );
   };
 
-  // ======================================
   // ROLE-BASED NAVIGATION
-  // ======================================
-
   const redirectUser = (userType: UserType): void => {
     switch (userType) {
-      case 1:
-        navigate("/admindashboard", {
-          replace: true,
-        });
-        break;
-
-      case 2:
+      case HR:
         navigate("/hrdashboard", {
           replace: true,
         });
         break;
 
-      case 3:
+      case ADMIN:
+        navigate("/admindashboard", {
+          replace: true,
+        });
+        break;
+
+      case EMPLOYEE:
         navigate("/employeedashboard", {
           replace: true,
         });
@@ -147,19 +132,16 @@ export function Login() {
     }
   };
 
-  // ======================================
   // LOGIN SUBMISSION
-  // ======================================
-
   const handleSubmit = async (
     event: FormEvent<HTMLFormElement>
   ): Promise<void> => {
     event.preventDefault();
 
-    // BLOCK DETECTED MOBILE DEVICES
+    // BLOCK MOBILE LOGIN
     if (isMobileDevice()) {
       setLoginError(
-        "Login is allowed only on laptop."
+        "Login is allowed only on laptop or desktop."
       );
       return;
     }
@@ -296,9 +278,9 @@ export function Login() {
     }
   };
 
-  // ======================================
-  // LOGIN UI
-  // ======================================
+  if (isMobile) {
+    return <MobileAccessRestriction />;
+  }
 
   return (
     <div className="login-page">
@@ -343,7 +325,7 @@ export function Login() {
               role="alert"
             >
               {loginError ||
-                "Login is allowed only on laptop."}
+                "Login is allowed only on laptop or desktop."}
             </div>
           )}
 

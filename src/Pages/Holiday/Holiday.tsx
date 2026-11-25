@@ -1643,13 +1643,14 @@ function HolidayModal({
 
       fullWidth
 
-      maxWidth="sm"
+      maxWidth="md"
 
       className="holiday-dialog"
 
     >
 
       <DialogTitle className="holiday-modal-title">
+        <Box className="holiday-modal-heading-icon"><CalendarCheck2 size={28} /></Box>
 
         <Box>
 
@@ -1667,6 +1668,7 @@ function HolidayModal({
 
         </Box>
 
+        <Box className="holiday-modal-art" aria-hidden="true"><CalendarDays size={70} /><CircleCheck size={26} /></Box>
         <IconButton
 
           aria-label="Close modal"
@@ -1714,10 +1716,13 @@ function HolidayModal({
         >
 
           <Box className="holiday-form-group">
+ <Box className="holiday-field-icon" aria-hidden="true"><Tag size={22} /></Box>
+ <Box className="holiday-field-body">
+ <label htmlFor="holiday-field-0">Holiday Name <span>*</span></label>
+
 
             <TextField
-
-              label="Holiday Name"
+              id="holiday-field-0"
 
               name="holidayName"
 
@@ -1741,15 +1746,20 @@ function HolidayModal({
 
             />
 
-          </Box>
+          
+ </Box>
+</Box>
 
           <Box className="holiday-form-grid">
 
             <Box className="holiday-form-group">
+ <Box className="holiday-field-icon" aria-hidden="true"><CalendarDays size={22} /></Box>
+ <Box className="holiday-field-body">
+ <label htmlFor="holiday-field-1">Holiday Date <span>*</span></label>
+
 
               <TextField
-
-                label="Holiday Date"
+              id="holiday-field-1"
 
                 name="holidayDate"
 
@@ -1773,13 +1783,21 @@ function HolidayModal({
 
               />
 
-            </Box>
+            
+ </Box>
+</Box>
 
             <Box className="holiday-form-group">
+ <Box className="holiday-field-icon" aria-hidden="true"><Tag size={22} /></Box>
+ <Box className="holiday-field-body">
+ <label htmlFor="holiday-field-2">Holiday Type <span>*</span></label>
+
 
               <FormControl fullWidth>
 
                 <Select
+                  id="holiday-field-2"
+                  inputProps={{ "aria-label": "Holiday Type" }}
 
                   name="holidayType"
 
@@ -1823,13 +1841,18 @@ function HolidayModal({
 
               </FormControl>
 
-            </Box>
+            
+ </Box>
+</Box>
 
             <Box className="holiday-form-group">
+ <Box className="holiday-field-icon" aria-hidden="true"><Building2 size={22} /></Box>
+ <Box className="holiday-field-body">
+ <label htmlFor="holiday-field-3">Company Year <span>*</span></label>
+
 
               <TextField
-
-                label="Company Year"
+              id="holiday-field-3"
 
                 name="companyYear"
 
@@ -1855,13 +1878,21 @@ function HolidayModal({
 
               />
 
-            </Box>
+            
+ </Box>
+</Box>
 
             <Box className="holiday-form-group">
+ <Box className="holiday-field-icon" aria-hidden="true"><CircleCheck size={22} /></Box>
+ <Box className="holiday-field-body">
+ <label htmlFor="holiday-field-4">Status</label>
+
 
               <FormControl fullWidth>
 
                 <Select
+                  id="holiday-field-4"
+                  inputProps={{ "aria-label": "Status" }}
 
                   name="status"
 
@@ -1889,15 +1920,20 @@ function HolidayModal({
 
               </FormControl>
 
-            </Box>
+            
+ </Box>
+</Box>
 
           </Box>
 
           <Box className="holiday-form-group">
+ <Box className="holiday-field-icon" aria-hidden="true"><FileText size={22} /></Box>
+ <Box className="holiday-field-body">
+ <label htmlFor="holiday-field-5">Description</label>
+
 
             <TextField
-
-              label="Description"
+              id="holiday-field-5"
 
               name="description"
 
@@ -1905,7 +1941,7 @@ function HolidayModal({
 
               onChange={onTextFieldChange}
 
-              placeholder="Enter holiday description"
+              placeholder="Add a brief description (optional)"
 
               multiline
 
@@ -1917,7 +1953,9 @@ function HolidayModal({
 
             />
 
-          </Box>
+          
+ </Box>
+</Box>
 
         </Box>
 
@@ -1967,7 +2005,7 @@ function HolidayModal({
 
               />
 
-            ) : undefined
+            ) : <CalendarCheck2 size={18} />
 
           }
 

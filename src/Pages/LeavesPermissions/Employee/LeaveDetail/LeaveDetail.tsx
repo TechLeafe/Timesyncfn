@@ -65,7 +65,7 @@ interface LeaveApiData {
   toTime: string | null;
   totalDays: number;
   totalHours: number;
-  compensatingDate: string | null;
+  compOffDate: string | null;
   reason: string;
   status: RequestStatus;
   reviewedBy: string | null;
@@ -291,7 +291,7 @@ const mapApiToForm = (
     startDate: toInputDate(item.fromDate),
     endDate: toInputDate(item.toDate),
     compOffDate: toInputDate(
-      item.compensatingDate
+      item.compOffDate
     ),
     startTime: "",
     endTime: "",
@@ -521,7 +521,7 @@ function LeaveDetail() {
       toDate: form.endDate,
       totalDays: calculatedDays,
       ...(form.leaveType === "COMP_OFF" && {
-        compensatingDate: form.compOffDate,
+        compOffDate: form.compOffDate,
       }),
       reason: form.reason.trim(),
     };

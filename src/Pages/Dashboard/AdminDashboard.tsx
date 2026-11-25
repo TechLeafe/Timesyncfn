@@ -5,7 +5,6 @@ import {
   AccessTimeRounded,
   CalendarMonthRounded,
   PendingActionsRounded,
-  TrendingUpRounded,
   EventAvailableRounded,
   AssignmentTurnedInRounded,
   GroupsRounded,
@@ -13,7 +12,7 @@ import {
   HourglassTopRounded,
   CancelRounded,
   RefreshRounded,
-  AutoGraphRounded,
+  LaptopChromebookRounded,
 } from "@mui/icons-material";
 
 import {
@@ -384,6 +383,14 @@ const attendanceItems = [
     0
   );
 
+  const activePercentage = employeeStats && employeeStats.totalEmployees > 0
+    ? Math.min(100, Math.round(employeeStats.activeEmployees / employeeStats.totalEmployees * 100)) : null;
+  const checkedInPercentage = employeeStats && employeeStats.activeEmployees > 0 && checkedInCount !== null
+    ? Math.min(100, Math.round(checkedInCount / employeeStats.activeEmployees * 100)) : null;
+  const reviewedRequests = (leaveStats?.approved ?? 0) + (leaveStats?.rejected ?? 0);
+  const approvedPercentage = reviewedRequests > 0 ? (leaveStats?.approved ?? 0) / reviewedRequests * 100 : 0;
+  const rejectedPercentage = reviewedRequests > 0 ? (leaveStats?.rejected ?? 0) / reviewedRequests * 100 : 0;
+
   return (
     <main className="emp-premium-dashboard admin-employee-match">
 
@@ -444,96 +451,53 @@ const attendanceItems = [
         </div>
       )}
 
-      {/* THREE STAT CARDS — EMPLOYEE STYLE */}
-
-      <section className="emp-stat-grid">
-        <article className="emp-stat-card emp-green">
-          <div className="emp-stat-header">
-            <div className="emp-stat-icon">
-              <GroupsRounded />
+      {/* PREMIUM WORKFORCE STAT CARDS */}
+      <section className="admin-kpi-grid">
+        <article className="admin-kpi-card admin-kpi-green">
+          <div className="admin-kpi-header">
+            <div className="admin-kpi-icon"><GroupsRounded /></div>
+            <h3>Total employees</h3>
+          </div>
+          <div className="admin-kpi-body">
+            <strong className="admin-kpi-value">{loading || !employeeStats ? "—" : employeeStats.totalEmployees}</strong>
+            <div className="admin-kpi-ring" style={{ background: `conic-gradient(#059669 ${loading ? 0 : activePercentage ?? 0}%, #e1f2e9 0)` }}>
+              <div className="admin-kpi-ring-inner"><strong>{loading || activePercentage === null ? "—" : `${activePercentage}%`}</strong><small>Active</small></div>
             </div>
-
-            <span className="emp-stat-mini-icon">
-              <TrendingUpRounded />
-            </span>
           </div>
-
-          <p className="emp-stat-label">
-            Total employees
-          </p>
-
-          <h3>
-            {loading || !employeeStats
-              ? "—"
-              : employeeStats.totalEmployees}
-          </h3>
-
-          <div className="emp-stat-bottom">
-            <span className="emp-stat-dot" />
-            <span>
-              {employeeStats
-                ? `${employeeStats.activeEmployees} active employees`
-                : "Data unavailable"}
-            </span>
-          </div>
+          <div className="admin-kpi-footer"><span className="admin-kpi-dot" />{loading ? "Loading employees..." : employeeStats ? `${employeeStats.activeEmployees} active employees` : "Data unavailable"}</div>
+          <div className="admin-kpi-wave" aria-hidden="true" />
         </article>
-
-        <article className="emp-stat-card emp-blue">
-          <div className="emp-stat-header">
-            <div className="emp-stat-icon">
-              <AutoGraphRounded />
+        <article className="admin-kpi-card admin-kpi-blue">
+          <div className="admin-kpi-header">
+            <div className="admin-kpi-icon"><LaptopChromebookRounded /></div>
+            <h3>Checked in today</h3>
+          </div>
+          <div className="admin-kpi-body">
+            <strong className="admin-kpi-value">{loading || checkedInCount === null ? "—" : checkedInCount}</strong>
+            <div className="admin-kpi-ring" style={{ background: `conic-gradient(#1685e5 ${loading ? 0 : checkedInPercentage ?? 0}%, #dcecff 0)` }}>
+              <div className="admin-kpi-ring-inner"><strong>{loading || checkedInPercentage === null ? "—" : `${checkedInPercentage}%`}</strong><small>Checked in</small></div>
             </div>
-
-            <span className="emp-stat-mini-icon">
-              <TrendingUpRounded />
-            </span>
           </div>
-
-          <p className="emp-stat-label">
-            Checked in today
-          </p>
-
-          <h3>
-            {loading || checkedInCount === null
-              ? "—"
-              : checkedInCount}
-          </h3>
-
-          <div className="emp-stat-bottom">
-            <span className="emp-stat-dot" />
-            <span>Recorded employee check-ins</span>
-          </div>
+          <div className="admin-kpi-footer"><span className="admin-kpi-dot" />Recorded employee check-ins</div>
+          <div className="admin-kpi-wave" aria-hidden="true" />
         </article>
-
-        <article className="emp-stat-card emp-orange">
-          <div className="emp-stat-header">
-            <div className="emp-stat-icon">
-              <PendingActionsRounded />
+        <article className="admin-kpi-card admin-kpi-orange">
+          <div className="admin-kpi-header">
+            <div className="admin-kpi-icon"><PendingActionsRounded /></div>
+            <h3>Pending leave requests</h3>
+          </div>
+          <div className="admin-kpi-body">
+            <strong className="admin-kpi-value">{loading || !leaveStats ? "—" : leaveStats.pending}</strong>
+            <div className="admin-kpi-leave-chart">
+              <div className="admin-kpi-progress" aria-hidden="true">
+                <div className="admin-kpi-approved" style={{ width: `${loading ? 0 : approvedPercentage}%` }} />
+                <div className="admin-kpi-rejected" style={{ width: `${loading ? 0 : rejectedPercentage}%` }} />
+              </div>
+              <div className="admin-kpi-legend"><span><i className="approved-dot" />Approved</span><span><i className="rejected-dot" />Rejected</span></div>
             </div>
-
-            <span className="emp-stat-mini-icon">
-              <AssignmentTurnedInRounded />
-            </span>
           </div>
-
-          <p className="emp-stat-label">
-            Pending leave requests
-          </p>
-
-          <h3>
-            {loading || !leaveStats
-              ? "—"
-              : leaveStats.pending}
-          </h3>
-
-          <div className="emp-stat-bottom">
-            <span className="emp-stat-dot" />
-            <span>
-              {leaveStats
-                ? `${leaveStats.approved} approved · ${leaveStats.rejected} rejected`
-                : "Data unavailable"}
-            </span>
-          </div>
+          <div className="admin-kpi-footer"><span className="admin-kpi-dot" />{loading ? "Loading requests..." : leaveStats ? `${leaveStats.approved} approved · ${leaveStats.rejected} rejected` : "Data unavailable"}</div>
+          <div className="admin-kpi-wave" aria-hidden="true" />
         </article>
       </section>
 

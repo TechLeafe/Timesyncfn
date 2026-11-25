@@ -1,20 +1,13 @@
-import {
-  Box,
-  Typography,
-} from "@mui/material";
+import { Box, Typography } from "@mui/material";
 
-import {
-  BarChart,
-} from "@mui/x-charts/BarChart";
+import { BarChart } from "@mui/x-charts/BarChart";
 
 import "./ChartCard.css";
-
 
 export interface AllocationPoint {
   project: string;
   members: number;
 }
-
 
 interface TeamAllocationChartProps {
   title?: string;
@@ -22,63 +15,79 @@ interface TeamAllocationChartProps {
   data: AllocationPoint[];
 }
 
+/* ==========================================
+   LEAVE STATUS COLORS
+========================================== */
+
+const STATUS_COLORS: Record<string, string> = {
+  pending: "#F59E0B",
+  approved: "#16A34A",
+  rejected: "#EF4444",
+};
 
 const TeamAllocationChart = ({
   title = "Team allocation",
-  subtitle =
-    "People working on each project",
+  subtitle = "People working on each project",
   data,
 }: TeamAllocationChartProps) => {
 
-  const hasData =
-    data.some(
-      (item) =>
-        Number(item.members) > 0
-    );
+  const hasData = data.some(
+    (item) => Number(item.members) > 0
+  );
 
+  const chartColors = data.map(
+    (item) =>
+      STATUS_COLORS[
+        item.project.trim().toLowerCase()
+      ] || "#4CAF50"
+  );
 
   return (
     <Box className="chart-card">
 
-      <Typography
-        className="chart-card__title"
-      >
+      {/* TITLE */}
+
+      <Typography className="chart-card__title">
         {title}
       </Typography>
 
+      {/* SUBTITLE */}
 
-      <Typography
-        className="chart-card__subtitle"
-      >
+      <Typography className="chart-card__subtitle">
         {subtitle}
       </Typography>
 
-
       {hasData ? (
-
-        <Box
-          className="chart-card__bar-chart"
-        >
+        <Box className="chart-card__bar-chart">
 
           <BarChart
             dataset={
-              data as unknown as
-                Record<
-                  string,
-                  unknown
-                >[]
+              data as unknown as Record<
+                string,
+                unknown
+              >[]
             }
 
             xAxis={[
               {
-                scaleType:
-                  "band",
+                scaleType: "band",
 
-                dataKey:
-                  "project",
+                dataKey: "project",
 
                 tickLabelStyle: {
                   fontSize: 11,
+                },
+
+                colorMap: {
+                  type: "ordinal",
+
+                  values: data.map(
+                    (item) => item.project
+                  ),
+
+                  colors: chartColors,
+
+                  unknownColor: "#4CAF50",
                 },
               },
             ]}
@@ -95,14 +104,11 @@ const TeamAllocationChart = ({
 
             series={[
               {
-                dataKey:
-                  "members",
+                dataKey: "members",
 
-                label:
-                  "Requests",
+                label: "Requests",
 
-                color:
-                  "#4CAF50",
+                color: "#4CAF50",
               },
             ]}
 
@@ -121,24 +127,18 @@ const TeamAllocationChart = ({
           />
 
         </Box>
-
       ) : (
-
-        <Box
-          className="chart-card__empty"
-        >
+        <Box className="chart-card__empty">
 
           <Typography>
             No leave requests yet
           </Typography>
 
         </Box>
-
       )}
 
     </Box>
   );
 };
-
 
 export default TeamAllocationChart;

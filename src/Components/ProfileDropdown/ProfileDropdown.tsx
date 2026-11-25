@@ -52,10 +52,10 @@ const getRole = (
 ): string => {
   switch (Number(userType)) {
     case 1:
-      return "HR";
+      return "Admin";
 
     case 2:
-      return "Admin";
+      return "HR";
 
     case 3:
       return "Employee";

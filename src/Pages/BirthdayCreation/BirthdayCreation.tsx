@@ -9,11 +9,10 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogTitle,
   IconButton,
+  InputAdornment,
   Paper,
   Snackbar,
-  Stack,
   Table,
   TableBody,
   TableCell,
@@ -29,6 +28,12 @@ import {
   Edit,
   Delete,
   CakeOutlined,
+  Close,
+  PersonOutlined,
+  BadgeOutlined,
+  CalendarTodayOutlined,
+  Refresh,
+  SendOutlined,
 } from "@mui/icons-material";
 
 import {
@@ -422,105 +427,56 @@ export default function BirthdayCreation() {
         open={open}
         onClose={() => !saving && setOpen(false)}
         fullWidth
-        maxWidth="sm"
+        maxWidth="md"
+        className="birthday-create-dialog"
+        aria-labelledby="birthday-dialog-title"
       >
-
-        <DialogTitle>
-          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-            <CakeOutlined sx={{ color: "#016637" }} />
-
-            <Typography
-                 variant="h6"
-                 sx={{ fontWeight: 600 }}
-            >
-            {editingId ? "Edit Birthday" : "Create Birthday"}
+        <Box className="birthday-modal-layout">
+          <Box className="birthday-art-panel">
+            <span className="birthday-art-script">{editingId ? "Edit" : "Add"}</span>
+            <Typography className="birthday-art-heading">Birthday</Typography>
+            <Typography className="birthday-art-description">
+              Celebrate the people who make our team special.
             </Typography>
-          </Stack>
-        </DialogTitle>
-
-        <DialogContent>
-
-          <Stack spacing={3} sx={{ mt: 1 }}>
-
-            <TextField
-              label="Employee Name"
-              placeholder="Enter employee name"
-              fullWidth
-              required
-              value={form.employeeName}
-              onChange={(e) =>
-                handleChange("employeeName", e.target.value)
-              }
-            />
-
-            <TextField
-              label="Employee ID"
-              placeholder="Enter employee ID"
-              fullWidth
-              required
-              value={form.employeeId}
-              onChange={(e) =>
-                handleChange("employeeId", e.target.value)
-              }
-            />
-
-            <TextField
-              label="Date of Birth"
-              type="date"
-              fullWidth
-              required
-              value={form.dob}
-              onChange={(e) =>
-                handleChange("dob", e.target.value)
-              }
-              slotProps={{
-                inputLabel: {
-                  shrink: true,
-                },
-                htmlInput: {
-                  max: getToday(),
-                },
-              }}
-            />
-
-            {error && (
-              <Alert severity="error">
-                {error}
-              </Alert>
-            )}
-
-          </Stack>
-
-        </DialogContent>
-
-        <DialogActions sx={{ p: 3 }}>
-
-          <Button
-            variant="outlined"
-            color="inherit"
-            onClick={handleClear}
-            disabled={saving}
-          >
-            Clear
-          </Button>
-
-          <Button
-            variant="contained"
-            className="birthday-save-btn"
-            onClick={handleSave}
-            disabled={saving}
-          >
-            {saving ? (
-              <CircularProgress size={22} color="inherit" />
-            ) : editingId ? (
-              "Update"
-            ) : (
-              "Save"
-            )}
-          </Button>
-
-        </DialogActions>
-
+            <span className="birthday-art-line" />
+            <img src="/birthday-art.png" alt="" className="birthday-art-image" />
+          </Box>
+          <Box component="form" className="birthday-modal-form"
+            onSubmit={(e) => { e.preventDefault(); if (!saving) void handleSave(); }}>
+            <IconButton className="birthday-close-btn" aria-label="Close"
+              onClick={() => setOpen(false)} disabled={saving}><Close /></IconButton>
+            <Box className="birthday-modal-heading">
+              <Box className="birthday-heading-icon"><CakeOutlined /></Box>
+              <Box>
+                <Typography id="birthday-dialog-title" component="h2" className="birthday-modal-title">
+                  {editingId ? "Edit Birthday" : "Create Birthday"}
+                </Typography>
+                <Typography className="birthday-modal-subtitle">Add an employee’s birthday details.</Typography>
+              </Box>
+            </Box>
+            <Box className="birthday-form-fields">
+              <TextField label="Employee Name" fullWidth required disabled={saving}
+                value={form.employeeName} onChange={(e) => handleChange("employeeName", e.target.value)}
+                slotProps={{ input: { startAdornment: <InputAdornment position="start"><PersonOutlined /></InputAdornment> } }} />
+              <TextField label="Employee ID" fullWidth required disabled={saving}
+                value={form.employeeId} onChange={(e) => handleChange("employeeId", e.target.value)}
+                slotProps={{ input: { startAdornment: <InputAdornment position="start"><BadgeOutlined /></InputAdornment> } }} />
+              <TextField label="Date of Birth" type="date" fullWidth required disabled={saving}
+                value={form.dob} onChange={(e) => handleChange("dob", e.target.value)}
+                slotProps={{ inputLabel: { shrink: true }, htmlInput: { max: getToday() },
+                  input: { startAdornment: <InputAdornment position="start"><CalendarTodayOutlined /></InputAdornment> } }} />
+              {error && <Alert severity="error">{error}</Alert>}
+            </Box>
+            <Box className="birthday-modal-actions">
+              <Button type="button" variant="outlined" className="birthday-clear-btn" startIcon={<Refresh />}
+                onClick={handleClear} disabled={saving}>Clear</Button>
+              <Button type="submit" variant="contained" className="birthday-save-btn" disabled={saving}
+                startIcon={!saving ? <SendOutlined /> : undefined}>
+                {saving ? <CircularProgress size={20} color="inherit" /> : editingId ? "Update" : "Save"}
+              </Button>
+            </Box>
+          </Box>
+        </Box>
       </Dialog>
 
       {/* DELETE CONFIRMATION POPUP */}
