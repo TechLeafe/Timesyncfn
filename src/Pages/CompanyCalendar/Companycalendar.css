@@ -1399,3 +1399,15 @@
   color: #ffffff !important;
   stroke: #ffffff !important;
 }
+
+
+/* Hide scrollbar but keep calendar scrolling enabled */
+.company-calendar-page .cc-grid-scroll {
+  scrollbar-width: none;       /* Firefox */
+  -ms-overflow-style: none;    /* Older Edge */
+}
+
+.company-calendar-page .cc-grid-scroll::-webkit-scrollbar {
+  display: none;               /* Chrome, Safari, Edge */
+}
+
