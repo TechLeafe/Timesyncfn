@@ -521,7 +521,6 @@ const EmployeeDashboard = () => {
         setError("");
       }
 
-      
 try {
   // Start both independent API requests simultaneously.
   const [dashboardResult, historyResult] =
@@ -631,6 +630,7 @@ try {
       "Attendance history error:",
       historyResult.reason
     );
+  
 
     // Preserve dashboard-provided fallback values.
     workingHours = {
@@ -647,21 +647,32 @@ try {
     };
   }
 
-  if (!cancelled) {
-    hasLoadedData = true;
+  
+      if (!cancelled) {
+        hasLoadedData = true;
 
-    setData({
-      workingHours,
-      leaveBalance,
-      leaveRequestSummary,
-      todaysAttendance: attendance,
-    });
+        setData({
+          workingHours,
+          leaveBalance,
+          leaveRequestSummary,
+          todaysAttendance: attendance,
+        });
 
-    setError("");
-  }
-  finally {
-          requestInProgress = false;
+        setError("");
       }
+    } catch (err) {
+      console.error("Employee dashboard error:", err);
+
+      if (!cancelled) {
+        setError(
+          backgroundRefresh && hasLoadedData
+            ? "Dashboard refresh failed. Showing the last loaded data."
+            : getDashboardErrorMessage(err)
+        );
+      }
+    } finally {
+      requestInProgress = false;
+    }
 
     };
 
@@ -1206,7 +1217,7 @@ try {
 
           <div className="emp-panel-heading">
 
-            totalRequests === 0 ? (<div>
+             <div>
 
               <h3>Leave requests by status</h3>
 
