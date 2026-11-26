@@ -522,41 +522,7 @@ body,
    COMPANY CALENDAR - PAGE SCROLL CONTROL
    ========================================== */
 
-.app-main-content:has(.company-calendar-page) {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  height: 100dvh;
-  min-height: 0;
-  overflow: hidden;
-}
 
-.app-page-content:has(.company-calendar-page) {
-  display: flex;
-  flex: 1 1 0%;
-  flex-direction: column;
-  height: 0;
-  min-height: 0;
-  overflow: hidden;
-  box-sizing: border-box;
-}
-
-/* Prevent footer padding from reducing calendar height */
-.app-main-layout-birthday-footer
-  .app-page-content:has(.company-calendar-page) {
-  padding-bottom: 20px;
-}
-
-/* Let the calendar use the available page height */
-.app-page-content:has(.company-calendar-page)
-  .company-calendar-page {
-  display: flex;
-  flex: 1 1 0%;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
-}
 
 /* Remove extra bottom spacing */
 .app-main-layout {
@@ -574,32 +540,83 @@ body,
   margin-bottom: 0 !important;
 }
 
+
+/* ==========================================
+   COMPANY CALENDAR - LAYOUT CONTROL
+   Desktop: fixed viewport, internal date-grid scroll
+   Mobile: natural page scrolling
+   ========================================== */
+
+/* Desktop layout */
+@media (min-width: 900px) {
+  .app-main-content:has(.company-calendar-page) {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .app-page-content:has(.company-calendar-page) {
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    height: 0 !important;
+    min-height: 0 !important;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  .app-main-layout-birthday-footer
+    .app-page-content:has(.company-calendar-page) {
+    padding-bottom: 20px !important;
+  }
+
+  .app-page-content:has(.company-calendar-page)
+    .company-calendar-page {
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+}
+
+/* Mobile and smaller screens */
+@media (max-width: 899.98px) {
+  .app-main-content:has(.company-calendar-page) {
+    height: auto;
+    min-height: calc(100dvh - var(--layout-header-height));
+    overflow: visible;
+  }
+
+  .app-page-content:has(.company-calendar-page) {
+    display: block;
+    flex: 0 0 auto;
+    height: auto !important;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .app-page-content:has(.company-calendar-page)
+    .company-calendar-page {
+    flex: 0 0 auto;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+}
+
+
 /* Dashboard last section */
 .app-page-content > :last-child {
   margin-bottom: 0 !important;
 }
 
 /* Company Calendar uses the document/page scroll so every week stays reachable. */
-.app-main-content:has(.company-calendar-page) {
-  height: auto;
-  min-height: calc(100dvh - var(--layout-header-height));
-  overflow: visible;
-}
 
-.app-page-content:has(.company-calendar-page) {
-  flex: 0 0 auto;
-  height: auto;
-  min-height: 0;
-  overflow: visible;
-}
-
-.app-page-content:has(.company-calendar-page)
-  .company-calendar-page {
-  flex: 0 0 auto;
-  height: auto;
-  min-height: 0;
-  overflow: visible;
-}
 
 
 /* ==========================================
