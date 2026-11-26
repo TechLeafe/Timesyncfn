@@ -4,7 +4,6 @@ import {
   Alert,
   Box,
   Button,
-  CircularProgress,
 } from "@mui/material";
 
 import TaskAltRoundedIcon from "@mui/icons-material/TaskAltRounded";
@@ -572,13 +571,9 @@ const [hrName] = useState(getHRName);
           <Box
             sx={{
               width: "100%",
-              display: "flex",
-              justifyContent: "center",
-              padding: 4,
+               minHeight: 80
             }}
-          >
-            <CircularProgress size={28} sx={{ color: "#087b4d" }} />
-          </Box>
+          />
         ) : STATS.length > 0 ? (
           STATS.map((stat) => (
             <HRStatCard key={stat.label} {...stat} />
@@ -612,9 +607,7 @@ const [hrName] = useState(getHRName);
             </Box>
           </>
         ) : isDashboardLoading ? (
-          <Box sx={{ display: "flex", alignItems: "center", p: 4 }}>
-            <CircularProgress size={25} sx={{ color: "#087b4d" }} />
-          </Box>
+          <Box sx={{ minHeight: 80 }}/>
         ) : (
           <Alert severity="info">
             Charts are unavailable until dashboard data loads.
@@ -646,10 +639,7 @@ const [hrName] = useState(getHRName);
               {isAttendanceLoading ? (
                 <tr>
                   <td colSpan={6} className="admin-dashboard__empty-row">
-                    <CircularProgress
-                      size={20}
-                      sx={{ color: "#087b4d" }}
-                    />
+                       Loading attendance...
                   </td>
                 </tr>
               ) : !attendanceReady ? (
