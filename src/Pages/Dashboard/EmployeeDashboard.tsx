@@ -1279,7 +1279,7 @@ const EmployeeDashboard = () => {
 
           <div className="emp-panel-heading">
 
-            totalRequests === 0 ? (<div>
+             <div>
 
               <h3>Leave requests by status</h3>
 
