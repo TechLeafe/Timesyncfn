@@ -15,7 +15,6 @@ import {
   Tooltip,
 } from "@mui/material";
 
-import SpaceDashboardRoundedIcon from "@mui/icons-material/SpaceDashboardRounded";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
 import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlined";
@@ -28,6 +27,7 @@ import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import SupportAgentOutlinedIcon from "@mui/icons-material/SupportAgentOutlined";
 import CakeOutlinedIcon from "@mui/icons-material/CakeOutlined";
+import WidgetsOutlinedIcon from "@mui/icons-material/WidgetsOutlined";
 
 import { HR, ADMIN, EMPLOYEE } from "../../data/permissions";
 
@@ -58,19 +58,19 @@ interface NavItem {
 const navItems: NavItem[] = [
   {
     label: "Dashboard",
-    icon: <SpaceDashboardRoundedIcon />,
+    icon: <WidgetsOutlinedIcon />,
     path: "/hrdashboard",
     roles: [HR],
   },
   {
     label: "Dashboard",
-    icon: <SpaceDashboardRoundedIcon />,
+    icon: <WidgetsOutlinedIcon />,
     path: "/admindashboard",
     roles: [ADMIN],
   },
   {
     label: "Dashboard",
-    icon: <SpaceDashboardRoundedIcon />,
+    icon: <WidgetsOutlinedIcon />,
     path: "/employeedashboard",
     roles: [EMPLOYEE],
   },

@@ -96,7 +96,8 @@ type AttendanceCorrectionStatus =
   | "Present"
   | "Half-Day Present"
   | "Pending"
-  | "Late Present";
+  | "Late Present"
+  | "Present Late";
 
 const ATTENDANCE_CORRECTION_STATUSES: AttendanceCorrectionStatus[] = [
   "Absent",
@@ -104,6 +105,7 @@ const ATTENDANCE_CORRECTION_STATUSES: AttendanceCorrectionStatus[] = [
   "Half-Day Present",
   "Pending",
   "Late Present",
+  "Present Late",
 ];
 
 const getAllowedCorrectionStatuses = (
@@ -117,6 +119,7 @@ const getAllowedCorrectionStatuses = (
     case "Half-Day Present":
     case "Pending":
     case "Late Present":
+    case "Present Late":
       return ["Present"];
     default:
       return [];

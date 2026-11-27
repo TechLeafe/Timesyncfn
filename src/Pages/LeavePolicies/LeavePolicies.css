@@ -1018,3 +1018,30 @@
 .lp-side {
   border-radius: 20px 0 20px 20px !important;
 }
+/* Clean entitlement cards */
+.leave-policies__detail-stat-grid { grid-template-columns: repeat(4,minmax(0,1fr)); gap: 14px; }
+.leave-policies__stat.MuiCard-root {
+  --lp-accent:#079b59; --lp-soft:#e1f7e9; --lp-edge:#c7e9d5;
+  position:relative; isolation:isolate; overflow:hidden;
+  min-height:145px; padding:16px; box-sizing:border-box; border-radius:16px;
+  border:1px solid var(--lp-edge); color:var(--lp-accent);
+  background:radial-gradient(ellipse at bottom right,var(--lp-soft),transparent 70%),linear-gradient(135deg,#fff,var(--lp-soft));
+  box-shadow:0 5px 12px rgba(20,40,55,.07);
+}
+.leave-policies__stat--blue.MuiCard-root {--lp-accent:#1688e6;--lp-soft:#e4f2ff;--lp-edge:#c6dff7;}
+.leave-policies__stat--orange.MuiCard-root {--lp-accent:#ef910e;--lp-soft:#fff0df;--lp-edge:#f6dfbf;}
+.leave-policies__stat--purple.MuiCard-root {--lp-accent:#8c50e8;--lp-soft:#f1e8ff;--lp-edge:#e2d3f8;}
+.lp-stat-header {display:flex;align-items:center;gap:9px;position:relative;z-index:1;width:100%;}
+.leave-policies__stat .leave-policies__stat-icon {width:36px;height:36px;flex-shrink:0;margin:0;border-radius:10px;background:var(--lp-soft);color:var(--lp-accent);}
+.leave-policies__stat .leave-policies__stat-icon svg {font-size:23px;}
+.leave-policies__stat .leave-policies__stat-label.MuiTypography-root {color:#17263b;font-size:13px;font-weight:750;line-height:1.25;}
+.leave-policies__stat .leave-policies__stat-value.MuiTypography-root {position:relative;z-index:1;margin-top:14px;font-size:36px;line-height:1.05;font-weight:800;color:#17263b;}
+.leave-policies__stat .leave-policies__stat-unit.MuiTypography-root {position:relative;z-index:1;margin-top:5px;font-size:12px;color:#34465b;font-weight:600;}
+@media(max-width:1100px){.leave-policies__detail-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:480px){.leave-policies__detail-stat-grid{grid-template-columns:minmax(0,1fr);}.leave-policies__stat.MuiCard-root{min-height:135px;}}
+
+/* No decorative shapes on entitlement cards */
+.leave-policies__stat.MuiCard-root::before,
+.leave-policies__stat.MuiCard-root::after { content:none !important; display:none !important; }
+.leave-policies__stat .leave-policies__stat-value.MuiTypography-root { font-size:34px; }
+@media(max-width:600px){ .leave-policies__stat.MuiCard-root { min-height:135px; padding:12px; } .leave-policies__stat .leave-policies__stat-value.MuiTypography-root { font-size:28px; } }

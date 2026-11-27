@@ -230,21 +230,25 @@
 }
 
 .employee-leaves-page .apply-card-icon {
-  width: 47px;
-  height: 47px;
+  width: 64px;
+  height: 64px;
   flex-shrink: 0;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
-  border-radius: 12px;
-  background: #d5efdf;
+  background: #d3eddf;
   color: #087b4d;
+  border: none;
+  border-radius: 14px;
+  box-shadow: none;
+  box-sizing: border-box;
 }
 
 .employee-leaves-page .apply-card-icon svg {
-  font-size: 24px;
+  width: 32px;
+  height: 32px;
+  font-size: 32px;
+  color: #087b4d;
 }
 
 .employee-leaves-page .apply-card-title.MuiTypography-root {
@@ -1040,4 +1044,50 @@
   .employee-leaves-page .balance-card.MuiPaper-root:hover {
     transform: none;
   }
+}
+
+/* ==========================================
+   PREMIUM PASTEL LEAVE BALANCE CARDS
+========================================== */
+.employee-leaves-page .balance-grid > .balance-card:nth-child(1) {
+  --balance-bg: #E1F2F1;
+  --balance-color: #005B60;
+  --balance-edge: #B9DEDA;
+}
+.employee-leaves-page .balance-grid > .balance-card:nth-child(2) {
+  --balance-bg: #F8E8EC;
+  --balance-color: #963C50;
+  --balance-edge: #EBC8D2;
+}
+.employee-leaves-page .balance-grid > .balance-card:nth-child(3) {
+  --balance-bg: #E7ECF5;
+  --balance-color: #34476D;
+  --balance-edge: #CCD8ED;
+}
+.employee-leaves-page .balance-grid > .balance-card:nth-child(4) {
+  --balance-bg: #F5EBE0;
+  --balance-color: #92643D;
+  --balance-edge: #E9D5BD;
+}
+.employee-leaves-page .balance-card.MuiPaper-root {
+  background: linear-gradient(135deg, #ffffff, var(--balance-bg));
+  border: 1px solid var(--balance-edge);
+  border-radius: 16px;
+  box-shadow: 0 5px 12px rgba(20, 40, 55, 0.07);
+}
+.employee-leaves-page .balance-card.MuiPaper-root:hover {
+  border-color: var(--balance-edge);
+  box-shadow: 0 5px 12px rgba(20, 40, 55, 0.07);
+  transform: none;
+}
+.employee-leaves-page .balance-label.MuiTypography-root,
+.employee-leaves-page .balance-value.MuiTypography-root {
+  color: var(--balance-color, #075b3d);
+}
+.employee-leaves-page .balance-unit.MuiTypography-root {
+  color: #526176;
+}
+.employee-leaves-page .balance-icon {
+  background: rgba(255, 255, 255, 0.65);
+  color: var(--balance-color, #087b4d);
 }

@@ -5,9 +5,16 @@ import {
   stopGlobalLoading,
 } from "./globalLoader";
 
+// Use the local API during `vite` development, while keeping production on
+// the hosted API. VITE_API_BASE_URL can override either value when needed.
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.DEV
+    ? "http://localhost:5000/api/"
+    : "https://time-sync-backend-4452.onrender.com/api/");
+
 const axiosInstance = axios.create({
-   //baseURL: "http://localhost:5000/api/",
-   baseURL: "https://time-sync-backend-4452.onrender.com/api/",
+  baseURL: API_BASE_URL,
    headers: {
     "Content-Type": "application/json",  },/////q
   timeout: 10000,

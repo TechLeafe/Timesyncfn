@@ -43,24 +43,44 @@
 .daily-task-page select:focus-visible { outline: 3px solid #91dab2; outline-offset: 2px; }
 
 /* STATISTICS */
-.daily-task-summary { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 15px; }
+.daily-task-summary { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 14px; }
 .daily-task-summary-card {
-  min-width: 0; min-height: 125px; padding: 21px;
+  --summary-bg: #ECE3F7;
+  --summary-color: #65438C;
+  --summary-edge: #DCCCEB;
+  min-width: 0; min-height: 145px; padding: 16px;
   display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
-  background: #fff; border: 1px solid var(--task-border); border-radius: 15px;
-  box-shadow: 0 3px 16px rgba(17,39,64,.04);
+  background: radial-gradient(ellipse at bottom right, var(--summary-bg), transparent 70%), linear-gradient(135deg, #fff, var(--summary-bg));
+  border: 1px solid var(--summary-edge); border-radius: 16px;
+  box-shadow: 0 5px 12px rgba(20, 40, 55, 0.07);
 }
-.daily-task-summary-info { display: flex; flex-direction: column; gap: 15px; min-width: 0; }
-.daily-task-summary-label { color: #7b8d83; font-size: 12px; font-weight: 650; }
-.daily-task-summary-info strong { color: var(--task-dark); font-size: 29px; font-weight: 800; line-height: 1.1; }
+.daily-task-summary-info { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.daily-task-summary-label { color: var(--summary-color); font-size: 13px; font-weight: 750; line-height: 1.25; }
+.daily-task-summary-info strong { color: var(--summary-color); font-size: 34px; font-weight: 800; line-height: 1.05; }
 .daily-task-summary-card .daily-task-summary-dot {
   display: grid; place-items: center; flex-shrink: 0;
-  width: 44px; height: 44px; border-radius: 12px;
-  background: #e6f6ed; color: #087b4d;
+  width: 36px; height: 36px; border-radius: 10px;
+  background: rgba(255,255,255,.65); color: var(--summary-color);
 }
-.daily-task-summary-card--amber .daily-task-summary-dot { background: #fff3da; color: #c68b1f; }
-.daily-task-summary-card--blue .daily-task-summary-dot { background: #e9f4fd; color: #247fbd; }
-.daily-task-summary-card--purple .daily-task-summary-dot { background: #f1ebfa; color: #8060b6; }
+.daily-task-summary-dot svg { font-size: 23px; }
+/* Pending - Rosewood */
+.daily-task-summary-card--amber {
+  --summary-bg: #F9E3EB;
+  --summary-color: #A13E60;
+  --summary-edge: #F0CAD9;
+}
+/* In Progress - Ocean Teal */
+.daily-task-summary-card--blue {
+  --summary-bg: #DDF2F5;
+  --summary-color: #176E80;
+  --summary-edge: #BFDDE4;
+}
+/* Completed - Olive Green */
+.daily-task-summary-card--purple {
+  --summary-bg: #EAF1D6;
+  --summary-color: #65752B;
+  --summary-edge: #D5E2B9;
+}
 
 /* COMPLETION PROGRESS */
 .task-progress-card {
@@ -167,9 +187,9 @@
   .daily-task-heading p { font-size: 11.5px; }
   .daily-task-page .add-task-button { width: 100%; }
   .daily-task-summary { gap: 10px; }
-  .daily-task-summary-card { min-height: 108px; padding: 14px; }
-  .daily-task-summary-info strong { font-size: 24px; }
-  .daily-task-summary-card .daily-task-summary-dot { width: 35px; height: 35px; }
+  .daily-task-summary-card { min-height: 135px; padding: 12px; }
+  .daily-task-summary-info strong { font-size: 28px; }
+  .daily-task-summary-card .daily-task-summary-dot { width: 36px; height: 36px; }
   .task-progress-card { flex-direction: column; align-items: stretch; gap: 16px; padding: 16px; }
   .task-progress-meter { flex-basis: auto; width: 100%; }
   .daily-task-page .task-table-header { padding: 16px; }

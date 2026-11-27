@@ -1,0 +1,267 @@
+/* ==========================================
+   UPCOMING BIRTHDAY CARD
+========================================== */
+
+.upcoming-birthday-card {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e3e9ef;
+  border-radius: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* HEADER */
+
+.upcoming-birthday-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.upcoming-birthday-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.upcoming-birthday-heading h2 {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 700;
+  color: #142033;
+}
+
+.upcoming-birthday-heading p {
+  margin: 5px 0 0;
+  font-size: 13px;
+  color: #718096;
+}
+
+.upcoming-birthday-icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: #e5f5eb;
+  color: #016637;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upcoming-birthday-refresh {
+  border: none;
+  background: #f0f7f3;
+  color: #016637;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* BIRTHDAY BANNER */
+
+.upcoming-birthday-banner {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 12px 18px;
+  background: #f3faf5;
+  border: 1px solid #e3f1e7;
+  border-radius: 14px;
+}
+
+.upcoming-birthday-banner img {
+  width: 76px;
+  height: 76px;
+  object-fit: contain;
+}
+
+.upcoming-birthday-banner h3 {
+  margin: 0;
+  color: #016637;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.upcoming-birthday-banner p {
+  margin: 6px 0 0;
+  color: #718096;
+  font-size: 13px;
+}
+
+/* BIRTHDAY LIST */
+
+.upcoming-birthday-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 330px;
+  overflow-y: auto;
+}
+
+.upcoming-birthday-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 0;
+  border-bottom: 1px solid #edf0f4;
+}
+
+.upcoming-birthday-row:last-child {
+  border-bottom: none;
+}
+
+/* EMPLOYEE AVATAR */
+
+.upcoming-birthday-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.upcoming-birthday-avatar.avatar-0 {
+  background: #e0f3e7;
+  color: #016637;
+}
+
+.upcoming-birthday-avatar.avatar-1 {
+  background: #eee8fc;
+  color: #7545bd;
+}
+
+.upcoming-birthday-avatar.avatar-2 {
+  background: #fff0db;
+  color: #b87916;
+}
+
+/* EMPLOYEE DETAILS */
+
+.upcoming-birthday-person {
+  flex: 1;
+  min-width: 0;
+}
+
+.upcoming-birthday-person h4 {
+  margin: 0;
+  color: #172338;
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.upcoming-birthday-person p {
+  margin: 5px 0 0;
+  color: #8490a2;
+  font-size: 12px;
+}
+
+/* BIRTHDAY DATE */
+
+.upcoming-birthday-date {
+  min-width: 70px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  background: #eef8f1;
+  text-align: center;
+}
+
+.upcoming-birthday-date strong {
+  display: block;
+  color: #016637;
+  font-size: 13px;
+}
+
+.upcoming-birthday-date span {
+  display: block;
+  margin-top: 4px;
+  color: #718096;
+  font-size: 10px;
+}
+
+.upcoming-birthday-date.birthday-today {
+  background: #fff0d6;
+}
+
+.upcoming-birthday-date.birthday-today strong {
+  color: #b7791f;
+}
+
+.upcoming-birthday-gift {
+  color: #016637;
+  display: flex;
+  align-items: center;
+}
+
+/* VIEW ALL */
+
+.upcoming-birthday-view {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d9ece0;
+  border-radius: 10px;
+  background: #f5faf7;
+  color: #016637;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: auto;
+}
+
+/* LOADING AND ERROR */
+
+.upcoming-birthday-message {
+  padding: 20px 10px;
+  text-align: center;
+  font-size: 14px;
+  color: #718096;
+}
+
+.upcoming-birthday-retry {
+  border: none;
+  background: #016637;
+  color: #ffffff;
+  padding: 9px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 600px) {
+  .upcoming-birthday-card {
+    padding: 16px;
+  }
+
+  .upcoming-birthday-heading h2 {
+    font-size: 17px;
+  }
+
+  .upcoming-birthday-row {
+    gap: 8px;
+  }
+
+  .upcoming-birthday-gift {
+    display: none;
+  }
+
+  .upcoming-birthday-avatar {
+    width: 38px;
+    height: 38px;
+  }
+}

@@ -186,6 +186,7 @@ const isEmployeeLeavePolicy = (
 /* =========================================
    COMPONENT
 ========================================= */
+
 const LeavePolicies = () => {
   const userType = getUserType();
 
@@ -897,13 +898,10 @@ const LeavePolicies = () => {
               key={item.label}
               className={`leave-policies__stat leave-policies__stat--${item.tone}`}
             >
-              <Box className="leave-policies__stat-icon">
-                {item.icon}
+              <Box className="lp-stat-header">
+                <Box className="leave-policies__stat-icon">{item.icon}</Box>
+                <Typography className="leave-policies__stat-label">{item.label}</Typography>
               </Box>
-
-              <Typography className="leave-policies__stat-label">
-                {item.label}
-              </Typography>
 
               <Typography className="leave-policies__stat-value">
                 {item.value}

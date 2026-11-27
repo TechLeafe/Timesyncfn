@@ -19,9 +19,8 @@ export interface BirthdayPayload {
 // GET ALL BIRTHDAYS
 export const getAllBirthdays = async () => {
   const response = await axiosInstance.get(
-    "birthday-creation/list"
+    "birthday-creation"
   );
- console.log(response.data);
   return response.data;
 };
 
@@ -30,7 +29,7 @@ export const createBirthday = async (
   payload: BirthdayPayload
 ) => {
   const response = await axiosInstance.post(
-    "birthday-creation/create",
+    "birthday-creation",
     payload
   );
   return response.data;

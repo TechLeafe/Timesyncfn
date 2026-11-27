@@ -79,14 +79,41 @@
   gap: 16px;
 }
 
+/* Summary card palette — existing card order */
+.admin-leaves-permissions__stats > .admin-leaves-permissions__stat-card:nth-child(1) {
+  --alp-stat-color: #51469B;
+  --alp-stat-bg: #EAE7FA;
+  --alp-stat-edge: #d8cff0;
+}
+
+.admin-leaves-permissions__stats > .admin-leaves-permissions__stat-card:nth-child(2) {
+  --alp-stat-color: #008577;
+  --alp-stat-bg: #DDF5EE;
+  --alp-stat-edge: #bce5da;
+}
+
+.admin-leaves-permissions__stats > .admin-leaves-permissions__stat-card:nth-child(3) {
+  --alp-stat-color: #8B782C;
+  --alp-stat-bg: #F5F0D5;
+  --alp-stat-edge: #e5dcab;
+}
+
+.admin-leaves-permissions__stats > .admin-leaves-permissions__stat-card:nth-child(4) {
+  --alp-stat-color: #B55239;
+  --alp-stat-bg: #FBE6DF;
+  --alp-stat-edge: #f0cabc;
+}
+
 .admin-leaves-permissions__stat-card.MuiPaper-root {
   padding: 21px;
   min-height: 130px;
   min-width: 0;
-  background: #fff;
-  border: 1px solid var(--alp-border);
-  border-radius: 15px;
-  box-shadow: 0 3px 16px rgba(17,39,64,0.04);
+  background:
+    radial-gradient(ellipse at bottom right, var(--alp-stat-bg), transparent 70%),
+    linear-gradient(135deg, #ffffff, var(--alp-stat-bg));
+  border: 1px solid var(--alp-stat-edge);
+  border-radius: 16px;
+  box-shadow: 0 5px 12px rgba(20, 40, 55, 0.07);
 }
 
 .admin-leaves-permissions__stat-content {
@@ -103,39 +130,24 @@
   height: 43px;
   flex-shrink: 0;
   border-radius: 12px;
-  color: #087b4d;
-  background: #e8f7ee;
+  color: var(--alp-stat-color, #51469B);
+  background: rgba(255, 255, 255, 0.65);
 }
 
 .admin-leaves-permissions__stat-icon svg {
   font-size: 23px;
 }
 
-.admin-leaves-permissions__stat--blue .admin-leaves-permissions__stat-icon {
-  background: #eaf4fc;
-  color: #2878b5;
-}
-
-.admin-leaves-permissions__stat--amber .admin-leaves-permissions__stat-icon {
-  background: #fff4df;
-  color: #b47a20;
-}
-
-.admin-leaves-permissions__stat--red .admin-leaves-permissions__stat-icon {
-  background: #fff0ef;
-  color: #c44848;
-}
-
 .admin-leaves-permissions__stat-label.MuiTypography-root {
   font-size: 12px;
   line-height: 1.4;
   font-weight: 650;
-  color: #7b8d83;
+  color: var(--alp-stat-color, #51469B);
 }
 
 .admin-leaves-permissions__stat-value.MuiTypography-root {
   margin-top: 16px;
-  color: #075b3d;
+  color: var(--alp-stat-color, #51469B);
   font-size: 29px;
   font-weight: 800;
   line-height: 1.2;

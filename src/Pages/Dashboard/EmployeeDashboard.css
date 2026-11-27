@@ -1036,3 +1036,1341 @@
   width: 16px;
   height: 16px;
 }
+
+/* ===== UPCOMING BIRTHDAYS AND GRID ===== */
+/* Load after EmployeeDashboard.css */
+.emp-premium-dashboard .emp-dashboard-top {display:block; width:100%;}
+.emp-premium-dashboard .emp-dashboard-main {width:100%; min-width:0;}
+.emp-premium-dashboard .emp-chart-grid,
+.emp-premium-dashboard .emp-bottom-grid {display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px; align-items:stretch;}
+.emp-premium-dashboard .emp-bottom-grid {grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);}
+.emp-premium-dashboard .emp-bottom-grid > article {min-width:0; width:100%; box-sizing:border-box; grid-column:auto;}
+.emp-premium-dashboard .emp-birthday-panel {display:flex; flex-direction:row; align-items:center; gap:12px; padding:18px; background:#fff; border:1px solid #e7edf2; border-radius:16px;}
+.emp-birthday-art {flex:0 0 24%; min-width:0; align-self:stretch; display:flex; align-items:center;}
+.emp-birthday-art img {width:100%; height:auto; display:block;}
+.emp-birthday-content {flex:1; min-width:0;}
+.emp-birthday-header {display:flex; align-items:center; gap:8px; margin-bottom:16px;}
+.emp-birthday-title-icon {color:#078b45; flex-shrink:0;}
+.emp-birthday-heading {flex:1; min-width:0;}
+.emp-birthday-heading h3 {margin:0; font-size:16px; color:#101828; font-weight:700;}
+.emp-birthday-heading p {margin:4px 0 0; font-size:11px; color:#667085;}
+.emp-birthday-view {display:flex; align-items:center; gap:3px; white-space:nowrap; background:white; border:1px solid #e5eaf0; border-radius:8px; padding:7px; font-size:10px; color:#182334; cursor:pointer;}
+.emp-birthday-view svg {font-size:12px;}
+.emp-birthday-list {display:grid; gap:6px;}
+.emp-birthday-row {display:flex; align-items:center; gap:8px; border:1px solid #edf0f3; border-radius:10px; padding:10px;}
+.emp-birthday-avatar {width:34px; height:34px; flex-shrink:0; border-radius:50%; display:grid; place-items:center; font-size:12px; font-weight:700;}
+.emp-birthday-avatar-0 {background:#dceaff;color:#1769e8;}
+.emp-birthday-avatar-1 {background:#d8f4df;color:#078638;}
+.emp-birthday-avatar-2 {background:#e9dfff;color:#7835d5;}
+.emp-birthday-person {flex:1; min-width:0; display:flex; flex-direction:column; gap:3px;}
+.emp-birthday-person strong {font-size:12px;color:#101828;}
+.emp-birthday-person span {font-size:10px;color:#667085; overflow-wrap:anywhere;}
+.emp-birthday-date {display:flex;align-items:center;gap:5px;background:#e0f6e9;color:#08763e;border-radius:20px;padding:6px 8px;white-space:nowrap;font-size:10px;font-weight:600;}
+.emp-birthday-date svg {font-size:13px;}
+.emp-birthday-gift {color:#2563eb;flex-shrink:0;font-size:20px!important;}
+.emp-birthday-note {font-size:11px;color:#667085;}
+@media(max-width:1024px){.emp-premium-dashboard .emp-bottom-grid {grid-template-columns:minmax(0,1fr);}}
+@media(max-width:1024px){.emp-premium-dashboard .emp-chart-grid {grid-template-columns:minmax(0,1fr);}}
+@media(max-width:550px){.emp-premium-dashboard .emp-birthday-panel {flex-direction:column;}.emp-birthday-art {width:100px;align-self:center;}.emp-birthday-content {width:100%;}.emp-birthday-row {padding:7px;gap:5px;}}
+
+/* Compact reference layout */
+.emp-premium-dashboard .emp-leave-chart,
+.emp-premium-dashboard .emp-request-overview { min-height: 220px; }
+.emp-premium-dashboard .emp-birthday-art img { max-width: 180px; margin: auto; }
+@media (min-width:1025px) and (max-width:1400px) {
+  .emp-premium-dashboard .emp-birthday-art { flex-basis: 19%; }
+  .emp-premium-dashboard .emp-birthday-panel { padding: 12px; gap: 8px; }
+  .emp-birthday-header { flex-wrap: wrap; }
+  .emp-birthday-row { flex-wrap: wrap; }
+}
+
+/* Birthday illustration alignment */
+.emp-premium-dashboard .emp-birthday-art { justify-content:center; align-items:center; min-width:0; }
+.emp-premium-dashboard .emp-birthday-art img { display:block; width:100%; max-width:180px; height:auto; object-fit:contain; opacity:1; visibility:visible; }
+@media(max-width:550px) { .emp-premium-dashboard .emp-birthday-art { flex:0 0 auto; width:110px; } }
+
+/* Birthday layout correction */
+.emp-premium-dashboard .emp-birthday-panel {display:grid;grid-template-columns:minmax(100px,25%) minmax(0,1fr);align-items:start;gap:16px;padding:24px;border-radius:24px;box-sizing:border-box;}
+.emp-premium-dashboard .emp-birthday-art {display:flex;align-items:center;justify-content:center;align-self:center;width:100%;min-width:0;}
+.emp-premium-dashboard .emp-birthday-art img {display:block;width:100%;max-width:200px;height:auto;object-fit:contain;}
+.emp-premium-dashboard .emp-birthday-content {width:100%;min-width:0;align-self:start;}
+.emp-premium-dashboard .emp-birthday-header {display:flex;align-items:center;gap:10px;margin-bottom:24px;}
+.emp-premium-dashboard .emp-birthday-heading h3 {margin:0;font-size:20px;font-weight:700;color:#101828;}
+.emp-premium-dashboard .emp-birthday-heading p {margin:5px 0 0;font-size:13px;color:#667085;}
+.emp-premium-dashboard .emp-birthday-list {display:flex;flex-direction:column;gap:12px;}
+.emp-premium-dashboard .emp-birthday-row {display:flex;align-items:center;flex-wrap:nowrap;gap:10px;min-height:72px;padding:12px;border:1px solid #e7edf2;border-radius:12px;box-sizing:border-box;}
+.emp-premium-dashboard .emp-birthday-avatar {width:40px;height:40px;flex-shrink:0;}
+.emp-premium-dashboard .emp-birthday-person {flex:1;min-width:0;}
+.emp-premium-dashboard .emp-birthday-person strong {font-size:14px;}
+.emp-premium-dashboard .emp-birthday-person span {font-size:12px;}
+.emp-premium-dashboard .emp-birthday-date {padding:7px 10px;font-size:12px;white-space:nowrap;}
+.emp-premium-dashboard .emp-birthday-gift {font-size:24px!important;flex-shrink:0;}
+@media(max-width:600px){.emp-premium-dashboard .emp-birthday-panel{grid-template-columns:minmax(0,1fr);padding:16px;}.emp-premium-dashboard .emp-birthday-art img{max-width:140px;}.emp-premium-dashboard .emp-birthday-row{flex-wrap:wrap;}}
+
+.emp-premium-dashboard .emp-birthday-list { max-height: 340px; overflow-y: auto; }
+
+/* Final birthday layout and pagination */
+.emp-premium-dashboard .emp-bottom-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  width: 100%;
+  min-width: 0;
+  gap: 24px;
+  align-items: stretch;
+}
+.emp-premium-dashboard .emp-bottom-grid > * {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.emp-premium-dashboard .emp-birthday-panel {display:grid;grid-template-columns:minmax(0,24%) minmax(0,1fr);align-items:start;align-content:start;justify-content:normal;gap:14px;padding:28px 20px;min-width:0;}
+.emp-premium-dashboard .emp-birthday-content {align-self:start;margin:0;min-width:0;}
+.emp-premium-dashboard .emp-birthday-art {align-self:center;width:100%;margin:0;}
+.emp-premium-dashboard .emp-birthday-art img {width:100%;max-width:220px;height:auto;object-fit:contain;}
+.emp-premium-dashboard .emp-birthday-header {margin:0 0 20px;flex-wrap:wrap;gap:8px;}
+.emp-premium-dashboard .emp-birthday-list {max-height:none;overflow:visible;}
+.emp-premium-dashboard .emp-birthday-row {min-height:76px;gap:8px;padding:10px;}
+.emp-premium-dashboard .emp-birthday-person strong {overflow-wrap:anywhere;}
+.emp-premium-dashboard .emp-birthday-pagination {display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid #e8edf2;flex-wrap:wrap;}
+.emp-premium-dashboard .emp-birthday-page-btn {display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border:1px solid #d5e7dc;border-radius:8px;background:#fff;color:#016637;font:inherit;font-size:12px;font-weight:600;cursor:pointer;}
+.emp-premium-dashboard .emp-birthday-page-btn:disabled {background:#f5f7f9;color:#98a2b3;border-color:#e5e7eb;cursor:not-allowed;}
+.emp-premium-dashboard .emp-birthday-page-count {font-size:12px;color:#667085;white-space:nowrap;}
+@media(max-width:1200px){.emp-premium-dashboard .emp-bottom-grid {grid-template-columns:minmax(0,1fr);}}
+@media(max-width:600px){.emp-premium-dashboard .emp-birthday-panel {grid-template-columns:minmax(0,1fr);padding:16px;}.emp-premium-dashboard .emp-birthday-art img {max-width:140px;}.emp-premium-dashboard .emp-birthday-row {flex-wrap:wrap;}}
+
+/* Final responsive card widths */
+@media (max-width: 1200px) {
+  .emp-premium-dashboard .emp-bottom-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+}
+@media (max-width: 600px) {
+  .emp-premium-dashboard .emp-bottom-grid { gap: 16px; }
+}
+/* ==========================================
+   UPCOMING BIRTHDAY FONT SIZE REDUCTION
+========================================== */
+
+/* HEADING */
+
+.emp-premium-dashboard .emp-birthday-heading h3 {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0;
+}
+
+/* SUBTITLE */
+
+.emp-premium-dashboard .emp-birthday-heading p {
+  font-size: 12px;
+  line-height: 1.4;
+  margin-top: 4px;
+}
+
+/* HEADER ICON */
+
+.emp-premium-dashboard .emp-birthday-title-icon {
+  font-size: 24px !important;
+}
+
+/* VIEW ALL BUTTON */
+
+.emp-premium-dashboard .emp-birthday-view {
+  font-size: 11px;
+  padding: 7px 10px;
+  gap: 5px;
+}
+
+/* EMPLOYEE FRAME */
+
+.emp-premium-dashboard .emp-birthday-row {
+  min-height: 65px;
+  padding: 10px;
+  gap: 8px;
+  border-radius: 12px;
+}
+
+/* EMPLOYEE AVATAR */
+
+.emp-premium-dashboard .emp-birthday-avatar {
+  width: 36px;
+  height: 36px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+/* EMPLOYEE NAME */
+
+.emp-premium-dashboard .emp-birthday-person {
+  flex: 1;
+  min-width: 0;
+  gap: 4px;
+}
+
+.emp-premium-dashboard .emp-birthday-person strong {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* EMPLOYEE ID */
+
+.emp-premium-dashboard .emp-birthday-person span {
+  font-size: 11px;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* BIRTHDAY DATE */
+
+.emp-premium-dashboard .emp-birthday-date {
+  font-size: 11px;
+  min-width: auto;
+  padding: 6px 8px;
+  gap: 4px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.emp-premium-dashboard .emp-birthday-date svg {
+  font-size: 14px;
+}
+
+/* GIFT ICON */
+
+.emp-premium-dashboard .emp-birthday-gift svg {
+  font-size: 21px;
+}
+
+/* CAKE IMAGE AREA */
+
+.emp-premium-dashboard .emp-birthday-art {
+  flex: 0 0 22%;
+}
+
+/* BIRTHDAY CONTENT */
+
+.emp-premium-dashboard .emp-birthday-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* PAGINATION */
+
+.emp-premium-dashboard .emp-birthday-page-btn {
+  font-size: 11px;
+  height: 32px;
+}
+
+.emp-premium-dashboard .emp-birthday-page-count {
+  font-size: 11px;
+}
+/* ==========================================
+   INCREASE BIRTHDAY CAKE IMAGE SIZE
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-art {
+  flex: 0 0 25%;
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: visible;
+}
+
+.emp-premium-dashboard .emp-birthday-art img {
+  width: 100%;
+  height: 280px;
+  max-width: none;
+  object-fit: contain;
+
+  transform: scale(1.6);
+  transform-origin: center;
+}
+/* ==========================================
+   BIRTHDAY CAKE - TOP LEFT CORNER
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-panel {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  padding: 20px 16px;
+  gap: 10px;
+}
+
+/* CAKE IMAGE POSITION */
+
+.emp-premium-dashboard .emp-birthday-art {
+  position: absolute;
+  top: 8px;
+  left: 4px;
+
+  width: 23%;
+  margin: 0;
+  padding: 0;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+
+  transform: none;
+  pointer-events: none;
+}
+
+/* CAKE IMAGE SIZE */
+
+.emp-premium-dashboard .emp-birthday-art img {
+  display: block;
+  width: 100%;
+  height: 220px;
+  max-width: none;
+
+  object-fit: contain;
+  object-position: left top;
+
+  transform: scale(1.2);
+  transform-origin: top left;
+}
+
+/* BIRTHDAY CONTENT ALIGNMENT */
+
+.emp-premium-dashboard .emp-birthday-content {
+  width: 74%;
+  flex: none;
+  min-width: 0;
+  margin-left: auto;
+  margin-top: 0;
+}
+
+/* FULL CONTENT WIDTH */
+
+.emp-premium-dashboard .emp-birthday-list,
+.emp-premium-dashboard .emp-birthday-pagination {
+  width: 100%;
+  margin-left: 0;
+}
+
+/* SINGLE LINE HEADING */
+
+.emp-premium-dashboard .emp-birthday-heading h3 {
+  font-size: 15px !important;
+  white-space: nowrap !important;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+/* HEADER ALIGNMENT */
+
+.emp-premium-dashboard .emp-birthday-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 0;
+}
+
+/* REMOVE SMALL CAKE ICON */
+
+.emp-premium-dashboard .emp-birthday-title-icon {
+  display: none !important;
+}
+
+/* MOBILE RESPONSIVE */
+
+@media (max-width: 600px) {
+  .emp-premium-dashboard .emp-birthday-art img {
+    height: 160px;
+    transform: scale(1);
+  }
+
+  .emp-premium-dashboard .emp-birthday-heading h3 {
+    font-size: 13px !important;
+  }
+}
+/* ==========================================
+   BIRTHDAY HEADER - EQUAL ALIGNMENT
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-panel {
+  position: relative;
+  display: grid;
+
+  grid-template-columns: 65px minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+
+  align-items: center;
+  column-gap: 12px;
+
+  width: 100%;
+  min-width: 0;
+  padding: 20px;
+
+  box-sizing: border-box;
+  container-type: inline-size;
+}
+
+/* ==========================================
+   CAKE IMAGE - LEFT CORNER
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-art {
+  position: static !important;
+
+  grid-column: 1;
+  grid-row: 1;
+
+  width: 65px;
+  height: 90px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 0;
+  padding: 0;
+  transform: none !important;
+}
+
+.emp-premium-dashboard .emp-birthday-art img {
+  display: block;
+
+  width: 100%;
+  height: 90px;
+  max-width: 100%;
+
+  object-fit: contain;
+  object-position: center;
+
+  transform: none !important;
+}
+
+/* ==========================================
+   BIRTHDAY CONTENT
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-content {
+  display: contents;
+}
+
+/* ==========================================
+   HEADER - HORIZONTAL ALIGNMENT
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-header {
+  position: static !important;
+
+  grid-column: 2;
+  grid-row: 1;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+
+  align-items: center;
+  gap: 10px;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 90px;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  box-sizing: border-box;
+}
+
+/* ==========================================
+   UPCOMING BIRTHDAYS - CENTER
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-heading {
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  min-width: 0;
+  text-align: center;
+  gap: 5px;
+}
+
+.emp-premium-dashboard .emp-birthday-heading h3 {
+  font-size: 15px !important;
+  font-weight: 700;
+  line-height: 1.4;
+
+  white-space: nowrap !important;
+
+  margin: 0;
+  color: #101828;
+}
+
+/* SUBTITLE */
+
+.emp-premium-dashboard .emp-birthday-heading p {
+  font-size: 11px !important;
+  font-weight: 400;
+  line-height: 1.5;
+
+  text-align: center;
+  margin: 0;
+
+  color: #8495aa;
+}
+
+/* REMOVE SMALL CAKE ICON */
+
+.emp-premium-dashboard .emp-birthday-title-icon {
+  display: none !important;
+}
+
+/* ==========================================
+   VIEW ALL - RIGHT CORNER
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-view {
+  position: static !important;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  justify-self: end;
+  align-self: center;
+
+  width: auto;
+  min-width: 70px;
+  height: 34px;
+
+  padding: 7px 10px;
+  margin: 0 !important;
+  gap: 5px;
+
+  font-size: 11px !important;
+  font-weight: 500;
+  white-space: nowrap;
+
+  color: #101828;
+  background: #ffffff;
+
+  border: 1px solid #dfe6ed;
+  border-radius: 9px;
+
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.emp-premium-dashboard .emp-birthday-view svg {
+  font-size: 14px !important;
+}
+
+.emp-premium-dashboard .emp-birthday-view:hover {
+  background: #f4faf6;
+  color: #016637;
+  border-color: #b8d8c5;
+}
+
+.emp-premium-dashboard .emp-birthday-view:focus-visible {
+  outline: 2px solid #016637;
+  outline-offset: 2px;
+}
+
+/* ==========================================
+   EMPLOYEE LIST - FULL WIDTH
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-list {
+  grid-column: 1 / -1;
+  grid-row: 2;
+
+  align-self: start;
+
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+
+  margin: 18px 0 0;
+}
+
+.emp-premium-dashboard .emp-birthday-row {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* ==========================================
+   PAGINATION - FULL WIDTH
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-pagination {
+  grid-column: 1 / -1;
+  grid-row: 3;
+
+  width: 100%;
+  margin: 18px 0 0;
+}
+
+/* ==========================================
+   RESPONSIVE HEADER
+========================================== */
+
+@container (max-width: 380px) {
+
+  .emp-premium-dashboard .emp-birthday-header {
+    gap: 6px;
+    padding: 0 !important;
+  }
+
+  .emp-premium-dashboard .emp-birthday-heading h3 {
+    font-size: 12px !important;
+  }
+
+  .emp-premium-dashboard .emp-birthday-heading p {
+    font-size: 10px !important;
+  }
+
+  .emp-premium-dashboard .emp-birthday-view {
+    min-width: 55px;
+    padding: 6px;
+    font-size: 10px !important;
+  }
+}
+/* ==========================================
+   BIRTHDAY HEADER FONT SIZE INCREASE
+========================================== */
+
+/* UPCOMING BIRTHDAYS HEADING */
+
+.emp-premium-dashboard .emp-birthday-heading h3 {
+  font-size: 22px !important;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap !important;
+  margin: 0;
+}
+
+/* BIRTHDAY SUBTITLE */
+
+.emp-premium-dashboard .emp-birthday-heading p {
+  font-size: 13px !important;
+  font-weight: 400;
+  line-height: 1.5;
+  margin: 5px 0 0;
+  color: #8495aa;
+}
+
+/* RESPONSIVE FONT SIZE */
+
+@container (max-width: 420px) {
+
+  .emp-premium-dashboard .emp-birthday-heading h3 {
+    font-size: 16px !important;
+  }
+
+  .emp-premium-dashboard .emp-birthday-heading p {
+    font-size: 12px !important;
+  }
+}
+/* ==========================================
+   RECENT ATTENDANCE AND BIRTHDAY CARD WIDTH
+========================================== */
+
+.emp-premium-dashboard .emp-bottom-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  width: 100%;
+  min-width: 0;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.emp-premium-dashboard .emp-bottom-grid > * {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* ==========================================
+   UPCOMING BIRTHDAY MAIN CARD
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-panel {
+  position: relative;
+  display: grid;
+
+  grid-template-columns: 85px minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
+
+  align-items: center;
+  column-gap: 4px !important;
+
+  width: 100%;
+  min-width: 0;
+  padding: 20px;
+
+  background: #ffffff;
+  border: 1px solid #e3e9ef;
+  border-radius: 24px;
+
+  box-sizing: border-box;
+  container-type: inline-size;
+}
+
+/* ==========================================
+   CAKE IMAGE - LEFT CORNER
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-art {
+  position: static !important;
+
+  grid-column: 1;
+  grid-row: 1;
+
+  width: 85px;
+  height: 100px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 0;
+  padding: 0;
+
+  transform: none !important;
+  pointer-events: none;
+}
+
+/* CAKE IMAGE SIZE */
+
+.emp-premium-dashboard .emp-birthday-art img {
+  display: block;
+
+  width: 100%;
+  height: 100px;
+  max-width: none;
+
+  object-fit: contain;
+  object-position: center;
+
+  transform: scale(1.1) !important;
+  transform-origin: center;
+}
+
+/* ==========================================
+   REMOVE SMALL CAKE ICON
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-title-icon {
+  display: none !important;
+}
+
+/* ==========================================
+   BIRTHDAY CONTENT
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-content {
+  display: contents;
+}
+
+/* ==========================================
+   BIRTHDAY HEADER ALIGNMENT
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-header {
+  position: static !important;
+
+  grid-column: 2;
+  grid-row: 1;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+
+  align-items: center;
+  gap: 8px;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 100px;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  box-sizing: border-box;
+}
+
+/* ==========================================
+   UPCOMING BIRTHDAYS HEADING
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-heading {
+  display: flex;
+  flex-direction: column;
+
+  align-items: flex-start;
+  justify-content: center;
+
+  min-width: 0;
+
+  margin: 0;
+  padding: 0;
+
+  text-align: left;
+  gap: 4px;
+}
+
+/* HEADING FONT SIZE */
+
+.emp-premium-dashboard .emp-birthday-heading h3 {
+  font-size: 17px !important;
+  font-weight: 700;
+  line-height: 1.4;
+
+  white-space: nowrap !important;
+  word-break: normal;
+  overflow-wrap: normal;
+
+  text-align: left;
+  color: #101828;
+
+  margin: 0;
+}
+
+/* SUBTITLE */
+
+.emp-premium-dashboard .emp-birthday-heading p {
+  font-size: 12px !important;
+  font-weight: 400;
+  line-height: 1.5;
+
+  text-align: left;
+  color: #8495aa;
+
+  margin: 4px 0 0;
+}
+
+/* ==========================================
+   VIEW ALL / SHOW LESS - RIGHT CORNER
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-view {
+  position: static !important;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  justify-self: end;
+  align-self: center;
+
+  width: auto;
+  min-width: 70px;
+  height: 34px;
+
+  padding: 7px 10px;
+  margin: 0 !important;
+  gap: 5px;
+
+  font-size: 11px !important;
+  font-weight: 500;
+  white-space: nowrap;
+
+  color: #101828;
+  background: #ffffff;
+
+  border: 1px solid #dfe6ed;
+  border-radius: 9px;
+
+  box-sizing: border-box;
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.emp-premium-dashboard .emp-birthday-view svg {
+  font-size: 14px !important;
+}
+
+.emp-premium-dashboard .emp-birthday-view:hover {
+  background: #f4faf6;
+  color: #016637;
+  border-color: #b8d8c5;
+}
+
+.emp-premium-dashboard .emp-birthday-view:focus-visible {
+  outline: 2px solid #016637;
+  outline-offset: 2px;
+}
+
+/* ==========================================
+   BIRTHDAY LIST - FULL WIDTH
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-list {
+  grid-column: 1 / -1;
+  grid-row: 2;
+
+  display: flex;
+  flex-direction: column;
+
+  align-self: start;
+
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+
+  margin: 16px 0 0;
+  gap: 12px;
+}
+
+/* ==========================================
+   EMPLOYEE BIRTHDAY FRAME
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-row {
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+
+  min-height: 72px;
+  height: auto;
+
+  padding: 12px;
+  gap: 10px;
+
+  box-sizing: border-box;
+
+  background: #ffffff;
+  border: 1px solid #e3e9ef;
+  border-radius: 14px;
+
+  transition: background 0.2s ease,
+              border-color 0.2s ease;
+}
+
+.emp-premium-dashboard .emp-birthday-row:hover {
+  background: #f8fcf9;
+  border-color: #cce6d6;
+}
+
+/* ==========================================
+   EMPLOYEE AVATAR
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-avatar {
+  width: 38px;
+  height: 38px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  font-size: 13px !important;
+  font-weight: 700;
+}
+
+/* AVATAR COLORS */
+
+.emp-birthday-avatar-0 {
+  background: #dceaff;
+  color: #1769e8;
+}
+
+.emp-birthday-avatar-1 {
+  background: #d8f4df;
+  color: #078638;
+}
+
+.emp-birthday-avatar-2 {
+  background: #e9dfff;
+  color: #7835d5;
+}
+
+/* ==========================================
+   EMPLOYEE NAME AND ID
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-person {
+  flex: 1 1 0;
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* FULL EMPLOYEE NAME */
+
+.emp-premium-dashboard .emp-birthday-person strong {
+  display: block;
+
+  font-size: 13px !important;
+  font-weight: 600;
+  line-height: 1.4;
+
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+
+  word-break: normal;
+  overflow-wrap: anywhere;
+
+  color: #101828;
+}
+
+/* FULL EMPLOYEE ID */
+
+.emp-premium-dashboard .emp-birthday-person span {
+  display: block;
+
+  font-size: 11px !important;
+  line-height: 1.4;
+
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+
+  overflow-wrap: anywhere;
+
+  color: #667085;
+}
+
+/* ==========================================
+   BIRTHDAY DATE BADGE
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-date {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+  min-width: 0;
+
+  padding: 7px 9px;
+  gap: 5px;
+
+  font-size: 11px !important;
+  font-weight: 600;
+  white-space: nowrap;
+
+  background: #e0f6e9;
+  color: #08763e;
+  border-radius: 24px;
+}
+
+.emp-premium-dashboard .emp-birthday-date svg {
+  font-size: 15px !important;
+}
+
+/* ==========================================
+   GIFT ICON
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-gift {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+  color: #2563eb;
+}
+
+.emp-premium-dashboard .emp-birthday-gift svg {
+  font-size: 22px !important;
+}
+
+/* ==========================================
+   PAGINATION - BACK AND NEXT
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-pagination {
+  grid-column: 1 / -1;
+  grid-row: 3;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  width: 100%;
+
+  margin: 18px 0 0;
+  padding-top: 14px;
+  gap: 10px;
+
+  box-sizing: border-box;
+  border-top: 1px solid #e3e9ef;
+}
+
+/* PAGINATION BUTTONS */
+
+.emp-premium-dashboard .emp-birthday-page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 70px;
+  height: 34px;
+
+  padding: 7px 10px;
+  gap: 5px;
+
+  font-size: 11px !important;
+  font-weight: 600;
+
+  color: #016637;
+  background: #ffffff;
+
+  border: 1px solid #d5e7dc;
+  border-radius: 9px;
+
+  cursor: pointer;
+}
+
+.emp-premium-dashboard .emp-birthday-page-btn:hover:not(:disabled) {
+  background: #e8f5ed;
+}
+
+.emp-premium-dashboard .emp-birthday-page-btn:disabled {
+  background: #f3f5f7;
+  border-color: #e5e7eb;
+  color: #98a2b3;
+  cursor: not-allowed;
+}
+
+/* PAGE COUNT */
+
+.emp-premium-dashboard .emp-birthday-page-count {
+  font-size: 11px !important;
+  font-weight: 500;
+  color: #667085;
+  white-space: nowrap;
+}
+
+/* ==========================================
+   NARROW CARD RESPONSIVE
+========================================== */
+
+@container (max-width: 420px) {
+
+  .emp-premium-dashboard .emp-birthday-art {
+    width: 65px;
+    height: 90px;
+  }
+
+  .emp-premium-dashboard .emp-birthday-art img {
+    height: 90px;
+    transform: none !important;
+  }
+
+  .emp-premium-dashboard .emp-birthday-header {
+    gap: 5px;
+    min-height: 90px;
+    margin-left: -12px !important;
+    width: calc(100% + 12px);
+  }
+
+  .emp-premium-dashboard .emp-birthday-heading h3 {
+    font-size: 14px !important;
+  }
+
+  .emp-premium-dashboard .emp-birthday-heading p {
+    font-size: 10px !important;
+  }
+
+  .emp-premium-dashboard .emp-birthday-view {
+    min-width: 55px;
+    padding: 6px;
+    font-size: 10px !important;
+  }
+
+  .emp-premium-dashboard .emp-birthday-row {
+    padding: 10px;
+    gap: 7px;
+  }
+
+  .emp-premium-dashboard .emp-birthday-avatar {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* EXTRA NARROW CARD - PREVENT OVERLAP */
+
+@container (max-width: 320px) {
+
+  .emp-premium-dashboard .emp-birthday-header {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .emp-premium-dashboard .emp-birthday-view {
+    justify-self: end;
+  }
+
+  .emp-premium-dashboard .emp-birthday-heading h3 {
+    font-size: 12px !important;
+  }
+}
+
+/* ==========================================
+   TABLET RESPONSIVE
+========================================== */
+
+@media (max-width: 1200px) {
+
+  .emp-premium-dashboard .emp-bottom-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+}
+
+/* ==========================================
+   MOBILE RESPONSIVE
+========================================== */
+
+@media (max-width: 600px) {
+
+  .emp-premium-dashboard .emp-bottom-grid {
+    gap: 16px;
+  }
+
+  .emp-premium-dashboard .emp-birthday-panel {
+    grid-template-columns: 65px minmax(0, 1fr);
+    column-gap: 4px !important;
+    padding: 14px;
+  }
+
+  .emp-premium-dashboard .emp-birthday-header {
+    margin-left: 0 !important;
+    width: 100%;
+  }
+
+  .emp-premium-dashboard .emp-birthday-art {
+    width: 65px;
+    height: 90px;
+  }
+
+  .emp-premium-dashboard .emp-birthday-art img {
+    height: 90px;
+    transform: none !important;
+  }
+
+  .emp-premium-dashboard .emp-birthday-heading h3 {
+    font-size: 13px !important;
+  }
+
+  .emp-premium-dashboard .emp-birthday-gift svg {
+    font-size: 18px !important;
+  }
+
+  .emp-premium-dashboard .emp-birthday-page-btn {
+    min-width: 60px;
+  }
+}
+/* ==========================================
+   SLIGHTLY INCREASE BIRTHDAY CAKE SIZE
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-art {
+  width: 85px;
+  height: 110px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+}
+
+/* CAKE IMAGE SIZE */
+
+.emp-premium-dashboard .emp-birthday-art img {
+  width: 100%;
+  height: 110px;
+  max-width: none;
+
+  object-fit: contain;
+  object-position: center;
+
+  transform: scale(1.2) !important;
+  transform-origin: center;
+}
+
+/* RESPONSIVE CAKE SIZE */
+
+@container (max-width: 420px) {
+
+  .emp-premium-dashboard .emp-birthday-art {
+    width: 65px;
+    height: 100px;
+  }
+
+  .emp-premium-dashboard .emp-birthday-art img {
+    height: 100px;
+    transform: scale(1.1) !important;
+  }
+}
+/* ==========================================
+   REDUCE BIRTHDAY CARD TOP SPACE
+========================================== */
+
+.emp-premium-dashboard .emp-birthday-panel {
+  padding-top: 10px !important;
+  grid-template-rows: auto 1fr auto;
+  align-content: start;
+  row-gap: 0;
+}
+
+/* CAKE IMAGE ALIGNMENT */
+
+.emp-premium-dashboard .emp-birthday-art {
+  height: 100px;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* BIRTHDAY HEADER */
+
+.emp-premium-dashboard .emp-birthday-header {
+  min-height: 100px !important;
+  height: auto;
+  padding: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  align-items: center;
+}
+
+/* REDUCE SPACE BELOW HEADER */
+
+.emp-premium-dashboard .emp-birthday-list {
+  margin-top: 8px !important;
+  padding-top: 0 !important;
+  align-self: start;
+}
+
+/* EMPLOYEE FRAME */
+
+.emp-premium-dashboard .emp-birthday-row {
+  margin-top: 0;
+}

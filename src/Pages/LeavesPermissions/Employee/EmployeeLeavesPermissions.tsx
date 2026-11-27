@@ -34,7 +34,7 @@ import EventAvailableOutlinedIcon from "@mui/icons-material/EventAvailableOutlin
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
-import AddCircleOutlinedIcon from "@mui/icons-material/AddCircleOutlined";
+import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
 import HealthAndSafetyOutlinedIcon from "@mui/icons-material/HealthAndSafetyOutlined";
 import WorkHistoryOutlinedIcon from "@mui/icons-material/WorkHistoryOutlined";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
@@ -1072,7 +1072,7 @@ const slRemaining = remaining(
       >
         <Box className="apply-card-content">
           <Box className="apply-card-icon">
-            <AddCircleOutlinedIcon />
+            <AddCircleOutlineRoundedIcon />
           </Box>
 
           <Box>
