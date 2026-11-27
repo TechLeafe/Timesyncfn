@@ -337,124 +337,160 @@ const EmployeeDashboard = () => {
       if (!backgroundRefresh) {
         setError("");
       }
-      try {
-        const dashboardResponse = await api.post<
-          ApiResponse<EmployeeDashboardData>
-        >("/dashboard/employee", {
+
+try {
+  // Start both independent API requests simultaneously.
+  const [dashboardResult, historyResult] =
+    await Promise.allSettled([
+      api.post<ApiResponse<EmployeeDashboardData>>(
+        "/dashboard/employee",
+        { date: "" },
+        { signal: controller.signal }
+      ),
+
+      api.post<ApiResponse<AttendanceHistoryRecord[]>>(
+        "/attendance/history",
+        {
+          user_id: "",
           date: "",
-        }, {
-          signal: controller.signal,
-        });
-        const payload = dashboardResponse.data.data;
-        let attendance =
-          payload?.todaysAttendance ??
-          EMPTY_DATA.todaysAttendance;
-        const leaveBalance =
-          payload?.leaveBalance ??
-          EMPTY_DATA.leaveBalance;
-        const leaveRequestSummary =
-          payload?.leaveRequestSummary ??
-          EMPTY_DATA.leaveRequestSummary;
-        let workingHours = EMPTY_DATA.workingHours;
-        try {
-          const historyResponse = await api.post<
-            ApiResponse<AttendanceHistoryRecord[]>
-          >("/attendance/history", {
-            user_id: "",
-            date: "",
-          }, {
-            signal: controller.signal,
-          });
-          const allHistory = historyResponse.data.data;
-          if (Array.isArray(allHistory)) {
-            const user = getLoggedInUser();
-            const myEmployeeId =
-              user?.userId ?? user?.employeeId;
-            const myEmail = user?.email?.toLowerCase();
-            const myHistory = allHistory
-              .filter((record) => {
-                const matchesId =
-                  Boolean(myEmployeeId) &&
-                  record.employeeId === myEmployeeId;
-                const matchesEmail =
-                  Boolean(myEmail) &&
-                  record.email?.toLowerCase() === myEmail;
-                return matchesId || matchesEmail;
-              })
-              .sort((a, b) =>
-                b.day.localeCompare(a.day)
-              );
-            const todayRecord = myHistory.find(
-              (record) => record.day === getTodayDateString()
-            );
-            attendance = {
-              ...attendance,
-              isCheckedIn: Boolean(
-                todayRecord?.checkInTime && !todayRecord.checkOutTime
-              ),
-              isCheckedOut: Boolean(todayRecord?.checkOutTime),
-            };
-            workingHours = computeWorkingHours(
-              myHistory,
-              attendance
-            );
-            if (!cancelled) {
-              setHistory(myHistory);
-            }
-          } else {
-            workingHours = {
-              today: safeNumber(
-                attendance.currentWorkingSeconds ??
-                  attendance.totalWorkingSeconds
-              ),
-              thisMonth: safeNumber(
-                payload?.workingHours?.thisMonth
-              ),
-              averagePerDay: safeNumber(
-                payload?.workingHours?.averagePerDay
-              ),
-            };
-          }
-        } catch (historyError) {
-          console.error(
-            "Attendance history error:",
-            historyError
-          );
-          workingHours = {
-            today: safeNumber(
-              attendance.currentWorkingSeconds ??
-                attendance.totalWorkingSeconds
-            ),
-            thisMonth: safeNumber(
-              payload?.workingHours?.thisMonth
-            ),
-            averagePerDay: safeNumber(
-              payload?.workingHours?.averagePerDay
-            ),
-          };
-        }
-        if (!cancelled) {
-          hasLoadedData = true;
-          setData({
-            workingHours,
-            leaveBalance,
-            leaveRequestSummary,
-            todaysAttendance: attendance,
-          });
-          setError("");
-        }
-      } catch (err) {
-        console.error("Employee dashboard error:", err);
-        if (!cancelled) {
-          setError(
-            backgroundRefresh && hasLoadedData
-              ? "Dashboard refresh failed. Showing the last loaded data."
-              : getDashboardErrorMessage(err)
-          );
-        }
-      } finally {
-          requestInProgress = false;
+        },
+        { signal: controller.signal }
+      ),
+    ]);
+
+  // Dashboard data is essential.
+  if (dashboardResult.status === "rejected") {
+    throw dashboardResult.reason;
+  }
+
+  const payload = dashboardResult.value.data.data;
+
+  let attendance =
+    payload?.todaysAttendance ??
+    EMPTY_DATA.todaysAttendance;
+
+  const leaveBalance =
+    payload?.leaveBalance ??
+    EMPTY_DATA.leaveBalance;
+
+  const leaveRequestSummary =
+    payload?.leaveRequestSummary ??
+    EMPTY_DATA.leaveRequestSummary;
+
+  let workingHours = EMPTY_DATA.workingHours;
+
+  // Process attendance history independently.
+  if (historyResult.status === "fulfilled") {
+    const allHistory = historyResult.value.data.data;
+
+    if (Array.isArray(allHistory)) {
+      const user = getLoggedInUser();
+
+      const myEmployeeId =
+        user?.userId ?? user?.employeeId;
+
+      const myEmail = user?.email?.toLowerCase();
+
+      const myHistory = allHistory
+        .filter((record) => {
+          const matchesId =
+            Boolean(myEmployeeId) &&
+            record.employeeId === myEmployeeId;
+
+          const matchesEmail =
+            Boolean(myEmail) &&
+            record.email?.toLowerCase() === myEmail;
+
+          return matchesId || matchesEmail;
+        })
+        .sort((a, b) =>
+          b.day.localeCompare(a.day)
+        );
+
+      const todayRecord = myHistory.find(
+        (record) => record.day === getTodayDateString()
+      );
+
+      attendance = {
+        ...attendance,
+        isCheckedIn: Boolean(
+          todayRecord?.checkInTime &&
+          !todayRecord.checkOutTime
+        ),
+        isCheckedOut: Boolean(todayRecord?.checkOutTime),
+      };
+
+      workingHours = computeWorkingHours(
+        myHistory,
+        attendance
+      );
+
+      if (!cancelled) {
+        setHistory(myHistory);
       }
+    } else {
+      workingHours = {
+        today: safeNumber(
+          attendance.currentWorkingSeconds ??
+            attendance.totalWorkingSeconds
+        ),
+        thisMonth: safeNumber(
+          payload?.workingHours?.thisMonth
+        ),
+        averagePerDay: safeNumber(
+          payload?.workingHours?.averagePerDay
+        ),
+      };
+    }
+  } else {
+    console.error(
+      "Attendance history error:",
+      historyResult.reason
+    );
+  
+
+    // Preserve dashboard-provided fallback values.
+    workingHours = {
+      today: safeNumber(
+        attendance.currentWorkingSeconds ??
+          attendance.totalWorkingSeconds
+      ),
+      thisMonth: safeNumber(
+        payload?.workingHours?.thisMonth
+      ),
+      averagePerDay: safeNumber(
+        payload?.workingHours?.averagePerDay
+      ),
+    };
+  }
+
+  
+      if (!cancelled) {
+        hasLoadedData = true;
+
+        setData({
+          workingHours,
+          leaveBalance,
+          leaveRequestSummary,
+          todaysAttendance: attendance,
+        });
+
+        setError("");
+      }
+    } catch (err) {
+      console.error("Employee dashboard error:", err);
+
+      if (!cancelled) {
+        setError(
+          backgroundRefresh && hasLoadedData
+            ? "Dashboard refresh failed. Showing the last loaded data."
+            : getDashboardErrorMessage(err)
+        );
+      }
+    } finally {
+      requestInProgress = false;
+    }
+
     };
     
     // Fetch dashboard data only once when the page mounts
