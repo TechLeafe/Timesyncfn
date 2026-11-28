@@ -336,6 +336,8 @@ export default function DeclareAchievementModal({
         ...(uploadedPhoto
           ? { photo: uploadedPhoto }
           : {}),
+      }, {
+        timeout: 600000,
       });
 
       if (!response.data.success || !response.data.data) {
