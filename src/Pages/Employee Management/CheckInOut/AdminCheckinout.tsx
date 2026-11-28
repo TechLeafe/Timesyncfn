@@ -83,7 +83,6 @@ interface AttendanceRecord {
     status: string;
   }[];
   attendanceStatus?: string;
-  storedAttendanceStatus?: string;
   approvalStatus?: "Pending" | "Approved" | "Rejected";
 }
 
@@ -118,7 +117,9 @@ const getAllowedCorrectionStatuses = (
     case "Present":
       return ["Absent"];
     case "Half-Day Present":
+      return ["Present"];
     case "Pending":
+      return ["Present", "Absent"];
     case "Late Present":
     case "Present Late":
       return ["Present"];
@@ -184,7 +185,7 @@ const getTodayDateString = (): string => {
 const shouldShowCorrectionAction = (
   record: AttendanceRecord
 ): boolean =>
-  canCorrectAttendance(record.storedAttendanceStatus) ||
+  canCorrectAttendance(record.attendanceStatus) ||
   record.day.slice(0, 10) < getTodayDateString();
 
 const formatDateTime = (
@@ -392,7 +393,7 @@ function AdminCheckinout() {
     setCorrectionDate(record.day.slice(0, 10));
     setCorrectionRecord(record);
     setCorrectionLoading(false);
-    const currentStatus = record.storedAttendanceStatus;
+    const currentStatus = record.attendanceStatus;
     if (currentStatus && isAttendanceCorrectionStatus(currentStatus)) {
       setCorrectionCurrentStatus(currentStatus);
       setCorrectionNewStatus(
@@ -416,23 +417,6 @@ function AdminCheckinout() {
       return;
     }
 
-    if (correctionDate === correctionEmployee.day.slice(0, 10)) {
-      const currentStatus = correctionEmployee.storedAttendanceStatus;
-      setCorrectionRecord(correctionEmployee);
-      setCorrectionError("");
-      setCorrectionLoading(false);
-      if (currentStatus && isAttendanceCorrectionStatus(currentStatus)) {
-        setCorrectionCurrentStatus(currentStatus);
-        setCorrectionNewStatus(
-          getAllowedCorrectionStatuses(currentStatus)[0] || ""
-        );
-      } else {
-        setCorrectionCurrentStatus("");
-        setCorrectionNewStatus("");
-      }
-      return;
-    }
-
     let cancelled = false;
     const fetchSelectedAttendance = async () => {
       setCorrectionLoading(true);
@@ -453,7 +437,7 @@ function AdminCheckinout() {
 
         if (!cancelled) {
           setCorrectionRecord(record || null);
-          const currentStatus = record?.storedAttendanceStatus;
+          const currentStatus = record?.attendanceStatus;
           if (currentStatus && isAttendanceCorrectionStatus(currentStatus)) {
             setCorrectionCurrentStatus(currentStatus);
             setCorrectionNewStatus(
@@ -507,7 +491,7 @@ function AdminCheckinout() {
       correctionRecord.user_id !== correctionEmployee.user_id ||
       correctionRecord.day.slice(0, 10) !== correctionDate ||
       !isValidDate ||
-      correctionRecord.storedAttendanceStatus !== correctionCurrentStatus ||
+      correctionRecord.attendanceStatus !== correctionCurrentStatus ||
       !isAttendanceCorrectionStatus(correctionCurrentStatus) ||
       !isAttendanceCorrectionStatus(correctionNewStatus) ||
       !getAllowedCorrectionStatuses(correctionCurrentStatus).includes(
@@ -529,7 +513,7 @@ function AdminCheckinout() {
         {
           user_id: correctionEmployee.user_id,
           date: correctionDate,
-          currentStatus: correctionRecord.storedAttendanceStatus,
+          currentStatus: correctionCurrentStatus,
           attendanceStatus: correctionNewStatus,
           reason: cleanReason,
         }
@@ -1151,7 +1135,7 @@ function AdminCheckinout() {
                 <Alert severity="error">{correctionError}</Alert>
               ) : correctionRecord ? (
                 <>
-                  {canCorrectAttendance(correctionRecord.storedAttendanceStatus) ? (
+                  {canCorrectAttendance(correctionRecord.attendanceStatus) ? (
                     <>
                       <Box className="admin-checkinout__correction-status-row">
                         <Box className="admin-checkinout__correction-field-row admin-checkinout__correction-status-field">
@@ -1161,9 +1145,18 @@ function AdminCheckinout() {
                           <TextField
                             className="admin-checkinout__correction-field"
                             label="Current Attendance Status"
+                            disabled
                             select
                             value={correctionCurrentStatus}
-                            disabled
+                            onChange={(event) => {
+                              const status = event.target.value;
+                              if (isAttendanceCorrectionStatus(status)) {
+                                setCorrectionCurrentStatus(status);
+                                setCorrectionNewStatus(
+                                  getAllowedCorrectionStatuses(status)[0] || ""
+                                );
+                              }
+                            }}
                             fullWidth
                           >
                             {ATTENDANCE_CORRECTION_STATUSES.map((status) => (
@@ -1252,7 +1245,7 @@ function AdminCheckinout() {
                       severity="info"
                       className="admin-checkinout__correction-alert"
                     >
-                      This attendance status cannot be corrected. If the stored status is missing, refresh after deploying the updated backend.
+                      This attendance status cannot be corrected.
                     </Alert>
                   )}
                 </>
@@ -1275,9 +1268,7 @@ function AdminCheckinout() {
             disabled={
               correctionSaving ||
               correctionLoading ||
-              !correctionRecord ||
-              !correctionCurrentStatus ||
-              !correctionNewStatus
+              !correctionRecord
             }
           >
             <SaveOutlinedIcon />

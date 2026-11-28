@@ -7,7 +7,6 @@ import {
   ChevronRight,
   Download,
   Filter,
-  //RefreshCw,
   Trophy,
 } from "lucide-react";
 

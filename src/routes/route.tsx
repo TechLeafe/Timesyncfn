@@ -1,7 +1,8 @@
-import { lazy } from "react";
+import { lazy, type ComponentType } from "react";
 import {
   createBrowserRouter,
   Navigate,
+  useRouteError,
 } from "react-router-dom";
 
 import MainLayout from "../layout/Mainlayout";
@@ -12,28 +13,77 @@ import {
   EMPLOYEE,
 } from "../data/permissions";
 
+const LAZY_IMPORT_RELOAD_KEY = "timesync:lazy-import-reload";
 
-const CompanyCalendar = lazy(() => import("../Pages/CompanyCalendar/Companycalendar"));
-const Attendance = lazy(() => import("../Pages/Attendance/Attendance"));
-const Admin = lazy(() => import("../Pages/Dashboard/AdminDashboard"));
-const EmployeeDashboard = lazy(() => import("../Pages/Dashboard/EmployeeDashboard"));
-const HRDashboard = lazy(() => import("../Pages/Dashboard/HRDashboard"));
-const Login = lazy(() =>
+function lazyPage<T extends { default: ComponentType }>(load: () => Promise<T>) {
+  return lazy(async () => {
+    try {
+      const page = await load();
+      try {
+        sessionStorage.removeItem(LAZY_IMPORT_RELOAD_KEY);
+      } catch {
+        // Storage can be unavailable in restricted browser contexts.
+      }
+      return page;
+    } catch (error) {
+      let alreadyReloaded = false;
+      let retryAvailable = false;
+      try {
+        alreadyReloaded = sessionStorage.getItem(LAZY_IMPORT_RELOAD_KEY) === "1";
+        if (!alreadyReloaded) {
+          sessionStorage.setItem(LAZY_IMPORT_RELOAD_KEY, "1");
+          retryAvailable = true;
+        }
+      } catch {
+        // Continue to the route error screen if storage is unavailable.
+      }
+
+      if (!alreadyReloaded && retryAvailable) {
+        window.location.reload();
+        return new Promise<T>(() => {});
+      }
+
+      throw error;
+    }
+  });
+}
+
+function RouteErrorPage() {
+  const error = useRouteError();
+  const message = error instanceof Error ? error.message : "The page could not be loaded.";
+
+  return (
+    <main role="alert" style={{ maxWidth: 640, margin: "12vh auto", padding: 24, fontFamily: "system-ui, sans-serif" }}>
+      <h1>We couldn’t open this page</h1>
+      <p>{message}</p>
+      <button type="button" onClick={() => window.location.reload()}>
+        Reload page
+      </button>
+    </main>
+  );
+}
+
+const CompanyCalendar = lazyPage(() => import("../Pages/CompanyCalendar/Companycalendar"));
+const Attendance = lazyPage(() => import("../Pages/Attendance/Attendance"));
+const Admin = lazyPage(() => import("../Pages/Dashboard/AdminDashboard"));
+const EmployeeDashboard = lazyPage(() => import("../Pages/Dashboard/EmployeeDashboard"));
+const HRDashboard = lazyPage(() => import("../Pages/Dashboard/HRDashboard"));
+const Login = lazyPage(() =>
   import("../Pages/Login/Login").then((module) => ({ default: module.Login }))
 );
-const OrganisationChart = lazy(() => import("../Pages/OrganisationChart/OrganisationChart"));
-const Employee_Creation = lazy(() => import("../Pages/Employee_Creation/Employee_Creation"));
-const BirthdayCreation = lazy(() => import("../Pages/BirthdayCreation/BirthdayCreation"));
-const EmployeeCheckInOut = lazy(() => import("../Pages/EmployeeCheckInOut/EmployeeCheckInOut"));
-const AdminCheckinout = lazy(() => import("../Pages/Employee Management/CheckInOut/AdminCheckinout"));
-const Holiday = lazy(() => import("../Pages/Holiday/Holiday"));
-const AdminLeavesPermissions = lazy(() => import("../Pages/LeavesPermissions/Admin/AdminLeavesPermissions"));
-const EmployeeLeavesPermissions = lazy(() => import("../Pages/LeavesPermissions/Employee/EmployeeLeavesPermissions"));
-const Details = lazy(() => import("../Pages/LeavesPermissions/Admin/EmployeeLeaveDetail/EmployeeLeaveDetail"));
-const LeaveDetail = lazy(() => import("../Pages/LeavesPermissions/Employee/LeaveDetail/LeaveDetail"));
-const DailyTask = lazy(() => import("../Pages/DailyTask/DailyTask"));
-const AddTask = lazy(() => import("../Pages/DailyTask/AddTask"));
-const TaskDetails = lazy(() => import("../Pages/DailyTask/TaskDetails"));
+const OrganisationChart = lazyPage(() => import("../Pages/OrganisationChart/OrganisationChart"));
+const Employee_Creation = lazyPage(() => import("../Pages/Employee_Creation/Employee_Creation"));
+const BirthdayCreation = lazyPage(() => import("../Pages/BirthdayCreation/BirthdayCreation"));
+const EmployeeCheckInOut = lazyPage(() => import("../Pages/EmployeeCheckInOut/EmployeeCheckInOut"));
+const AdminCheckinout = lazyPage(() => import("../Pages/Employee Management/CheckInOut/AdminCheckinout"));
+const Holiday = lazyPage(() => import("../Pages/Holiday/Holiday"));
+const AdminLeavesPermissions = lazyPage(() => import("../Pages/LeavesPermissions/Admin/AdminLeavesPermissions"));
+const EmployeeLeavesPermissions = lazyPage(() => import("../Pages/LeavesPermissions/Employee/EmployeeLeavesPermissions"));
+const Details = lazyPage(() => import("../Pages/LeavesPermissions/Admin/EmployeeLeaveDetail/EmployeeLeaveDetail"));
+const LeaveDetail = lazyPage(() => import("../Pages/LeavesPermissions/Employee/LeaveDetail/LeaveDetail"));
+const DailyTask = lazyPage(() => import("../Pages/DailyTask/DailyTask"));
+const AddTask = lazyPage(() => import("../Pages/DailyTask/AddTask"));
+const TaskDetails = lazyPage(() => import("../Pages/DailyTask/TaskDetails"));
 
 
 /* =========================================================
@@ -87,7 +137,7 @@ function HolidayRoute() {
    ROUTER
 ========================================================= */
 
-const LeavePolicies = lazy(() => import("../Pages/LeavePolicies/LeavePolicies"));
+const LeavePolicies = lazyPage(() => import("../Pages/LeavePolicies/LeavePolicies"));
 
 export const route = createBrowserRouter([
     {
@@ -97,6 +147,7 @@ export const route = createBrowserRouter([
     {
         path: "/",
         element: <MainLayout />,
+        errorElement: <RouteErrorPage />,
         children: [
             {
                 index: true,
