@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import type { ChangeEvent } from "react";
+import type { ChangeEvent, UIEvent } from "react";
 
 import {
   Alert,
@@ -212,11 +212,23 @@ export default function DeclareAchievementModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  const [visibleCount, setVisibleCount] = useState(10);
+
+  const visibleEmployees = employees.slice(0, visibleCount);
+  const selectedOutsidePage = employees.find(
+    (employee) => employee.user_id === userId &&
+      !visibleEmployees.some((item) => item.user_id === userId)
+  );
+  const dropdownEmployees = selectedOutsidePage
+    ? [...visibleEmployees, selectedOutsidePage]
+    : visibleEmployees;
+
   const busy = saving || readingPhoto;
 
   useEffect(() => {
     if (!open) return;
 
+    setVisibleCount(10);
     setUserId(existing?.employee?.user_id || "");
     setReason(existing?.achievement || "");
     setUploadedPhoto(null);
@@ -336,8 +348,6 @@ export default function DeclareAchievementModal({
         ...(uploadedPhoto
           ? { photo: uploadedPhoto }
           : {}),
-      }, {
-        timeout: 600000,
       });
 
       if (!response.data.success || !response.data.data) {
@@ -503,6 +513,21 @@ export default function DeclareAchievementModal({
                     slotProps={{
                       select: {
                         displayEmpty: true,
+                        MenuProps: {
+                          slotProps: {
+                            paper: {
+                              sx: { maxHeight: 270, overflowY: "auto" },
+                              onScroll: (event: UIEvent<HTMLDivElement>) => {
+                                const menu = event.currentTarget;
+                                if (menu.scrollHeight - menu.scrollTop - menu.clientHeight <= 32) {
+                                  setVisibleCount((count) =>
+                                    Math.min(count + 10, employees.length)
+                                  );
+                                }
+                              },
+                            },
+                          },
+                        },
                       },
                     }}
                     onChange={(event) => {
@@ -521,7 +546,7 @@ export default function DeclareAchievementModal({
                       Select Employee
                     </MenuItem>
 
-                    {employees.map((employee) => (
+                    {dropdownEmployees.map((employee) => (
                       <MenuItem
                         key={employee.user_id}
                         value={employee.user_id}

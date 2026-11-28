@@ -1,6 +1,4 @@
 
-import { Star } from "lucide-react";
-
 export type AchievementEmployee = {
   user_id: string;
   employeeId: string;
@@ -46,8 +44,8 @@ export default function MonthlyAchievementCard({
   return (
     <article className="ma-award-card">
       <div className="ma-award-scene">
-        <span className="ma-spark ma-spark-left">✦</span>
-        <span className="ma-spark ma-spark-right">✦</span>
+        {/* <span className="ma-spark ma-spark-left">✦</span>
+        <span className="ma-spark ma-spark-right">✦</span> */}
 
         <div className="ma-portrait">
           {employee?.photo ? (
@@ -59,18 +57,18 @@ export default function MonthlyAchievementCard({
       </div>
 
       <div className="ma-employee-summary">
-        <div className="ma-month-summary-ribbon">
+        <div className="ma-month-summary-ribbon" style={{ marginBottom: "25px" }}>
           {monthName}
         </div>
-        <span className="ma-designation">
+        <span className="ma-designation" style={{ marginBottom: "18px" }}>
           {employee?.designation || "Employee"}
         </span>
-        <Star
+        {/* <Star
           className="ma-employee-star"
           size={15}
           fill="currentColor"
           aria-hidden="true"
-        />
+        /> */}
       </div>
 
       <div className="ma-reason">

@@ -1,5 +1,6 @@
-
-/* Default: full-width calendar */
+/* ==========================================
+   CALENDAR ACHIEVEMENT LAYOUT
+========================================== */
 
 .cc-calendar-achievement-layout {
   display: grid;
@@ -32,6 +33,10 @@
   margin-left: auto;
 }
 
+/* ==========================================
+   ACHIEVEMENT BUTTONS
+========================================== */
+
 .cc-monthly-achievement-btn,
 .cc-declare-achievement-btn {
   display: inline-flex;
@@ -62,7 +67,9 @@
   background: #06613d;
 }
 
-/* Award card */
+/* ==========================================
+   AWARD CARD
+========================================== */
 
 .ma-award-card {
   width: 100%;
@@ -82,6 +89,10 @@
   color: #10243a;
   font-family: Arial, sans-serif;
 }
+
+/* ==========================================
+   EMPLOYEE IMAGE
+========================================== */
 
 .ma-award-scene {
   position: relative;
@@ -114,23 +125,13 @@
   object-position: center;
 }
 
-.ma-spark {
-  position: absolute;
-  z-index: 1;
-  top: 74px;
-  color: #f0ad17;
-  font-size: 21px;
-}
-
-.ma-spark-left {
-  left: 20px;
-}
-
-.ma-spark-right {
-  right: 20px;
-}
+/* ==========================================
+   EMPLOYEE SUMMARY
+========================================== */
 
 .ma-employee-summary {
+  position: relative;
+  isolation: isolate;
   padding: 8px 10px 4px;
   display: flex;
   flex-direction: column;
@@ -138,22 +139,36 @@
   gap: 3px;
 }
 
+/* ==========================================
+   MONTH RIBBON - FRONT SIDE
+========================================== */
+
 .ma-month-summary-ribbon {
   position: relative;
-  isolation: isolate;
   box-sizing: border-box;
   width: 75%;
   margin: 0 auto 4px;
   padding: 10px 8px;
-  background: linear-gradient(180deg, #ffe995 0%, #ffdc70 48%, #f4b52f 100%);
+
+  background: linear-gradient(
+    180deg,
+    #ffe995 0%,
+    #ffdc70 48%,
+    #f4b52f 100%
+  );
+
   color: #17202c;
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 700;
   text-align: center;
   white-space: nowrap;
   overflow-wrap: anywhere;
   box-shadow: 0 2px 5px #d7a34155;
 }
+
+/* ==========================================
+   MONTH RIBBON - BACK SIDE
+========================================== */
 
 .ma-month-summary-ribbon::before,
 .ma-month-summary-ribbon::after {
@@ -163,18 +178,45 @@
   top: 7px;
   width: 30px;
   height: 44px;
-  background: linear-gradient(180deg, #e4ad34, #d7971f);
+
+  background: linear-gradient(
+    180deg,
+    #e4ad34,
+    #d7971f
+  );
 }
+
+/* Left ribbon back side */
 
 .ma-month-summary-ribbon::before {
   left: -21px;
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 25% 50%);
+
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 100%,
+    0 100%,
+    25% 50%
+  );
 }
+
+/* Right ribbon back side */
 
 .ma-month-summary-ribbon::after {
   right: -21px;
-  clip-path: polygon(0 0, 100% 0, 75% 50%, 100% 100%, 0 100%);
+
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    75% 50%,
+    100% 100%,
+    0 100%
+  );
 }
+
+/* ==========================================
+   EMPLOYEE DESIGNATION
+========================================== */
 
 .ma-designation {
   color: #27313a;
@@ -182,14 +224,13 @@
   font-weight: 700;
 }
 
-.ma-employee-star {
-  margin-top: 1px;
-  color: #f0ad17;
-}
+/* ==========================================
+   ACHIEVEMENT REASON
+========================================== */
 
 .ma-reason {
   margin-top: 5px;
-  padding: 11px 12px;
+  padding: 10px 8px 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -201,10 +242,11 @@
   font-size: 14px;
   font-style: normal;
   font-weight: 600;
-  line-height: 1.55;
+  line-height: 1.75;
   border: 1px solid #9ea4a7;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
+  
 }
 
 .ma-reason-label {
@@ -214,6 +256,10 @@
   font-weight: 800;
   letter-spacing: 0.03em;
 }
+
+/* ==========================================
+   EMPTY ACHIEVEMENT SIDEBAR
+========================================== */
 
 .ma-empty-sidebar {
   width: 100%;
@@ -225,6 +271,10 @@
   color: #64748b;
   font-size: 13px;
 }
+
+/* ==========================================
+   RESPONSIVE DESIGN
+========================================== */
 
 @media (max-width: 900px) {
   .cc-calendar-achievement-layout.cc-achievement-visible {
